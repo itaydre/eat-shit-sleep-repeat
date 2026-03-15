@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baby Monitor</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#5a4a3a">
     <style>
         * {
             margin: 0;
@@ -86,39 +90,159 @@
             align-items: center;
         }
 
-        .clear-btn {
-            background: none;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 4px 12px;
-            font-size: 0.8rem;
-            color: #999;
-            cursor: pointer;
+        .menu-wrapper {
+            position: relative;
         }
 
-        .clear-btn:hover {
-            border-color: #e74c3c;
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            min-width: 150px;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .menu-dropdown.open {
+            display: block;
+        }
+
+        .menu-dropdown button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .menu-dropdown button:hover {
+            background: #f5f5f5;
+        }
+
+        .menu-dropdown button.danger {
             color: #e74c3c;
         }
 
-        .backup-btn {
+        .add-btn {
             background: none;
-            border: 1px solid #4caf50;
-            border-radius: 8px;
-            padding: 4px 12px;
-            font-size: 0.8rem;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
             color: #4caf50;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 300px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal h3 {
+            margin-bottom: 16px;
+            color: #5a4a3a;
+        }
+
+        .modal label {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .modal select, .modal input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
             cursor: pointer;
         }
 
-        .backup-btn:hover {
+        .modal-buttons .cancel {
+            background: #eee;
+            color: #666;
+        }
+
+        .modal-buttons .save {
             background: #4caf50;
             color: white;
         }
 
-        .header-buttons {
+        .loader {
             display: flex;
-            gap: 8px;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #e0d6c8;
+            border-top-color: #5a4a3a;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .entry {
@@ -254,6 +378,84 @@
             cursor: pointer;
             white-space: nowrap;
         }
+
+        .tabs {
+            max-width: 500px;
+            margin: 0 auto 16px;
+            display: flex;
+            gap: 0;
+            background: #ebe3d8;
+            border-radius: 10px;
+            padding: 3px;
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #8a7a6a;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #5a4a3a;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .stats {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 14px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 36px repeat(7, 1fr);
+            gap: 4px 6px;
+            align-items: end;
+        }
+        .stats-row-label {
+            font-size: 1.2rem;
+            text-align: center;
+            padding-bottom: 4px;
+        }
+        .stats-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-height: 60px;
+            justify-content: flex-end;
+        }
+        .stats-count {
+            font-size: 0.7rem;
+            color: #999;
+            font-weight: 600;
+        }
+        .stats-bar {
+            width: 100%;
+            max-width: 28px;
+            border-radius: 4px 4px 0 0;
+            min-height: 0;
+        }
+        .stats-bar.pee { background: #a8d4f0; }
+        .stats-bar.poop { background: #d4b896; }
+        .stats-bar.feed { background: #a3d9a3; }
+        .stats-day-label {
+            font-size: 0.65rem;
+            color: #aaa;
+            text-align: center;
+            padding-top: 4px;
+        }
+        .stats-corner { }
     </style>
 </head>
 <body>
@@ -268,9 +470,13 @@
             <span class="emoji">💩</span>
             <span>Poop</span>
         </button>
-        <button class="btn btn-feed" onclick="log('feed')">
+        <button class="btn btn-feed" onclick="log('feed_l')">
+            <span class="emoji">🤱</span>
+            <span>Feed L</span>
+        </button>
+        <button class="btn btn-feed" onclick="log('feed_r')">
             <span class="emoji">🍼</span>
-            <span>Feed</span>
+            <span>Feed R</span>
         </button>
     </div>
 
@@ -287,49 +493,177 @@
         </div>
     </div>
 
-    <div class="history">
-        <h2>
-            History
-            <div class="header-buttons">
-                <button class="backup-btn" onclick="downloadBackup()">Backup</button>
-                <button class="clear-btn" onclick="clearAll()">Clear all</button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('history')">History</button>
+        <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+    </div>
+
+    <div class="tab-content active" id="tab-history">
+        <div class="history">
+            <h2>
+                History
+                <div class="header-actions">
+                    <button class="add-btn" onclick="openAddModal()">+</button>
+                    <div class="menu-wrapper">
+                        <button class="menu-btn" onclick="toggleMenu(event)">⋮</button>
+                        <div class="menu-dropdown" id="menu-dropdown">
+                            <button onclick="downloadBackup(); closeMenu()">💾 Backup</button>
+                            <button class="danger" onclick="clearAll(); closeMenu()">🗑️ Clear all</button>
+                        </div>
+                    </div>
+                </div>
+            </h2>
+            <div id="entries"><div class="loader" id="loader"><div class="spinner"></div></div></div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-stats">
+        <div class="stats" id="stats">
+            <div id="stats-grid" class="stats-grid"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal">
+            <h3>Add past entry</h3>
+            <label>Activity</label>
+            <select id="add-type">
+                <option value="pee">💦 Pee</option>
+                <option value="poop">💩 Poop</option>
+                <option value="feed_l">🤱 Feed L</option>
+                <option value="feed_r">🍼 Feed R</option>
+            </select>
+            <label>Date & Time</label>
+            <input type="datetime-local" id="add-datetime">
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeAddModal()">Cancel</button>
+                <button class="save" onclick="saveRetroEntry()">Save</button>
             </div>
-        </h2>
-        <div id="entries"></div>
+        </div>
     </div>
 
     <script>
+        function openAddModal() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('add-datetime').value = now.toISOString().slice(0, 16);
+            document.getElementById('add-modal').classList.add('open');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.remove('open');
+        }
+
+        async function saveRetroEntry() {
+            const type = document.getElementById('add-type').value;
+            const datetime = document.getElementById('add-datetime').value;
+            if (!datetime) return;
+            const timestamp = new Date(datetime).getTime();
+            closeAddModal();
+            await log(type, timestamp);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', (tab === 'history' ? i === 0 : i === 1));
+            });
+            document.getElementById('tab-history').classList.toggle('active', tab === 'history');
+            document.getElementById('tab-stats').classList.toggle('active', tab === 'stats');
+        }
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            document.getElementById('menu-dropdown').classList.toggle('open');
+        }
+        function closeMenu() {
+            document.getElementById('menu-dropdown').classList.remove('open');
+        }
+        document.addEventListener('click', closeMenu);
+
         const ACTIVITIES = {
-            pee:   { emoji: '💦', label: 'Pee' },
-            poop:  { emoji: '💩', label: 'Poop' },
-            feed:  { emoji: '🍼', label: 'Feed' },
+            pee:    { emoji: '💦', label: 'Pee' },
+            poop:   { emoji: '💩', label: 'Poop' },
+            feed:   { emoji: '🍼', label: 'Feed' },
+            feed_l: { emoji: '🤱', label: 'Feed L' },
+            feed_r: { emoji: '🍼', label: 'Feed R' },
         };
 
+        let entries = [];
+
         function getEntries() {
-            return JSON.parse(localStorage.getItem('baby_log') || '[]');
+            return entries;
         }
 
-        function saveEntries(entries) {
-            localStorage.setItem('baby_log', JSON.stringify(entries));
-        }
-
-        function log(type) {
-            const entries = getEntries();
-            entries.unshift({ type, timestamp: Date.now() });
-            saveEntries(entries);
+        async function fetchEntries() {
+            try {
+                const res = await fetch('/api/logs');
+                entries = await res.json();
+            } catch (e) {
+                console.warn('Failed to fetch logs:', e);
+            }
             render();
         }
 
-        function deleteEntry(index) {
-            const entries = getEntries();
+        async function log(type, customTimestamp) {
+            const timestamp = customTimestamp || Date.now();
+            try {
+                const res = await fetch('/api/logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, timestamp }),
+                });
+                const saved = await res.json();
+                entries.push(saved);
+                entries.sort((a, b) => b.timestamp - a.timestamp);
+            } catch (e) {
+                entries.unshift({ type, timestamp });
+                console.warn('Failed to save log:', e);
+            }
+            render();
+
+            if (type === 'feed' || type === 'feed_l' || type === 'feed_r') {
+                updateFeedTimer();
+                const endpoint = localStorage.getItem('pushEndpoint');
+                if (endpoint) {
+                    fetch('/api/feed', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint, timestamp }),
+                    }).catch(() => {});
+                }
+            }
+        }
+
+        async function deleteEntry(index) {
+            const entry = entries[index];
             entries.splice(index, 1);
-            saveEntries(entries);
             render();
+
+            if (entry && entry.id) {
+                try {
+                    await fetch('/api/logs', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: entry.id }),
+                    });
+                } catch (e) {
+                    console.warn('Failed to delete log:', e);
+                }
+            }
         }
 
-        function clearAll() {
+        async function clearAll() {
             if (confirm('Clear all history?')) {
-                localStorage.removeItem('baby_log');
+                for (const entry of entries) {
+                    if (entry.id) {
+                        await fetch('/api/logs', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: entry.id }),
+                        }).catch(() => {});
+                    }
+                }
+                entries = [];
                 render();
             }
         }
@@ -369,7 +703,7 @@
                     html += `<div class="day-label">${dayLabel}</div>`;
                 }
 
-                const act = ACTIVITIES[entry.type];
+                const act = ACTIVITIES[entry.type] || { emoji: '❓', label: entry.type };
                 html += `
                     <div class="entry">
                         <span class="emoji">${act.emoji}</span>
@@ -383,6 +717,85 @@
             });
 
             container.innerHTML = html;
+            renderCharts();
+        }
+
+        // --- Stats Charts ---
+        function renderCharts() {
+            const allEntries = getEntries();
+            const statsEl = document.getElementById('stats');
+            const gridEl = document.getElementById('stats-grid');
+
+            // Build last 7 days (today first)
+            const days = [];
+            for (let i = 0; i <= 6; i++) {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() - i);
+                days.push(d);
+            }
+
+            const types = [
+                { key: 'pee', emoji: '💦', cls: 'pee' },
+                { key: 'poop', emoji: '💩', cls: 'poop' },
+                { key: 'feed_l', emoji: '🤱', cls: 'feed' },
+                { key: 'feed_r', emoji: '🍼', cls: 'feed' },
+            ];
+
+            // Count per day per type
+            const counts = {};
+            let max = 1;
+            types.forEach(t => {
+                counts[t.key] = {};
+                days.forEach(d => { counts[t.key][d.getTime()] = 0; });
+            });
+
+            allEntries.forEach(e => {
+                const d = new Date(e.timestamp);
+                d.setHours(0, 0, 0, 0);
+                const dayKey = d.getTime();
+                if (counts[e.type] && counts[e.type][dayKey] !== undefined) {
+                    counts[e.type][dayKey]++;
+                    if (counts[e.type][dayKey] > max) max = counts[e.type][dayKey];
+                }
+            });
+
+            // Check if there's any data
+            let hasData = false;
+            types.forEach(t => {
+                days.forEach(d => { if (counts[t.key][d.getTime()] > 0) hasData = true; });
+            });
+            if (!hasData) { gridEl.innerHTML = '<div class="empty" style="grid-column:1/-1">No data yet</div>'; return; }
+
+            const maxHeight = 40;
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            let html = '';
+
+            // Day label header row
+            html += '<div class="stats-corner"></div>';
+            days.forEach(d => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const label = d.getTime() === today.getTime() ? 'Today' : dayNames[d.getDay()];
+                html += `<div class="stats-day-label">${label}</div>`;
+            });
+
+            // One row per activity
+            types.forEach(t => {
+                html += `<div class="stats-row-label">${t.emoji}</div>`;
+                days.forEach(d => {
+                    const c = counts[t.key][d.getTime()];
+                    const h = c > 0 ? Math.max(4, Math.round((c / max) * maxHeight)) : 0;
+                    html += `<div class="stats-cell">`;
+                    if (c > 0) {
+                        html += `<span class="stats-count">${c}</span>`;
+                        html += `<div class="stats-bar ${t.cls}" style="height:${h}px"></div>`;
+                    }
+                    html += `</div>`;
+                });
+            });
+
+            gridEl.innerHTML = html;
         }
 
         // --- Backup ---
@@ -414,12 +827,21 @@
 
         // --- Notification & Feed Reminder ---
         const FEED_INTERVAL = 3 * 60 * 60 * 1000; // 3 hours
-        let swRegistration = null;
+        const VAPID_PUBLIC_KEY = 'BMN9JQe4eiEidwuJEacqzsUsunUzEZkAQasEyJLquDZ8IocDKqPdQzWzBbpkNHf0Xh6UXRf3d40TvSa7ZZHCNlE';
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            const arr = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+            return arr;
+        }
 
         async function initServiceWorker() {
             if ('serviceWorker' in navigator) {
                 try {
-                    swRegistration = await navigator.serviceWorker.register('sw.js');
+                    await navigator.serviceWorker.register('sw.js');
                 } catch (e) {
                     console.warn('SW registration failed:', e);
                 }
@@ -437,43 +859,38 @@
             }
         }
 
+        async function subscribeToPush() {
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (!sub) {
+                sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                });
+            }
+            await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subscription: sub.toJSON(),
+                    lastFeedTime: getLastFeedTime(),
+                }),
+            });
+            localStorage.setItem('pushEndpoint', sub.endpoint);
+        }
+
         async function requestNotifPermission() {
             const result = await Notification.requestPermission();
             checkNotifPermission();
             if (result === 'granted') {
-                scheduleFeedReminder();
+                await subscribeToPush();
             }
         }
 
         function getLastFeedTime() {
             const entries = getEntries();
-            const lastFeed = entries.find(e => e.type === 'feed');
+            const lastFeed = entries.find(e => e.type === 'feed' || e.type === 'feed_l' || e.type === 'feed_r');
             return lastFeed ? lastFeed.timestamp : null;
-        }
-
-        function scheduleFeedReminder() {
-            const lastFeed = getLastFeedTime();
-            if (!lastFeed) return;
-
-            const nextFeedAt = lastFeed + FEED_INTERVAL;
-            const delay = nextFeedAt - Date.now();
-
-            if (delay > 0 && swRegistration) {
-                if (swRegistration.active) {
-                    swRegistration.active.postMessage({
-                        type: 'schedule-feed-reminder',
-                        delay: delay,
-                    });
-                }
-            } else if (delay <= 0 && Notification.permission === 'granted') {
-                // Already overdue — notify now
-                if (swRegistration && swRegistration.active) {
-                    swRegistration.active.postMessage({
-                        type: 'schedule-feed-reminder',
-                        delay: 0,
-                    });
-                }
-            }
         }
 
         function updateFeedTimer() {
@@ -490,20 +907,22 @@
             const nextFeedAt = lastFeed + FEED_INTERVAL;
             const diff = nextFeedAt - Date.now();
 
+            const feedTime = new Date(nextFeedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
             if (diff <= 0) {
                 const overdue = Math.abs(diff);
                 const mins = Math.floor(overdue / 60000);
                 const hrs = Math.floor(mins / 60);
                 const m = mins % 60;
                 timerEl.classList.add('overdue');
-                timerEl.querySelector('.label').textContent = 'Feeding overdue by';
+                timerEl.querySelector('.label').textContent = `Feeding overdue (was ${feedTime})`;
                 countdownEl.textContent = `${hrs}h ${String(m).padStart(2, '0')}m`;
             } else {
                 const mins = Math.floor(diff / 60000);
                 const hrs = Math.floor(mins / 60);
                 const m = mins % 60;
                 timerEl.classList.remove('overdue');
-                timerEl.querySelector('.label').textContent = 'Next feeding in';
+                timerEl.querySelector('.label').textContent = `Next feeding at ${feedTime}`;
                 countdownEl.textContent = `${hrs}h ${String(m).padStart(2, '0')}m`;
             }
         }
@@ -511,22 +930,32 @@
         // Init
         initServiceWorker().then(() => {
             checkNotifPermission();
-            scheduleFeedReminder();
-        });
-        updateFeedTimer();
-        setInterval(updateFeedTimer, 10000);
-
-        // Re-schedule reminder whenever a feed is logged
-        const _originalLog = log;
-        log = function(type) {
-            _originalLog(type);
-            if (type === 'feed') {
-                scheduleFeedReminder();
-                updateFeedTimer();
+            if (Notification.permission === 'granted') {
+                subscribeToPush();
             }
-        };
+        });
 
-        render();
+        // One-time migration from localStorage to Supabase
+        async function migrateLocalStorage() {
+            if (localStorage.getItem('baby_log_migrated')) return;
+            const old = JSON.parse(localStorage.getItem('baby_log') || '[]');
+            if (old.length === 0) { localStorage.setItem('baby_log_migrated', '1'); return; }
+
+            for (const entry of old) {
+                const type = entry.type === 'feed' ? 'feed_l' : entry.type;
+                await fetch('/api/logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, timestamp: entry.timestamp }),
+                }).catch(() => {});
+            }
+            localStorage.setItem('baby_log_migrated', '1');
+        }
+
+        // Load from server and auto-refresh every 30s
+        migrateLocalStorage().then(() => fetchEntries()).then(() => updateFeedTimer());
+        setInterval(() => fetchEntries().then(() => updateFeedTimer()), 30000);
+        setInterval(updateFeedTimer, 10000);
     </script>
 </body>
 </html>
