@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fef9f0;
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: #5a4a3a;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 20px;
+            padding: 20px 28px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 110px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn .emoji {
+            font-size: 2.4rem;
+        }
+
+        .btn-sleep {
+            background: #d4e6ff;
+            color: #2a5298;
+        }
+
+        .btn-poop {
+            background: #f5e6d0;
+            color: #7a5c2e;
+        }
+
+        .btn-feed {
+            background: #d9f5d9;
+            color: #2e6b2e;
+        }
+
+        .history {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .history h2 {
+            font-size: 1.2rem;
+            color: #5a4a3a;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background: none;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .entry {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            animation: slideIn 0.2s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .entry .emoji {
+            font-size: 1.5rem;
+        }
+
+        .entry .details {
+            flex: 1;
+        }
+
+        .entry .activity {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .entry .time {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .entry .delete-btn {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .entry .delete-btn:hover {
+            color: #e74c3c;
+        }
+
+        .empty {
+            text-align: center;
+            color: #bbb;
+            padding: 40px 0;
+            font-size: 0.95rem;
+        }
+
+        .day-label {
+            font-size: 0.8rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 16px 0 8px;
+            padding-left: 4px;
+        }
+
+        .feed-timer {
+            max-width: 500px;
+            margin: 0 auto 24px;
+            background: #fff3e0;
+            border-radius: 14px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .feed-timer .emoji {
+            font-size: 1.6rem;
+        }
+
+        .feed-timer .info {
+            flex: 1;
+        }
+
+        .feed-timer .label {
+            font-size: 0.8rem;
+            color: #b07a30;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .feed-timer .countdown {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #7a5c2e;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .feed-timer.overdue {
+            background: #fde8e8;
+        }
+
+        .feed-timer.overdue .label {
+            color: #c0392b;
+        }
+
+        .feed-timer.overdue .countdown {
+            color: #e74c3c;
+        }
+
+        .notif-banner {
+            max-width: 500px;
+            margin: 0 auto 16px;
+            background: #fff3cd;
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+
+        .notif-banner button {
+            background: #5a4a3a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Baby Monitor</h1>
+
+    <div class="buttons">
+        <button class="btn btn-sleep" onclick="log('pee')">
+            <span class="emoji">💦</span>
+            <span>Pee</span>
+        </button>
+        <button class="btn btn-poop" onclick="log('poop')">
+            <span class="emoji">💩</span>
+            <span>Poop</span>
+        </button>
+        <button class="btn btn-feed" onclick="log('feed')">
+            <span class="emoji">🍼</span>
+            <span>Feed</span>
+        </button>
+    </div>
+
+    <div id="notif-banner" class="notif-banner" style="display:none">
+        <span>Enable notifications to get feeding reminders</span>
+        <button onclick="requestNotifPermission()">Enable</button>
+    </div>
+
+    <div id="feed-timer" class="feed-timer" style="display:none">
+        <span class="emoji">🍼</span>
+        <div class="info">
+            <div class="label">Next feeding in</div>
+            <div class="countdown" id="countdown">--:--</div>
+        </div>
+    </div>
+
+    <div class="history">
+        <h2>
+            History
+            <button class="clear-btn" onclick="clearAll()">Clear all</button>
+        </h2>
+        <div id="entries"></div>
+    </div>
+
+    <script>
+        const ACTIVITIES = {
+            pee:   { emoji: '💦', label: 'Pee' },
+            poop:  { emoji: '💩', label: 'Poop' },
+            feed:  { emoji: '🍼', label: 'Feed' },
+        };
+
+        function getEntries() {
+            return JSON.parse(localStorage.getItem('baby_log') || '[]');
+        }
+
+        function saveEntries(entries) {
+            localStorage.setItem('baby_log', JSON.stringify(entries));
+        }
+
+        function log(type) {
+            const entries = getEntries();
+            entries.unshift({ type, timestamp: Date.now() });
+            saveEntries(entries);
+            render();
+        }
+
+        function deleteEntry(index) {
+            const entries = getEntries();
+            entries.splice(index, 1);
+            saveEntries(entries);
+            render();
+        }
+
+        function clearAll() {
+            if (confirm('Clear all history?')) {
+                localStorage.removeItem('baby_log');
+                render();
+            }
+        }
+
+        function formatTime(ts) {
+            const d = new Date(ts);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDayLabel(ts) {
+            const d = new Date(ts);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            if (d.toDateString() === today.toDateString()) return 'Today';
+            if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+            return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+        }
+
+        function render() {
+            const entries = getEntries();
+            const container = document.getElementById('entries');
+
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="empty">No entries yet. Tap a button above!</div>';
+                return;
+            }
+
+            let html = '';
+            let currentDay = '';
+
+            entries.forEach((entry, i) => {
+                const dayLabel = formatDayLabel(entry.timestamp);
+                if (dayLabel !== currentDay) {
+                    currentDay = dayLabel;
+                    html += `<div class="day-label">${dayLabel}</div>`;
+                }
+
+                const act = ACTIVITIES[entry.type];
+                html += `
+                    <div class="entry">
+                        <span class="emoji">${act.emoji}</span>
+                        <div class="details">
+                            <div class="activity">${act.label}</div>
+                            <div class="time">${formatTime(entry.timestamp)}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteEntry(${i})">&times;</button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // --- Notification & Feed Reminder ---
+        const FEED_INTERVAL = 3 * 60 * 60 * 1000; // 3 hours
+        let swRegistration = null;
+
+        async function initServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    swRegistration = await navigator.serviceWorker.register('sw.js');
+                } catch (e) {
+                    console.warn('SW registration failed:', e);
+                }
+            }
+        }
+
+        function checkNotifPermission() {
+            const banner = document.getElementById('notif-banner');
+            if (!('Notification' in window) || Notification.permission === 'granted') {
+                banner.style.display = 'none';
+            } else if (Notification.permission === 'denied') {
+                banner.style.display = 'none';
+            } else {
+                banner.style.display = 'flex';
+            }
+        }
+
+        async function requestNotifPermission() {
+            const result = await Notification.requestPermission();
+            checkNotifPermission();
+            if (result === 'granted') {
+                scheduleFeedReminder();
+            }
+        }
+
+        function getLastFeedTime() {
+            const entries = getEntries();
+            const lastFeed = entries.find(e => e.type === 'feed');
+            return lastFeed ? lastFeed.timestamp : null;
+        }
+
+        function scheduleFeedReminder() {
+            const lastFeed = getLastFeedTime();
+            if (!lastFeed) return;
+
+            const nextFeedAt = lastFeed + FEED_INTERVAL;
+            const delay = nextFeedAt - Date.now();
+
+            if (delay > 0 && swRegistration) {
+                if (swRegistration.active) {
+                    swRegistration.active.postMessage({
+                        type: 'schedule-feed-reminder',
+                        delay: delay,
+                    });
+                }
+            } else if (delay <= 0 && Notification.permission === 'granted') {
+                // Already overdue — notify now
+                if (swRegistration && swRegistration.active) {
+                    swRegistration.active.postMessage({
+                        type: 'schedule-feed-reminder',
+                        delay: 0,
+                    });
+                }
+            }
+        }
+
+        function updateFeedTimer() {
+            const timerEl = document.getElementById('feed-timer');
+            const countdownEl = document.getElementById('countdown');
+            const lastFeed = getLastFeedTime();
+
+            if (!lastFeed) {
+                timerEl.style.display = 'none';
+                return;
+            }
+
+            timerEl.style.display = 'flex';
+            const nextFeedAt = lastFeed + FEED_INTERVAL;
+            const diff = nextFeedAt - Date.now();
+
+            if (diff <= 0) {
+                const overdue = Math.abs(diff);
+                const mins = Math.floor(overdue / 60000);
+                const hrs = Math.floor(mins / 60);
+                const m = mins % 60;
+                timerEl.classList.add('overdue');
+                timerEl.querySelector('.label').textContent = 'Feeding overdue by';
+                countdownEl.textContent = `${hrs}h ${String(m).padStart(2, '0')}m`;
+            } else {
+                const mins = Math.floor(diff / 60000);
+                const hrs = Math.floor(mins / 60);
+                const m = mins % 60;
+                timerEl.classList.remove('overdue');
+                timerEl.querySelector('.label').textContent = 'Next feeding in';
+                countdownEl.textContent = `${hrs}h ${String(m).padStart(2, '0')}m`;
+            }
+        }
+
+        // Init
+        initServiceWorker().then(() => {
+            checkNotifPermission();
+            scheduleFeedReminder();
+        });
+        updateFeedTimer();
+        setInterval(updateFeedTimer, 10000);
+
+        // Re-schedule reminder whenever a feed is logged
+        const _originalLog = log;
+        log = function(type) {
+            _originalLog(type);
+            if (type === 'feed') {
+                scheduleFeedReminder();
+                updateFeedTimer();
+            }
+        };
+
+        render();
+    </script>
+</body>
+</html>
