@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'SF Pro Rounded', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #fef9f0;
             color: #333;
             min-height: 100vh;
@@ -99,6 +99,26 @@
         .clear-btn:hover {
             border-color: #e74c3c;
             color: #e74c3c;
+        }
+
+        .backup-btn {
+            background: none;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            color: #4caf50;
+            cursor: pointer;
+        }
+
+        .backup-btn:hover {
+            background: #4caf50;
+            color: white;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
         }
 
         .entry {
@@ -270,7 +290,10 @@
     <div class="history">
         <h2>
             History
-            <button class="clear-btn" onclick="clearAll()">Clear all</button>
+            <div class="header-buttons">
+                <button class="backup-btn" onclick="downloadBackup()">Backup</button>
+                <button class="clear-btn" onclick="clearAll()">Clear all</button>
+            </div>
         </h2>
         <div id="entries"></div>
     </div>
@@ -361,6 +384,33 @@
 
             container.innerHTML = html;
         }
+
+        // --- Backup ---
+        function downloadBackup() {
+            const entries = getEntries();
+            if (entries.length === 0) return alert('Nothing to backup!');
+            const data = JSON.stringify(entries, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `baby-log-backup-${date}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            localStorage.setItem('last_backup', Date.now());
+        }
+
+        function checkAutoBackup() {
+            const lastBackup = parseInt(localStorage.getItem('last_backup') || '0');
+            const threeHours = 3 * 60 * 60 * 1000;
+            if (Date.now() - lastBackup >= threeHours && getEntries().length > 0) {
+                downloadBackup();
+            }
+        }
+
+        checkAutoBackup();
+        setInterval(checkAutoBackup, 60000);
 
         // --- Notification & Feed Reminder ---
         const FEED_INTERVAL = 3 * 60 * 60 * 1000; // 3 hours
