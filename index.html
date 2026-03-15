@@ -8,6 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#5a4a3a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -16,7 +19,7 @@
         }
 
         body {
-            font-family: 'SF Pro Rounded', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #fef9f0;
             color: #333;
             min-height: 100vh;
@@ -542,7 +545,12 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { WebHaptics } from 'https://esm.sh/web-haptics@0.0.6';
+        const haptics = new WebHaptics({ debug: true });
+        window.hapticSuccess = () => haptics.trigger('success');
+        window.hapticError = () => haptics.trigger('error');
+
         function openAddModal() {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -605,6 +613,7 @@
         }
 
         async function log(type, customTimestamp) {
+            hapticSuccess();
             const timestamp = customTimestamp || Date.now();
             try {
                 const res = await fetch('/api/logs', {
@@ -635,6 +644,7 @@
         }
 
         async function deleteEntry(index) {
+            hapticError();
             const entry = entries[index];
             entries.splice(index, 1);
             render();
@@ -951,6 +961,13 @@
             }
             localStorage.setItem('baby_log_migrated', '1');
         }
+
+        // Expose functions for onclick handlers (module scope)
+        Object.assign(window, {
+            log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
+            toggleMenu, closeMenu, deleteEntry, downloadBackup, clearAll,
+            requestNotifPermission
+        });
 
         // Load from server and auto-refresh every 30s
         migrateLocalStorage().then(() => fetchEntries()).then(() => updateFeedTimer());
