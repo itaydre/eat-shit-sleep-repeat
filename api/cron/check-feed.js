@@ -1,7 +1,7 @@
 const webpush = require('web-push');
 const { getAllSubscriptions, markNotified, removeSubscription } = require('../../lib/kv');
 
-const FEED_INTERVAL = 3 * 60 * 60 * 1000; // 3 hours
+const FEED_INTERVAL = 2 * 60 * 60 * 1000; // 2 hours
 
 webpush.setVapidDetails(
     process.env.VAPID_SUBJECT,
@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
 
         const payload = JSON.stringify({
             title: 'Time to feed!',
-            body: "It's been 3 hours since the last feeding.",
+            body: "It's been 2 hours since the last feeding.",
         });
 
         try {
