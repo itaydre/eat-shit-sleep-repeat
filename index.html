@@ -346,6 +346,20 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .feed-timer .skip-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: #b07a30;
+            cursor: pointer;
+            padding: 4px 8px;
+            opacity: 0.6;
+        }
+
+        .feed-timer.overdue .skip-btn {
+            color: #c0392b;
+        }
+
         .feed-timer.overdue {
             background: #fde8e8;
         }
@@ -530,6 +544,7 @@
             <div class="label">Next feeding in</div>
             <div class="countdown" id="countdown">--:--</div>
         </div>
+        <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">✕</button>
     </div>
 
     <div class="tabs">
@@ -967,12 +982,27 @@
             return lastFeed ? lastFeed.timestamp : null;
         }
 
+        async function skipNextReminder() {
+            localStorage.setItem('skipReminderUntil', getLastFeedTime());
+            document.getElementById('feed-timer').style.display = 'none';
+            // Also mark as notified on server so push notification is skipped
+            const endpoint = localStorage.getItem('pushEndpoint');
+            if (endpoint) {
+                await fetch('/api/skip-reminder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ endpoint }),
+                });
+            }
+        }
+
         function updateFeedTimer() {
             const timerEl = document.getElementById('feed-timer');
             const countdownEl = document.getElementById('countdown');
             const lastFeed = getLastFeedTime();
 
-            if (!lastFeed) {
+            const skippedFor = localStorage.getItem('skipReminderUntil');
+            if (!lastFeed || (skippedFor && Number(skippedFor) === lastFeed)) {
                 timerEl.style.display = 'none';
                 return;
             }
