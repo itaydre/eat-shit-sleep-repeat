@@ -308,8 +308,22 @@
             color: #aaa;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin: 16px 0 8px;
+            margin: 16px 0 0;
             padding-left: 4px;
+        }
+
+        .day-summary {
+            display: flex;
+            gap: 12px;
+            padding: 6px 4px 8px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .day-summary span {
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
 
         .feed-timer {
@@ -482,33 +496,6 @@
         }
         .stats-corner { }
 
-        .time-presets {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        .preset-btn {
-            flex: 1;
-            min-width: 60px;
-            padding: 10px 8px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background: #f9f9f9;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-align: center;
-            color: #333;
-        }
-        .preset-btn.active {
-            background: #5a4a3a;
-            color: white;
-            border-color: #5a4a3a;
-        }
-        .preset-other {
-            background: none;
-            color: #999;
-        }
     </style>
 </head>
 <body>
@@ -588,15 +575,7 @@
                 <option value="feed_r">🍼 Feed R</option>
             </select>
             <label>When</label>
-            <div class="time-presets">
-                <button type="button" class="preset-btn" onclick="setTimePreset(5)">5m ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(15)">15m ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(30)">30m ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(60)">1h ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(120)">2h ago</button>
-                <button type="button" class="preset-btn preset-other" onclick="toggleCustomTime()">Other</button>
-            </div>
-            <input type="datetime-local" id="add-datetime" style="display:none">
+            <input type="datetime-local" id="add-datetime">
             <div class="modal-buttons">
                 <button class="cancel" onclick="closeAddModal()">Cancel</button>
                 <button class="save" onclick="saveRetroEntry()">Save</button>
@@ -610,17 +589,19 @@
         window.hapticSuccess = () => haptics.trigger('success');
         window.hapticError = () => haptics.trigger('error');
 
-        let selectedPresetMinutes = 5;
+        function toLocalISOString(date) {
+            const offset = date.getTimezoneOffset();
+            const local = new Date(date.getTime() - offset * 60000);
+            return local.toISOString().slice(0, 16);
+        }
 
         function openAddModal() {
-            selectedPresetMinutes = 5;
-            document.getElementById('add-datetime').style.display = 'none';
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('.preset-btn').classList.add('active');
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const dtInput = document.getElementById('add-datetime');
-            dtInput.max = now.toISOString().slice(0, 16);
+            const now = new Date();
+            const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+            dtInput.max = toLocalISOString(now);
+            dtInput.min = toLocalISOString(threeDaysAgo);
+            dtInput.value = toLocalISOString(now);
             document.getElementById('add-modal').classList.add('open');
         }
 
@@ -628,35 +609,12 @@
             document.getElementById('add-modal').classList.remove('open');
         }
 
-        function setTimePreset(minutes) {
-            selectedPresetMinutes = minutes;
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('add-datetime').style.display = 'none';
-        }
-
-        function toggleCustomTime() {
-            selectedPresetMinutes = null;
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            const dtInput = document.getElementById('add-datetime');
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            dtInput.value = now.toISOString().slice(0, 16);
-            dtInput.style.display = 'block';
-        }
-
         async function saveRetroEntry() {
             const type = document.getElementById('add-type').value;
-            let timestamp;
-            if (selectedPresetMinutes !== null) {
-                timestamp = Date.now() - selectedPresetMinutes * 60000;
-            } else {
-                const datetime = document.getElementById('add-datetime').value;
-                if (!datetime) return;
-                timestamp = new Date(datetime).getTime();
-                if (timestamp > Date.now()) return;
-            }
+            const datetime = document.getElementById('add-datetime').value;
+            if (!datetime) return;
+            const timestamp = new Date(datetime).getTime();
+            if (timestamp > Date.now()) return;
             closeAddModal();
             await log(type, timestamp);
         }
@@ -793,6 +751,14 @@
                 return;
             }
 
+            // Group entries by day for summaries
+            const dayGroups = {};
+            entries.forEach(entry => {
+                const dayLabel = formatDayLabel(entry.timestamp);
+                if (!dayGroups[dayLabel]) dayGroups[dayLabel] = {};
+                dayGroups[dayLabel][entry.type] = (dayGroups[dayLabel][entry.type] || 0) + 1;
+            });
+
             let html = '';
             let currentDay = '';
 
@@ -801,6 +767,13 @@
                 if (dayLabel !== currentDay) {
                     currentDay = dayLabel;
                     html += `<div class="day-label">${dayLabel}</div>`;
+                    const counts = dayGroups[dayLabel];
+                    const parts = [];
+                    if (counts.pee) parts.push(`<span>💦 ${counts.pee}</span>`);
+                    if (counts.poop) parts.push(`<span>💩 ${counts.poop}</span>`);
+                    if (counts.feed_l) parts.push(`<span>🤱 ${counts.feed_l}</span>`);
+                    if (counts.feed_r) parts.push(`<span>🍼 ${counts.feed_r}</span>`);
+                    if (parts.length) html += `<div class="day-summary">${parts.join('')}</div>`;
                 }
 
                 const act = ACTIVITIES[entry.type] || { emoji: '❓', label: entry.type };
@@ -1058,7 +1031,7 @@
 
         // Expose functions for onclick handlers (module scope)
         Object.assign(window, {
-            log, openAddModal, closeAddModal, saveRetroEntry, setTimePreset, toggleCustomTime, switchTab,
+            log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
             toggleMenu, closeMenu, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission
         });
