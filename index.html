@@ -824,17 +824,6 @@
             localStorage.setItem('last_backup', Date.now());
         }
 
-        function checkAutoBackup() {
-            const lastBackup = parseInt(localStorage.getItem('last_backup') || '0');
-            const threeHours = 3 * 60 * 60 * 1000;
-            if (Date.now() - lastBackup >= threeHours && getEntries().length > 0) {
-                downloadBackup();
-            }
-        }
-
-        checkAutoBackup();
-        setInterval(checkAutoBackup, 60000);
-
         // --- Notification & Feed Reminder ---
         const FEED_INTERVAL = 3 * 60 * 60 * 1000; // 3 hours
         const VAPID_PUBLIC_KEY = 'BMN9JQe4eiEidwuJEacqzsUsunUzEZkAQasEyJLquDZ8IocDKqPdQzWzBbpkNHf0Xh6UXRf3d40TvSa7ZZHCNlE';
