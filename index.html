@@ -459,6 +459,34 @@
             padding-top: 4px;
         }
         .stats-corner { }
+
+        .time-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .preset-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: center;
+            color: #333;
+        }
+        .preset-btn.active {
+            background: #5a4a3a;
+            color: white;
+            border-color: #5a4a3a;
+        }
+        .preset-other {
+            background: none;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -536,8 +564,16 @@
                 <option value="feed_l">🤱 Feed L</option>
                 <option value="feed_r">🍼 Feed R</option>
             </select>
-            <label>Date & Time</label>
-            <input type="datetime-local" id="add-datetime">
+            <label>When</label>
+            <div class="time-presets">
+                <button type="button" class="preset-btn" onclick="setTimePreset(5)">5m ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(15)">15m ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(30)">30m ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(60)">1h ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(120)">2h ago</button>
+                <button type="button" class="preset-btn preset-other" onclick="toggleCustomTime()">Other</button>
+            </div>
+            <input type="datetime-local" id="add-datetime" style="display:none">
             <div class="modal-buttons">
                 <button class="cancel" onclick="closeAddModal()">Cancel</button>
                 <button class="save" onclick="saveRetroEntry()">Save</button>
@@ -551,10 +587,17 @@
         window.hapticSuccess = () => haptics.trigger('success');
         window.hapticError = () => haptics.trigger('error');
 
+        let selectedPresetMinutes = 5;
+
         function openAddModal() {
+            selectedPresetMinutes = 5;
+            document.getElementById('add-datetime').style.display = 'none';
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.preset-btn').classList.add('active');
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('add-datetime').value = now.toISOString().slice(0, 16);
+            const dtInput = document.getElementById('add-datetime');
+            dtInput.max = now.toISOString().slice(0, 16);
             document.getElementById('add-modal').classList.add('open');
         }
 
@@ -562,11 +605,35 @@
             document.getElementById('add-modal').classList.remove('open');
         }
 
+        function setTimePreset(minutes) {
+            selectedPresetMinutes = minutes;
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('add-datetime').style.display = 'none';
+        }
+
+        function toggleCustomTime() {
+            selectedPresetMinutes = null;
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const dtInput = document.getElementById('add-datetime');
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dtInput.value = now.toISOString().slice(0, 16);
+            dtInput.style.display = 'block';
+        }
+
         async function saveRetroEntry() {
             const type = document.getElementById('add-type').value;
-            const datetime = document.getElementById('add-datetime').value;
-            if (!datetime) return;
-            const timestamp = new Date(datetime).getTime();
+            let timestamp;
+            if (selectedPresetMinutes !== null) {
+                timestamp = Date.now() - selectedPresetMinutes * 60000;
+            } else {
+                const datetime = document.getElementById('add-datetime').value;
+                if (!datetime) return;
+                timestamp = new Date(datetime).getTime();
+                if (timestamp > Date.now()) return;
+            }
             closeAddModal();
             await log(type, timestamp);
         }
@@ -953,7 +1020,7 @@
 
         // Expose functions for onclick handlers (module scope)
         Object.assign(window, {
-            log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
+            log, openAddModal, closeAddModal, saveRetroEntry, setTimePreset, toggleCustomTime, switchTab,
             toggleMenu, closeMenu, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission
         });
