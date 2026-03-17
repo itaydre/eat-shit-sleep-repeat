@@ -156,7 +156,7 @@
             background: white;
             border-radius: 12px;
             margin-bottom: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            box-shadow: none;
             cursor: pointer;
             border: none;
             width: 100%;
@@ -201,7 +201,7 @@
             align-items: center;
             gap: 6px;
             transition: transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: none;
             flex: 1;
             min-width: 0;
         }
@@ -347,7 +347,7 @@
             background: white;
             border-radius: 12px;
             margin-bottom: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            box-shadow: none;
             animation: slideIn 0.2s ease-out;
         }
 
@@ -431,7 +431,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: none;
         }
 
         .feed-timer .emoji {
@@ -562,7 +562,7 @@
             background: white;
             border-radius: 14px;
             padding: 16px 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: none;
         }
         .stats-grid {
             display: grid;
@@ -612,6 +612,35 @@
             padding-top: 4px;
         }
         .stats-corner { }
+
+        .time-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .preset-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: center;
+            color: #333;
+            font-family: inherit;
+        }
+        .preset-btn.active {
+            background: #5a4a3a;
+            color: white;
+            border-color: #5a4a3a;
+        }
+        .preset-other {
+            background: none;
+            color: #999;
+        }
 
     </style>
 </head>
@@ -773,7 +802,15 @@
                 <option value="feed_r">&#127868; Feed R</option>
             </select>
             <label>When</label>
-            <input type="datetime-local" id="add-datetime">
+            <div class="time-presets">
+                <button type="button" class="preset-btn" onclick="setTimePreset(5)">5m ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(15)">15m ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(30)">30m ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(60)">1h ago</button>
+                <button type="button" class="preset-btn" onclick="setTimePreset(120)">2h ago</button>
+                <button type="button" class="preset-btn preset-other" onclick="toggleCustomTime()">Other</button>
+            </div>
+            <input type="datetime-local" id="add-datetime" style="display:none">
             <div class="modal-buttons">
                 <button class="cancel" onclick="closeAddModal()">Cancel</button>
                 <button class="save" onclick="saveRetroEntry()">Save</button>
@@ -941,13 +978,15 @@
             return local.toISOString().slice(0, 16);
         }
 
+        let selectedPresetMinutes = 5;
+
         function openAddModal() {
+            selectedPresetMinutes = 5;
+            document.getElementById('add-datetime').style.display = 'none';
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.preset-btn').classList.add('active');
             const dtInput = document.getElementById('add-datetime');
-            const now = new Date();
-            const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-            dtInput.max = toLocalISOString(now);
-            dtInput.min = toLocalISOString(threeDaysAgo);
-            dtInput.value = toLocalISOString(now);
+            dtInput.max = toLocalISOString(new Date());
             document.getElementById('add-modal').classList.add('open');
         }
 
@@ -955,12 +994,33 @@
             document.getElementById('add-modal').classList.remove('open');
         }
 
+        function setTimePreset(minutes) {
+            selectedPresetMinutes = minutes;
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('add-datetime').style.display = 'none';
+        }
+
+        function toggleCustomTime() {
+            selectedPresetMinutes = null;
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const dtInput = document.getElementById('add-datetime');
+            dtInput.value = toLocalISOString(new Date());
+            dtInput.style.display = 'block';
+        }
+
         async function saveRetroEntry() {
             const type = document.getElementById('add-type').value;
-            const datetime = document.getElementById('add-datetime').value;
-            if (!datetime) return;
-            const timestamp = new Date(datetime).getTime();
-            if (timestamp > Date.now()) return;
+            let timestamp;
+            if (selectedPresetMinutes !== null) {
+                timestamp = Date.now() - selectedPresetMinutes * 60000;
+            } else {
+                const datetime = document.getElementById('add-datetime').value;
+                if (!datetime) return;
+                timestamp = new Date(datetime).getTime();
+                if (timestamp > Date.now()) return;
+            }
             closeAddModal();
             await log(type, timestamp);
         }
@@ -1456,7 +1516,7 @@
 
         // Expose functions for onclick handlers (module scope)
         Object.assign(window, {
-            log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
+            log, openAddModal, closeAddModal, saveRetroEntry, setTimePreset, toggleCustomTime, switchTab,
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout
         });
