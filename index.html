@@ -683,6 +683,7 @@
         <div class="top-bar">
             <button class="back-btn" id="back-btn" onclick="openSettings()">&#8592;</button>
             <h1 id="app-title">Eat shit sleep repeat</h1>
+            <div id="baby-age" style="text-align:center; font-size:0.75rem; color:#aaa; margin-top:-16px; margin-bottom:8px;"></div>
             <button class="settings-btn" id="settings-btn" onclick="openSettings()">&#9881;</button>
         </div>
 
@@ -945,6 +946,11 @@
             const titleEl = document.getElementById('app-title');
             if (profile && profile.baby_name) {
                 titleEl.textContent = profile.baby_name + "'s log";
+            }
+            if (profile && profile.baby_birthdate) {
+                const birth = new Date(profile.baby_birthdate);
+                const days = Math.floor((Date.now() - birth.getTime()) / 86400000);
+                document.getElementById('baby-age').textContent = days + ' days old';
             }
             initServiceWorker().then(() => {
                 checkNotifPermission();
