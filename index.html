@@ -694,7 +694,7 @@
                         <span>Poop</span>
                     </button>
                     <button class="btn btn-feed" onclick="log('feed_l')">
-                        <span class="emoji">&#129329;</span>
+                        <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span>
                         <span>Feed L</span>
                     </button>
                     <button class="btn btn-feed" onclick="log('feed_r')">
@@ -776,7 +776,7 @@
             <select id="add-type">
                 <option value="pee">&#128166; Pee</option>
                 <option value="poop">&#128169; Poop</option>
-                <option value="feed_l">&#129329; Feed L</option>
+                <option value="feed_l">&#127868; Feed L</option>
                 <option value="feed_r">&#127868; Feed R</option>
             </select>
             <label>When</label>
@@ -1016,7 +1016,7 @@
             pee:    { emoji: '\u{1F4A6}', label: 'Pee' },
             poop:   { emoji: '\u{1F4A9}', label: 'Poop' },
             feed:   { emoji: '\u{1F37C}', label: 'Feed' },
-            feed_l: { emoji: '\u{1F931}', label: 'Feed L' },
+            feed_l: { emoji: '\u{1F37C}', label: 'Feed L', flip: true },
             feed_r: { emoji: '\u{1F37C}', label: 'Feed R' },
         };
 
@@ -1148,15 +1148,16 @@
                     const parts = [];
                     if (counts.pee) parts.push(`<span>\u{1F4A6} ${counts.pee}</span>`);
                     if (counts.poop) parts.push(`<span>\u{1F4A9} ${counts.poop}</span>`);
-                    if (counts.feed_l) parts.push(`<span>\u{1F931} ${counts.feed_l}</span>`);
+                    if (counts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${counts.feed_l}</span>`);
                     if (counts.feed_r) parts.push(`<span>\u{1F37C} ${counts.feed_r}</span>`);
                     if (parts.length) html += `<div class="day-summary">${parts.join('')}</div>`;
                 }
 
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
+                const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
                 html += `
                     <div class="entry">
-                        <span class="emoji">${act.emoji}</span>
+                        <span class="emoji"${flipStyle}>${act.emoji}</span>
                         <div class="details">
                             <div class="activity">${act.label}</div>
                             <div class="time">${formatTime(entry.timestamp)}</div>
@@ -1184,7 +1185,7 @@
                     const parts = [];
                     if (todayCounts.pee) parts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
                     if (todayCounts.poop) parts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
-                    if (todayCounts.feed_l) parts.push(`<span>\u{1F931} ${todayCounts.feed_l}</span>`);
+                    if (todayCounts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${todayCounts.feed_l}</span>`);
                     if (todayCounts.feed_r) parts.push(`<span>\u{1F37C} ${todayCounts.feed_r}</span>`);
 
                     let todayHtml = '';
@@ -1193,9 +1194,10 @@
                     todayEntries.forEach((entry) => {
                         const globalIndex = entries.indexOf(entry);
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
+                        const tFlip = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
                         todayHtml += `
                             <div class="entry">
-                                <span class="emoji">${act.emoji}</span>
+                                <span class="emoji"${tFlip}>${act.emoji}</span>
                                 <div class="details">
                                     <div class="activity">${act.label}</div>
                                     <div class="time">${formatTime(entry.timestamp)}</div>
@@ -1231,7 +1233,7 @@
             const types = [
                 { key: 'pee', emoji: '\u{1F4A6}', label: 'Pee', cls: 'pee' },
                 { key: 'poop', emoji: '\u{1F4A9}', label: 'Poop', cls: 'poop' },
-                { key: 'feed_l', emoji: '\u{1F931}', label: 'Feed L', cls: 'feed' },
+                { key: 'feed_l', emoji: '\u{1F37C}', label: 'Feed L', cls: 'feed', flip: true },
                 { key: 'feed_r', emoji: '\u{1F37C}', label: 'Feed R', cls: 'feed' },
             ];
 
@@ -1275,7 +1277,8 @@
 
             // One row per activity
             types.forEach(t => {
-                html += `<div class="stats-row-label">${t.emoji}<small>${t.label}</small></div>`;
+                const sFlip = t.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
+                html += `<div class="stats-row-label"><span${sFlip}>${t.emoji}</span><small>${t.label}</small></div>`;
                 days.forEach(d => {
                     const c = counts[t.key][d.getTime()];
                     const h = c > 0 ? Math.max(4, Math.round((c / max) * maxHeight)) : 0;
