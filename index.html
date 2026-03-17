@@ -749,7 +749,7 @@
             }
 
             sb.auth.onAuthStateChange((event, sess) => {
-                if (event === 'INITIAL_SESSION') return;
+                if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
                 session = sess;
                 if (event === 'SIGNED_IN') {
                     loadApp();
