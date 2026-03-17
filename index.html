@@ -766,9 +766,16 @@
             btn.disabled = true;
             const { error } = await sb.auth.signInWithOtp({ email });
             btn.disabled = false;
-            document.getElementById('auth-message').textContent = error
-                ? 'Something went wrong. Try again.'
-                : 'Check your email for the magic link!';
+            const msgEl = document.getElementById('auth-message');
+            if (error) {
+                msgEl.style.color = '#c0392b';
+                msgEl.textContent = error.status === 429
+                    ? 'Too many attempts. Please wait a minute and try again.'
+                    : 'Something went wrong. Try again.';
+            } else {
+                msgEl.style.color = '#2e6b2e';
+                msgEl.textContent = 'Check your email for the magic link!';
+            }
         }
 
         async function saveOnboarding() {
