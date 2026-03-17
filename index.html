@@ -418,13 +418,8 @@
         }
 
         .feed-timer-wrapper {
-            position: fixed;
-            bottom: calc(54px + env(safe-area-inset-bottom, 0px));
-            left: 0;
-            right: 0;
-            padding: 10px 20px;
-            background: #fef9f0;
-            z-index: 49;
+            max-width: 500px;
+            margin: 0 auto 16px;
         }
 
         .feed-timer {
@@ -708,6 +703,19 @@
                     <button onclick="requestNotifPermission()">Enable</button>
                 </div>
 
+                <div class="feed-timer-wrapper" id="feed-timer-wrapper" style="display:none">
+                    <div id="feed-timer" class="feed-timer">
+                        <span class="emoji">&#127868;</span>
+                        <div class="info">
+                            <div class="label">Next feeding in</div>
+                            <div class="countdown" id="countdown">--:--</div>
+                        </div>
+                        <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
+                    </div>
+                    <div id="restore-timer" style="display:none; text-align:center; padding-top:8px;">
+                        <button onclick="restoreTimer()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 14px; font-size:0.8rem; color:#999; cursor:pointer; font-family:inherit;">Show feed timer</button>
+                    </div>
+                </div>
 
                 <div class="history">
                     <h2>
@@ -734,21 +742,6 @@
                 <div class="stats" id="stats">
                     <div id="stats-grid" class="stats-grid"></div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Feed Timer (fixed bottom) -->
-        <div class="feed-timer-wrapper" id="feed-timer-wrapper" style="display:none">
-            <div id="feed-timer" class="feed-timer">
-                <span class="emoji">&#127868;</span>
-                <div class="info">
-                    <div class="label">Next feeding in</div>
-                    <div class="countdown" id="countdown">--:--</div>
-                </div>
-                <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
-            </div>
-            <div id="restore-timer" style="display:none; text-align:center; padding-top:8px;">
-                <button onclick="restoreTimer()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 14px; font-size:0.8rem; color:#999; cursor:pointer; font-family:inherit;">Show feed timer</button>
             </div>
         </div>
 
@@ -990,7 +983,8 @@
             document.getElementById('settings-page').classList.toggle('active', settingsOpen);
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('bottom-nav').style.display = settingsOpen ? 'none' : '';
-            document.getElementById('feed-timer-wrapper').style.display = settingsOpen ? 'none' : '';
+            const ftw = document.getElementById('feed-timer-wrapper');
+            if (settingsOpen) ftw.style.display = 'none';
             document.getElementById('back-btn').classList.toggle('visible', settingsOpen);
             document.getElementById('settings-btn').style.visibility = settingsOpen ? 'hidden' : '';
         }
