@@ -1551,8 +1551,20 @@
 
         function getLastFeedTime() {
             const entries = getEntries();
-            const lastFeed = entries.find(e => e.type === 'feed' || e.type === 'feed_l' || e.type === 'feed_r');
-            return lastFeed ? lastFeed.timestamp : null;
+            const SESSION_GAP = 30 * 60 * 1000; // 30 min — feeds closer than this are one session
+            const isFeed = e => e.type === 'feed' || e.type === 'feed_l' || e.type === 'feed_r';
+            const feeds = entries.filter(isFeed); // sorted newest first
+            if (feeds.length === 0) return null;
+            // Walk backwards from the most recent feed to find the session start
+            let sessionStart = feeds[0].timestamp;
+            for (let i = 1; i < feeds.length; i++) {
+                if (sessionStart - feeds[i].timestamp <= SESSION_GAP) {
+                    sessionStart = feeds[i].timestamp;
+                } else {
+                    break;
+                }
+            }
+            return sessionStart;
         }
 
         async function skipNextReminder() {
