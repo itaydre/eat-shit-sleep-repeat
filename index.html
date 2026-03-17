@@ -586,8 +586,13 @@
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display:flex; justify-content:center; padding-top:120px;">
+        <div class="spinner"></div>
+    </div>
+
     <!-- Auth Screen -->
-    <div class="auth-screen" id="auth-screen" style="display:block">
+    <div class="auth-screen" id="auth-screen">
         <h2>Eat shit sleep repeat</h2>
         <p>Track your baby's feeds, diapers, and more.</p>
         <input type="email" id="auth-email" class="auth-input" placeholder="Your email">
@@ -754,6 +759,7 @@
         }
 
         function showScreen(screen) {
+            document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('auth-screen').style.display = screen === 'auth' ? 'block' : 'none';
             document.getElementById('onboarding-screen').style.display = screen === 'onboarding' ? 'block' : 'none';
             document.getElementById('main-app').style.display = screen === 'app' ? 'block' : 'none';
