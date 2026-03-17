@@ -181,11 +181,10 @@
 
         /* --- Main App --- */
         .buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            justify-content: center;
             margin-bottom: 32px;
-            flex-wrap: nowrap;
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
@@ -383,6 +382,11 @@
             transition: transform 0.2s ease;
             touch-action: pan-y;
             z-index: 1;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) translateX(var(--drift)) rotate(var(--rotation)); opacity: 0; }
         }
 
         @keyframes slideIn {
@@ -1172,8 +1176,39 @@
             render();
         }
 
+        function emojiConfetti(emoji) {
+            const count = 18;
+            const container = document.createElement('div');
+            container.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:9999;overflow:hidden';
+            document.body.appendChild(container);
+
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                const x = Math.random() * 100;
+                const delay = Math.random() * 300;
+                const duration = 800 + Math.random() * 600;
+                const size = 1.2 + Math.random() * 1.2;
+                const rotation = Math.random() * 360;
+                const drift = (Math.random() - 0.5) * 60;
+                el.textContent = emoji;
+                el.style.cssText = `
+                    position:absolute;
+                    left:${x}%;
+                    top:-40px;
+                    font-size:${size}rem;
+                    animation:confettiFall ${duration}ms ${delay}ms ease-in forwards;
+                    --drift:${drift}px;
+                    --rotation:${rotation}deg;
+                `;
+                container.appendChild(el);
+            }
+            setTimeout(() => container.remove(), 1500);
+        }
+
         async function log(type, customTimestamp) {
             hapticSuccess();
+            const act = ACTIVITIES[type];
+            if (act) emojiConfetti(act.emoji);
             const timestamp = customTimestamp || Date.now();
             try {
                 const res = await apiFetch('/api/logs', {
