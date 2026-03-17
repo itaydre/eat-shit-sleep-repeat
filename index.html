@@ -608,6 +608,8 @@
         <input type="text" id="baby-name" class="auth-input" placeholder="e.g. Maya">
         <label>Date of birth</label>
         <input type="date" id="baby-dob" class="auth-input">
+        <label>Invite code (optional — to join a partner's account)</label>
+        <input type="text" id="invite-code" class="auth-input" placeholder="Paste invite code">
         <button class="auth-btn" onclick="saveOnboarding()">Let's go!</button>
     </div>
 
@@ -621,6 +623,10 @@
 
         <div class="settings-page" id="settings-page">
             <h2>Settings</h2>
+            <button class="settings-item" onclick="copyInviteCode()">
+                <span class="settings-icon">&#128101;</span>
+                <span id="invite-btn-text">Copy invite code for partner</span>
+            </button>
             <button class="settings-item" onclick="downloadBackup()">
                 <span class="settings-icon">&#128190;</span>
                 <span>Download backup</span>
@@ -787,13 +793,14 @@
         async function saveOnboarding() {
             const baby_name = document.getElementById('baby-name').value.trim();
             const baby_birthdate = document.getElementById('baby-dob').value;
+            const invite_code = document.getElementById('invite-code').value.trim();
             if (!baby_name) return;
-            await apiFetch('/api/profile', {
+            const res = await apiFetch('/api/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ baby_name, baby_birthdate: baby_birthdate || null }),
+                body: JSON.stringify({ baby_name, baby_birthdate: baby_birthdate || null, invite_code: invite_code || null }),
             });
-            profile = { baby_name, baby_birthdate, onboarding_done: true };
+            profile = await res.json();
             startApp();
         }
 
@@ -902,6 +909,16 @@
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('back-btn').classList.toggle('visible', settingsOpen);
             document.getElementById('settings-btn').style.visibility = settingsOpen ? 'hidden' : '';
+        }
+
+        async function copyInviteCode() {
+            if (profile && profile.household_id) {
+                await navigator.clipboard.writeText(profile.household_id);
+                document.getElementById('invite-btn-text').textContent = 'Copied!';
+                setTimeout(() => {
+                    document.getElementById('invite-btn-text').textContent = 'Copy invite code for partner';
+                }, 2000);
+            }
         }
 
         function confirmClearAll() {
@@ -1297,7 +1314,7 @@
         // Expose functions for onclick handlers (module scope)
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
-            openSettings, confirmClearAll, deleteEntry, downloadBackup, clearAll,
+            openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, sendMagicLink, saveOnboarding, logout
         });
 

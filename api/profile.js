@@ -21,10 +21,25 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-        const { baby_name, baby_birthdate } = req.body;
+        const { baby_name, baby_birthdate, invite_code } = req.body;
+        const updates = { baby_name, baby_birthdate, onboarding_done: true };
+
+        // If invite code provided, join that household
+        if (invite_code) {
+            const { data: existing } = await supabase
+                .from('profiles')
+                .select('household_id')
+                .eq('household_id', invite_code)
+                .limit(1)
+                .single();
+            if (existing) {
+                updates.household_id = existing.household_id;
+            }
+        }
+
         const { data, error } = await supabase
             .from('profiles')
-            .update({ baby_name, baby_birthdate, onboarding_done: true })
+            .update(updates)
             .eq('id', user.id)
             .select()
             .single();
