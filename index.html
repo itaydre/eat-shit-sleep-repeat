@@ -680,6 +680,10 @@
                 <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
             </div>
 
+            <div id="restore-timer" style="display:none; text-align:center; margin-bottom:16px;">
+                <button onclick="restoreTimer()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 14px; font-size:0.8rem; color:#999; cursor:pointer; font-family:inherit;">Show feed timer</button>
+            </div>
+
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('history')">History</button>
                 <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
@@ -1262,6 +1266,7 @@
         async function skipNextReminder() {
             localStorage.setItem('skipReminderUntil', getLastFeedTime());
             document.getElementById('feed-timer').style.display = 'none';
+            document.getElementById('restore-timer').style.display = 'block';
             const endpoint = localStorage.getItem('pushEndpoint');
             if (endpoint) {
                 await apiFetch('/api/skip-reminder', {
@@ -1272,6 +1277,12 @@
             }
         }
 
+        function restoreTimer() {
+            localStorage.removeItem('skipReminderUntil');
+            document.getElementById('restore-timer').style.display = 'none';
+            updateFeedTimer();
+        }
+
         function updateFeedTimer() {
             const timerEl = document.getElementById('feed-timer');
             const countdownEl = document.getElementById('countdown');
@@ -1280,8 +1291,12 @@
             const skippedFor = localStorage.getItem('skipReminderUntil');
             if (!lastFeed || (skippedFor && Number(skippedFor) === lastFeed)) {
                 timerEl.style.display = 'none';
+                if (lastFeed && skippedFor) {
+                    document.getElementById('restore-timer').style.display = 'block';
+                }
                 return;
             }
+            document.getElementById('restore-timer').style.display = 'none';
 
             timerEl.style.display = 'flex';
             const nextFeedAt = lastFeed + FEED_INTERVAL;
@@ -1328,7 +1343,7 @@
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
-            requestNotifPermission, skipNextReminder, signInWithGoogle, sendMagicLink, saveOnboarding, logout
+            requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout
         });
 
         // Boot
