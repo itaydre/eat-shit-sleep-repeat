@@ -23,7 +23,7 @@
             background: #fef9f0;
             color: #333;
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 20px 80px;
         }
 
         /* --- Auth & Onboarding Screens --- */
@@ -181,25 +181,29 @@
         /* --- Main App --- */
         .buttons {
             display: flex;
-            gap: 16px;
+            gap: 10px;
             justify-content: center;
             margin-bottom: 32px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .btn {
             border: none;
-            border-radius: 20px;
-            padding: 20px 28px;
-            font-size: 1.1rem;
+            border-radius: 16px;
+            padding: 14px 0;
+            font-size: 0.85rem;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: transform 0.15s, box-shadow 0.15s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-width: 110px;
+            flex: 1;
+            min-width: 0;
         }
 
         .btn:active {
@@ -207,7 +211,7 @@
         }
 
         .btn .emoji {
-            font-size: 2.4rem;
+            font-size: 1.8rem;
         }
 
         .btn-sleep {
@@ -413,9 +417,19 @@
             gap: 2px;
         }
 
+        .feed-timer-wrapper {
+            position: fixed;
+            bottom: calc(54px + env(safe-area-inset-bottom, 0px));
+            left: 0;
+            right: 0;
+            padding: 10px 20px;
+            background: #fef9f0;
+            z-index: 49;
+        }
+
         .feed-timer {
             max-width: 500px;
-            margin: 0 auto 24px;
+            margin: 0 auto;
             background: #fff3e0;
             border-radius: 14px;
             padding: 14px 20px;
@@ -497,34 +511,55 @@
             white-space: nowrap;
         }
 
-        .tabs {
-            max-width: 500px;
-            margin: 0 auto 16px;
-            display: flex;
-            gap: 0;
-            background: #ebe3d8;
-            border-radius: 10px;
-            padding: 3px;
-        }
-        .tab-btn {
-            flex: 1;
-            border: none;
-            background: none;
-            padding: 8px 0;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #8a7a6a;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: background 0.2s, color 0.2s;
-        }
-        .tab-btn.active {
-            background: white;
-            color: #5a4a3a;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* --- Bottom Nav Bar --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px 24px calc(10px + env(safe-area-inset-bottom, 0px));
+            background: #fff;
+            border-top: 1px solid #ebe3d8;
+            z-index: 50;
+        }
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 12px;
+            font-family: inherit;
+        }
+        .nav-tab .nav-icon {
+            width: 22px;
+            height: 22px;
+            stroke: #b0a090;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .nav-tab .nav-label {
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: #b0a090;
+        }
+        .nav-tab.active .nav-icon {
+            stroke: #c7855c;
+        }
+        .nav-tab.active .nav-label {
+            font-weight: 700;
+            color: #c7855c;
+        }
 
         .stats {
             max-width: 500px;
@@ -647,49 +682,44 @@
         </div>
 
         <div id="main-content">
-            <div class="buttons">
-                <button class="btn btn-sleep" onclick="log('pee')">
-                    <span class="emoji">&#128166;</span>
-                    <span>Pee</span>
-                </button>
-                <button class="btn btn-poop" onclick="log('poop')">
-                    <span class="emoji">&#128169;</span>
-                    <span>Poop</span>
-                </button>
-                <button class="btn btn-feed" onclick="log('feed_l')">
-                    <span class="emoji">&#129329;</span>
-                    <span>Feed L</span>
-                </button>
-                <button class="btn btn-feed" onclick="log('feed_r')">
-                    <span class="emoji">&#127868;</span>
-                    <span>Feed R</span>
-                </button>
-            </div>
-
-            <div id="notif-banner" class="notif-banner" style="display:none">
-                <span>Enable notifications to get feeding reminders</span>
-                <button onclick="requestNotifPermission()">Enable</button>
-            </div>
-
-            <div id="feed-timer" class="feed-timer" style="display:none">
-                <span class="emoji">&#127868;</span>
-                <div class="info">
-                    <div class="label">Next feeding in</div>
-                    <div class="countdown" id="countdown">--:--</div>
+            <!-- TODAY TAB -->
+            <div class="tab-content active" id="tab-today">
+                <div class="buttons">
+                    <button class="btn btn-sleep" onclick="log('pee')">
+                        <span class="emoji">&#128166;</span>
+                        <span>Pee</span>
+                    </button>
+                    <button class="btn btn-poop" onclick="log('poop')">
+                        <span class="emoji">&#128169;</span>
+                        <span>Poop</span>
+                    </button>
+                    <button class="btn btn-feed" onclick="log('feed_l')">
+                        <span class="emoji">&#129329;</span>
+                        <span>Feed L</span>
+                    </button>
+                    <button class="btn btn-feed" onclick="log('feed_r')">
+                        <span class="emoji">&#127868;</span>
+                        <span>Feed R</span>
+                    </button>
                 </div>
-                <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
+
+                <div id="notif-banner" class="notif-banner" style="display:none">
+                    <span>Enable notifications to get feeding reminders</span>
+                    <button onclick="requestNotifPermission()">Enable</button>
+                </div>
+
+
+                <div class="history">
+                    <h2>
+                        Today
+                        <button class="add-btn" onclick="openAddModal()">+</button>
+                    </h2>
+                    <div id="today-entries"></div>
+                </div>
             </div>
 
-            <div id="restore-timer" style="display:none; text-align:center; margin-bottom:16px;">
-                <button onclick="restoreTimer()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 14px; font-size:0.8rem; color:#999; cursor:pointer; font-family:inherit;">Show feed timer</button>
-            </div>
-
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('history')">History</button>
-                <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
-            </div>
-
-            <div class="tab-content active" id="tab-history">
+            <!-- HISTORY TAB -->
+            <div class="tab-content" id="tab-history">
                 <div class="history">
                     <h2>
                         History
@@ -699,12 +729,44 @@
                 </div>
             </div>
 
+            <!-- STATS TAB -->
             <div class="tab-content" id="tab-stats">
                 <div class="stats" id="stats">
                     <div id="stats-grid" class="stats-grid"></div>
                 </div>
             </div>
         </div>
+
+        <!-- Feed Timer (fixed bottom) -->
+        <div class="feed-timer-wrapper" id="feed-timer-wrapper" style="display:none">
+            <div id="feed-timer" class="feed-timer">
+                <span class="emoji">&#127868;</span>
+                <div class="info">
+                    <div class="label">Next feeding in</div>
+                    <div class="countdown" id="countdown">--:--</div>
+                </div>
+                <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
+            </div>
+            <div id="restore-timer" style="display:none; text-align:center; padding-top:8px;">
+                <button onclick="restoreTimer()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 14px; font-size:0.8rem; color:#999; cursor:pointer; font-family:inherit;">Show feed timer</button>
+            </div>
+        </div>
+
+        <!-- Bottom Nav Bar -->
+        <nav class="bottom-nav" id="bottom-nav">
+            <button class="nav-tab active" onclick="switchTab('today')">
+                <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span class="nav-label">Today</span>
+            </button>
+            <button class="nav-tab" onclick="switchTab('history')">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                <span class="nav-label">History</span>
+            </button>
+            <button class="nav-tab" onclick="switchTab('stats')">
+                <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span class="nav-label">Stats</span>
+            </button>
+        </nav>
     </div>
 
     <div class="modal-overlay" id="add-modal">
@@ -911,11 +973,14 @@
         }
 
         function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', (tab === 'history' ? i === 0 : i === 1));
+            ['today', 'history', 'stats'].forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                if (el) el.classList.toggle('active', t === tab);
             });
-            document.getElementById('tab-history').classList.toggle('active', tab === 'history');
-            document.getElementById('tab-stats').classList.toggle('active', tab === 'stats');
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                const label = btn.querySelector('.nav-label').textContent.toLowerCase();
+                btn.classList.toggle('active', label === tab);
+            });
         }
 
         // --- Settings ---
@@ -924,6 +989,8 @@
             settingsOpen = !settingsOpen;
             document.getElementById('settings-page').classList.toggle('active', settingsOpen);
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
+            document.getElementById('bottom-nav').style.display = settingsOpen ? 'none' : '';
+            document.getElementById('feed-timer-wrapper').style.display = settingsOpen ? 'none' : '';
             document.getElementById('back-btn').classList.toggle('visible', settingsOpen);
             document.getElementById('settings-btn').style.visibility = settingsOpen ? 'hidden' : '';
         }
@@ -1051,10 +1118,12 @@
 
         function render() {
             const entries = getEntries();
-            const container = document.getElementById('entries');
+            const historyContainer = document.getElementById('entries');
+            const todayContainer = document.getElementById('today-entries');
 
             if (entries.length === 0) {
-                container.innerHTML = '<div class="empty">No entries yet. Tap a button above!</div>';
+                historyContainer.innerHTML = '<div class="empty">No entries yet. Tap a button above!</div>';
+                if (todayContainer) todayContainer.innerHTML = '<div class="empty">No entries yet. Tap a button above!</div>';
                 return;
             }
 
@@ -1066,6 +1135,7 @@
                 dayGroups[dayLabel][entry.type] = (dayGroups[dayLabel][entry.type] || 0) + 1;
             });
 
+            // Render full history (all days)
             let html = '';
             let currentDay = '';
 
@@ -1096,7 +1166,49 @@
                 `;
             });
 
-            container.innerHTML = html;
+            historyContainer.innerHTML = html;
+
+            // Render today-only entries
+            if (todayContainer) {
+                const today = new Date();
+                const todayEntries = entries.filter(e => {
+                    const d = new Date(e.timestamp);
+                    return d.toDateString() === today.toDateString();
+                });
+
+                if (todayEntries.length === 0) {
+                    todayContainer.innerHTML = '<div class="empty">No entries today yet.</div>';
+                } else {
+                    // Day summary for today
+                    const todayCounts = dayGroups['Today'] || {};
+                    const parts = [];
+                    if (todayCounts.pee) parts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
+                    if (todayCounts.poop) parts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
+                    if (todayCounts.feed_l) parts.push(`<span>\u{1F931} ${todayCounts.feed_l}</span>`);
+                    if (todayCounts.feed_r) parts.push(`<span>\u{1F37C} ${todayCounts.feed_r}</span>`);
+
+                    let todayHtml = '';
+                    if (parts.length) todayHtml += `<div class="day-summary">${parts.join('')}</div>`;
+
+                    todayEntries.forEach((entry) => {
+                        const globalIndex = entries.indexOf(entry);
+                        const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
+                        todayHtml += `
+                            <div class="entry">
+                                <span class="emoji">${act.emoji}</span>
+                                <div class="details">
+                                    <div class="activity">${act.label}</div>
+                                    <div class="time">${formatTime(entry.timestamp)}</div>
+                                </div>
+                                <button class="delete-btn" onclick="deleteEntry(${globalIndex})">&times;</button>
+                            </div>
+                        `;
+                    });
+
+                    todayContainer.innerHTML = todayHtml;
+                }
+            }
+
             renderCharts();
         }
 
@@ -1267,6 +1379,7 @@
             localStorage.setItem('skipReminderUntil', getLastFeedTime());
             document.getElementById('feed-timer').style.display = 'none';
             document.getElementById('restore-timer').style.display = 'block';
+            document.getElementById('feed-timer-wrapper').style.display = '';
             const endpoint = localStorage.getItem('pushEndpoint');
             if (endpoint) {
                 await apiFetch('/api/skip-reminder', {
@@ -1284,6 +1397,7 @@
         }
 
         function updateFeedTimer() {
+            const wrapperEl = document.getElementById('feed-timer-wrapper');
             const timerEl = document.getElementById('feed-timer');
             const countdownEl = document.getElementById('countdown');
             const lastFeed = getLastFeedTime();
@@ -1293,11 +1407,15 @@
                 timerEl.style.display = 'none';
                 if (lastFeed && skippedFor) {
                     document.getElementById('restore-timer').style.display = 'block';
+                    wrapperEl.style.display = '';
+                } else {
+                    wrapperEl.style.display = 'none';
                 }
                 return;
             }
             document.getElementById('restore-timer').style.display = 'none';
 
+            wrapperEl.style.display = '';
             timerEl.style.display = 'flex';
             const nextFeedAt = lastFeed + FEED_INTERVAL;
             const diff = nextFeedAt - Date.now();
