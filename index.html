@@ -245,13 +245,14 @@
         }
 
         .add-btn {
-            background: none;
+            background: #ebe3d8;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            color: #999;
-            padding: 4px 8px;
+            color: #8a7a6a;
+            padding: 8px;
             line-height: 1;
+            border-radius: 10px;
         }
 
         .modal-overlay {
@@ -304,21 +305,22 @@
         }
 
         .modal-buttons button {
-            padding: 8px 18px;
-            border-radius: 8px;
+            padding: 10px 24px;
+            border-radius: 50px;
             border: none;
             font-size: 0.9rem;
             cursor: pointer;
+            flex: 1;
         }
 
         .modal-buttons .cancel {
-            background: #eee;
-            color: #666;
+            background: #ebe3d8;
+            color: #8a7a6a;
         }
 
         .modal-buttons .save {
-            background: #4caf50;
-            color: white;
+            background: #5a4a3a;
+            color: #fef9f0;
         }
 
         .loader {
@@ -340,16 +342,47 @@
             to { transform: rotate(360deg); }
         }
 
+        .entry-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .entry-delete-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 80px;
+            background: #e74c3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .entry-wrapper.swiping .entry-delete-bg {
+            opacity: 1;
+        }
+
         .entry {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
             background: white;
             border-radius: 12px;
-            margin-bottom: 8px;
             box-shadow: none;
             animation: slideIn 0.2s ease-out;
+            transition: transform 0.2s ease;
+            touch-action: pan-y;
+            z-index: 1;
         }
 
         @keyframes slideIn {
@@ -375,18 +408,6 @@
             font-size: 0.85rem;
         }
 
-        .entry .delete-btn {
-            background: none;
-            border: none;
-            color: #ccc;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        .entry .delete-btn:hover {
-            color: #e74c3c;
-        }
 
         .empty {
             text-align: center;
@@ -614,31 +635,55 @@
         }
         .stats-corner { }
 
-        .time-presets {
+        .activity-picker {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .activity-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .activity-btn .emoji {
+            font-size: 2rem;
+        }
+        .activity-btn[data-type="pee"] { background: #d4e6ff; color: #2a5298; }
+        .activity-btn[data-type="poop"] { background: #f5e6d0; color: #7a5c2e; }
+        .activity-btn[data-type="feed_l"],
+        .activity-btn[data-type="feed_r"] { background: #d9f5d9; color: #2e6b2e; }
+        .activity-btn.active {
+            border-color: #5a4a3a;
+        }
+        .time-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 14px;
         }
-        .preset-btn {
-            flex: 1;
-            min-width: 60px;
-            padding: 10px 8px;
+        .time-chip {
+            padding: 6px 12px;
             border: 1px solid #ddd;
-            border-radius: 10px;
+            border-radius: 20px;
             background: #f9f9f9;
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             cursor: pointer;
-            text-align: center;
-            color: #333;
-            font-family: inherit;
+            color: #666;
         }
-        .preset-btn.active {
+        .time-chip.active {
             background: #5a4a3a;
             color: white;
             border-color: #5a4a3a;
         }
-        .preset-other {
+        .time-chip-other {
             background: none;
             color: #999;
         }
@@ -753,7 +798,9 @@
                 <div class="history">
                     <h2>
                         Today
-                        <button class="add-btn" onclick="openAddModal()">+</button>
+                        <span style="flex:1"></span>
+                        <span id="today-summary" class="day-summary" style="margin:0; padding:0; font-size:0.75rem;"></span>
+                        <button class="add-btn" onclick="openAddModal()" style="margin-left:24px">+</button>
                     </h2>
                     <div id="today-entries"></div>
                 </div>
@@ -798,21 +845,27 @@
     <div class="modal-overlay" id="add-modal">
         <div class="modal">
             <h3>Add past entry</h3>
-            <label>Activity</label>
-            <select id="add-type">
-                <option value="pee">&#128166; Pee</option>
-                <option value="poop">&#128169; Poop</option>
-                <option value="feed_l">&#127868; Feed L</option>
-                <option value="feed_r">&#127868; Feed R</option>
-            </select>
-            <label>When</label>
-            <div class="time-presets">
-                <button type="button" class="preset-btn" onclick="setTimePreset(5)">5m ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(15)">15m ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(30)">30m ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(60)">1h ago</button>
-                <button type="button" class="preset-btn" onclick="setTimePreset(120)">2h ago</button>
-                <button type="button" class="preset-btn preset-other" onclick="toggleCustomTime()">Other</button>
+            <div class="activity-picker" id="activity-picker">
+                <button type="button" class="activity-btn active" onclick="setActivity('pee')" data-type="pee">
+                    <span class="emoji">&#128166;</span><span>Pee</span>
+                </button>
+                <button type="button" class="activity-btn" onclick="setActivity('poop')" data-type="poop">
+                    <span class="emoji">&#128169;</span><span>Poop</span>
+                </button>
+                <button type="button" class="activity-btn" onclick="setActivity('feed_l')" data-type="feed_l">
+                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span><span>Feed L</span>
+                </button>
+                <button type="button" class="activity-btn" onclick="setActivity('feed_r')" data-type="feed_r">
+                    <span class="emoji">&#127868;</span><span>Feed R</span>
+                </button>
+            </div>
+            <div class="time-chips">
+                <button type="button" class="time-chip active" onclick="setTimePreset(5)">5m ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(15)">15m ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(30)">30m ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(60)">1h ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(120)">2h ago</button>
+                <button type="button" class="time-chip time-chip-other" onclick="toggleCustomTime()">Other</button>
             </div>
             <input type="datetime-local" id="add-datetime" style="display:none">
             <div class="modal-buttons">
@@ -998,12 +1051,22 @@
         }
 
         let selectedPresetMinutes = 5;
+        let selectedActivity = 'pee';
+
+        function setActivity(type) {
+            selectedActivity = type;
+            document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.activity-btn[data-type="${type}"]`).classList.add('active');
+        }
 
         function openAddModal() {
             selectedPresetMinutes = 5;
+            selectedActivity = 'pee';
             document.getElementById('add-datetime').style.display = 'none';
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('.preset-btn').classList.add('active');
+            document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
+            document.querySelector('.time-chip').classList.add('active');
+            document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.activity-btn').classList.add('active');
             const dtInput = document.getElementById('add-datetime');
             dtInput.max = toLocalISOString(new Date());
             document.getElementById('add-modal').classList.add('open');
@@ -1015,14 +1078,14 @@
 
         function setTimePreset(minutes) {
             selectedPresetMinutes = minutes;
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById('add-datetime').style.display = 'none';
         }
 
         function toggleCustomTime() {
             selectedPresetMinutes = null;
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             const dtInput = document.getElementById('add-datetime');
             dtInput.value = toLocalISOString(new Date());
@@ -1030,7 +1093,7 @@
         }
 
         async function saveRetroEntry() {
-            const type = document.getElementById('add-type').value;
+            const type = selectedActivity;
             let timestamp;
             if (selectedPresetMinutes !== null) {
                 timestamp = Date.now() - selectedPresetMinutes * 60000;
@@ -1229,13 +1292,15 @@
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                 const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
                 html += `
-                    <div class="entry">
-                        <span class="emoji"${flipStyle}>${act.emoji}</span>
-                        <div class="details">
-                            <div class="activity">${act.label}</div>
-                            <div class="time">${formatTime(entry.timestamp)}</div>
+                    <div class="entry-wrapper">
+                        <div class="entry-delete-bg">Delete</div>
+                        <div class="entry" data-index="${i}">
+                            <span class="emoji"${flipStyle}>${act.emoji}</span>
+                            <div class="details">
+                                <div class="activity">${act.label}</div>
+                                <div class="time">${formatTime(entry.timestamp)}</div>
+                            </div>
                         </div>
-                        <button class="delete-btn" onclick="deleteEntry(${i})">&times;</button>
                     </div>
                 `;
             });
@@ -1250,32 +1315,35 @@
                     return d.toDateString() === today.toDateString();
                 });
 
+                // Today summary in header
+                const todaySummaryEl = document.getElementById('today-summary');
+                const todayCounts = dayGroups['Today'] || {};
+                const summaryParts = [];
+                if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
+                if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
+                if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${todayCounts.feed_l}</span>`);
+                if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F37C} ${todayCounts.feed_r}</span>`);
+                todaySummaryEl.innerHTML = summaryParts.join('');
+
                 if (todayEntries.length === 0) {
                     todayContainer.innerHTML = '<div class="empty">No entries today yet.</div>';
                 } else {
-                    // Day summary for today
-                    const todayCounts = dayGroups['Today'] || {};
-                    const parts = [];
-                    if (todayCounts.pee) parts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
-                    if (todayCounts.poop) parts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
-                    if (todayCounts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${todayCounts.feed_l}</span>`);
-                    if (todayCounts.feed_r) parts.push(`<span>\u{1F37C} ${todayCounts.feed_r}</span>`);
-
                     let todayHtml = '';
-                    if (parts.length) todayHtml += `<div class="day-summary">${parts.join('')}</div>`;
 
                     todayEntries.forEach((entry) => {
                         const globalIndex = entries.indexOf(entry);
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                         const tFlip = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
                         todayHtml += `
-                            <div class="entry">
-                                <span class="emoji"${tFlip}>${act.emoji}</span>
-                                <div class="details">
-                                    <div class="activity">${act.label}</div>
-                                    <div class="time">${formatTime(entry.timestamp)}</div>
+                            <div class="entry-wrapper">
+                                <div class="entry-delete-bg">Delete</div>
+                                <div class="entry" data-index="${globalIndex}">
+                                    <span class="emoji"${tFlip}>${act.emoji}</span>
+                                    <div class="details">
+                                        <div class="activity">${act.label}</div>
+                                        <div class="time">${formatTime(entry.timestamp)}</div>
+                                    </div>
                                 </div>
-                                <button class="delete-btn" onclick="deleteEntry(${globalIndex})">&times;</button>
                             </div>
                         `;
                     });
@@ -1285,6 +1353,7 @@
             }
 
             renderCharts();
+            initSwipe();
         }
 
         // --- Stats Charts ---
@@ -1516,6 +1585,46 @@
             }
         }
 
+        // Swipe to delete
+        function initSwipe() {
+            document.querySelectorAll('.entry').forEach(el => {
+                let startX = 0, currentX = 0, swiping = false;
+                const threshold = 80;
+
+                el.addEventListener('touchstart', e => {
+                    startX = e.touches[0].clientX;
+                    currentX = startX;
+                    swiping = true;
+                    el.style.transition = 'none';
+                });
+
+                el.addEventListener('touchmove', e => {
+                    if (!swiping) return;
+                    currentX = e.touches[0].clientX;
+                    const dx = currentX - startX;
+                    if (dx < 0) {
+                        el.style.transform = `translateX(${dx}px)`;
+                        el.parentElement.classList.add('swiping');
+                    }
+                });
+
+                el.addEventListener('touchend', () => {
+                    if (!swiping) return;
+                    swiping = false;
+                    const dx = currentX - startX;
+                    el.style.transition = 'transform 0.2s ease';
+                    if (dx < -threshold) {
+                        el.style.transform = `translateX(-100%)`;
+                        const idx = parseInt(el.dataset.index);
+                        setTimeout(() => deleteEntry(idx), 200);
+                    } else {
+                        el.style.transform = 'translateX(0)';
+                        el.parentElement.classList.remove('swiping');
+                    }
+                });
+            });
+        }
+
         // One-time migration from localStorage to Supabase
         async function migrateLocalStorage() {
             if (localStorage.getItem('baby_log_migrated')) return;
@@ -1535,7 +1644,7 @@
 
         // Expose functions for onclick handlers (module scope)
         Object.assign(window, {
-            log, openAddModal, closeAddModal, saveRetroEntry, setTimePreset, toggleCustomTime, switchTab,
+            log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout
         });
