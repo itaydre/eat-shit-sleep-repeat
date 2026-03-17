@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eat shit sleep repeat</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#5a4a3a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,13 +26,159 @@
             padding: 20px;
         }
 
-        h1 {
+        /* --- Auth & Onboarding Screens --- */
+        .auth-screen, .onboarding-screen {
+            display: none;
+            max-width: 400px;
+            margin: 80px auto;
             text-align: center;
-            font-size: 1.8rem;
-            margin-bottom: 24px;
-            color: #5a4a3a;
+            padding: 20px;
         }
 
+        .auth-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .auth-screen h2, .onboarding-screen h2 {
+            color: #5a4a3a;
+            margin-bottom: 8px;
+        }
+
+        .auth-screen p, .onboarding-screen p {
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #5a4a3a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .auth-message {
+            margin-top: 16px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .onboarding-screen label {
+            display: block;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        /* --- Top Bar --- */
+        .top-bar {
+            display: grid;
+            grid-template-columns: 40px 1fr 40px;
+            align-items: center;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+
+        .top-bar h1 {
+            font-size: 1.1rem;
+            color: #5a4a3a;
+            margin: 0;
+            text-align: center;
+        }
+
+        .top-bar .back-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px;
+            visibility: hidden;
+        }
+
+        .top-bar .back-btn.visible {
+            visibility: visible;
+        }
+
+        .top-bar .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px;
+            text-align: right;
+        }
+
+        /* --- Settings --- */
+        .settings-page {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .settings-page.active {
+            display: block;
+        }
+
+        .settings-page h2 {
+            font-size: 1.2rem;
+            color: #5a4a3a;
+            margin-bottom: 20px;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            font-size: 0.95rem;
+            color: #333;
+            font-family: inherit;
+            text-align: left;
+        }
+
+        .settings-item:active {
+            transform: scale(0.98);
+        }
+
+        .settings-item .settings-icon {
+            font-size: 1.3rem;
+        }
+
+        .settings-item.danger {
+            color: #e74c3c;
+        }
+
+        /* --- Main App --- */
         .buttons {
             display: flex;
             gap: 16px;
@@ -93,59 +239,6 @@
             align-items: center;
         }
 
-        .menu-wrapper {
-            position: relative;
-        }
-
-        .menu-btn {
-            background: none;
-            border: none;
-            font-size: 1.4rem;
-            cursor: pointer;
-            color: #999;
-            padding: 4px 8px;
-            line-height: 1;
-        }
-
-        .menu-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-            min-width: 150px;
-            z-index: 10;
-            overflow: hidden;
-        }
-
-        .menu-dropdown.open {
-            display: block;
-        }
-
-        .menu-dropdown button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            background: none;
-            border: none;
-            padding: 12px 16px;
-            font-size: 0.9rem;
-            color: #333;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .menu-dropdown button:hover {
-            background: #f5f5f5;
-        }
-
-        .menu-dropdown button.danger {
-            color: #e74c3c;
-        }
-
         .add-btn {
             background: none;
             border: none;
@@ -154,12 +247,6 @@
             color: #999;
             padding: 4px 8px;
             line-height: 1;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .modal-overlay {
@@ -499,68 +586,104 @@
     </style>
 </head>
 <body>
-    <h1>Eat shit sleep repeat</h1>
-
-    <div class="buttons">
-        <button class="btn btn-sleep" onclick="log('pee')">
-            <span class="emoji">💦</span>
-            <span>Pee</span>
-        </button>
-        <button class="btn btn-poop" onclick="log('poop')">
-            <span class="emoji">💩</span>
-            <span>Poop</span>
-        </button>
-        <button class="btn btn-feed" onclick="log('feed_l')">
-            <span class="emoji">🤱</span>
-            <span>Feed L</span>
-        </button>
-        <button class="btn btn-feed" onclick="log('feed_r')">
-            <span class="emoji">🍼</span>
-            <span>Feed R</span>
-        </button>
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="auth-screen" style="display:block">
+        <h2>Eat shit sleep repeat</h2>
+        <p>Track your baby's feeds, diapers, and more.</p>
+        <input type="email" id="auth-email" class="auth-input" placeholder="Your email">
+        <button id="auth-submit" class="auth-btn" onclick="sendMagicLink()">Send magic link</button>
+        <p class="auth-message" id="auth-message"></p>
     </div>
 
-    <div id="notif-banner" class="notif-banner" style="display:none">
-        <span>Enable notifications to get feeding reminders</span>
-        <button onclick="requestNotifPermission()">Enable</button>
+    <!-- Onboarding Screen -->
+    <div class="onboarding-screen" id="onboarding-screen">
+        <h2>Welcome!</h2>
+        <p>Tell us about your baby</p>
+        <label>Baby's name</label>
+        <input type="text" id="baby-name" class="auth-input" placeholder="e.g. Maya">
+        <label>Date of birth</label>
+        <input type="date" id="baby-dob" class="auth-input">
+        <button class="auth-btn" onclick="saveOnboarding()">Let's go!</button>
     </div>
 
-    <div id="feed-timer" class="feed-timer" style="display:none">
-        <span class="emoji">🍼</span>
-        <div class="info">
-            <div class="label">Next feeding in</div>
-            <div class="countdown" id="countdown">--:--</div>
+    <!-- Main App -->
+    <div id="main-app" style="display:none">
+        <div class="top-bar">
+            <button class="back-btn" id="back-btn" onclick="openSettings()">&#8592;</button>
+            <h1 id="app-title">Eat shit sleep repeat</h1>
+            <button class="settings-btn" id="settings-btn" onclick="openSettings()">&#9881;</button>
         </div>
-        <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">✕</button>
-    </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('history')">History</button>
-        <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
-    </div>
+        <div class="settings-page" id="settings-page">
+            <h2>Settings</h2>
+            <button class="settings-item" onclick="downloadBackup()">
+                <span class="settings-icon">&#128190;</span>
+                <span>Download backup</span>
+            </button>
+            <button class="settings-item danger" onclick="confirmClearAll()">
+                <span class="settings-icon">&#128465;&#65039;</span>
+                <span>Clear all data</span>
+            </button>
+            <button class="settings-item" onclick="logout()">
+                <span class="settings-icon">&#128682;</span>
+                <span>Sign out</span>
+            </button>
+        </div>
 
-    <div class="tab-content active" id="tab-history">
-        <div class="history">
-            <h2>
-                History
-                <div class="header-actions">
-                    <button class="add-btn" onclick="openAddModal()">+</button>
-                    <div class="menu-wrapper">
-                        <button class="menu-btn" onclick="toggleMenu(event)">⋮</button>
-                        <div class="menu-dropdown" id="menu-dropdown">
-                            <button onclick="downloadBackup(); closeMenu()">💾 Backup</button>
-                            <button class="danger" onclick="clearAll(); closeMenu()">🗑️ Clear all</button>
-                        </div>
-                    </div>
+        <div id="main-content">
+            <div class="buttons">
+                <button class="btn btn-sleep" onclick="log('pee')">
+                    <span class="emoji">&#128166;</span>
+                    <span>Pee</span>
+                </button>
+                <button class="btn btn-poop" onclick="log('poop')">
+                    <span class="emoji">&#128169;</span>
+                    <span>Poop</span>
+                </button>
+                <button class="btn btn-feed" onclick="log('feed_l')">
+                    <span class="emoji">&#129329;</span>
+                    <span>Feed L</span>
+                </button>
+                <button class="btn btn-feed" onclick="log('feed_r')">
+                    <span class="emoji">&#127868;</span>
+                    <span>Feed R</span>
+                </button>
+            </div>
+
+            <div id="notif-banner" class="notif-banner" style="display:none">
+                <span>Enable notifications to get feeding reminders</span>
+                <button onclick="requestNotifPermission()">Enable</button>
+            </div>
+
+            <div id="feed-timer" class="feed-timer" style="display:none">
+                <span class="emoji">&#127868;</span>
+                <div class="info">
+                    <div class="label">Next feeding in</div>
+                    <div class="countdown" id="countdown">--:--</div>
                 </div>
-            </h2>
-            <div id="entries"><div class="loader" id="loader"><div class="spinner"></div></div></div>
-        </div>
-    </div>
+                <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
+            </div>
 
-    <div class="tab-content" id="tab-stats">
-        <div class="stats" id="stats">
-            <div id="stats-grid" class="stats-grid"></div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('history')">History</button>
+                <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+            </div>
+
+            <div class="tab-content active" id="tab-history">
+                <div class="history">
+                    <h2>
+                        History
+                        <button class="add-btn" onclick="openAddModal()">+</button>
+                    </h2>
+                    <div id="entries"><div class="loader" id="loader"><div class="spinner"></div></div></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-stats">
+                <div class="stats" id="stats">
+                    <div id="stats-grid" class="stats-grid"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -569,10 +692,10 @@
             <h3>Add past entry</h3>
             <label>Activity</label>
             <select id="add-type">
-                <option value="pee">💦 Pee</option>
-                <option value="poop">💩 Poop</option>
-                <option value="feed_l">🤱 Feed L</option>
-                <option value="feed_r">🍼 Feed R</option>
+                <option value="pee">&#128166; Pee</option>
+                <option value="poop">&#128169; Poop</option>
+                <option value="feed_l">&#129329; Feed L</option>
+                <option value="feed_r">&#127868; Feed R</option>
             </select>
             <label>When</label>
             <input type="datetime-local" id="add-datetime">
@@ -584,11 +707,142 @@
     </div>
 
     <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         import { WebHaptics } from 'https://esm.sh/web-haptics@0.0.6';
         const haptics = new WebHaptics({ debug: true });
         window.hapticSuccess = () => haptics.trigger('success');
         window.hapticError = () => haptics.trigger('error');
 
+        // --- Supabase Auth ---
+        let sb = null;
+        let session = null;
+        let profile = null;
+
+        async function initSupabase() {
+            const res = await fetch('/api/config');
+            const { supabaseUrl, supabaseAnonKey } = await res.json();
+            sb = createClient(supabaseUrl, supabaseAnonKey);
+
+            const { data: { session: existing } } = await sb.auth.getSession();
+            session = existing;
+
+            if (session) {
+                await loadApp();
+            } else {
+                showScreen('auth');
+            }
+
+            sb.auth.onAuthStateChange((event, sess) => {
+                if (event === 'INITIAL_SESSION') return;
+                session = sess;
+                if (event === 'SIGNED_IN') {
+                    loadApp();
+                } else if (event === 'SIGNED_OUT') {
+                    showScreen('auth');
+                }
+            });
+        }
+
+        function authHeaders() {
+            if (!session) return {};
+            return { 'Authorization': 'Bearer ' + session.access_token };
+        }
+
+        function apiFetch(url, options = {}) {
+            options.headers = { ...authHeaders(), ...(options.headers || {}) };
+            return fetch(url, options);
+        }
+
+        function showScreen(screen) {
+            document.getElementById('auth-screen').style.display = screen === 'auth' ? 'block' : 'none';
+            document.getElementById('onboarding-screen').style.display = screen === 'onboarding' ? 'block' : 'none';
+            document.getElementById('main-app').style.display = screen === 'app' ? 'block' : 'none';
+        }
+
+        async function sendMagicLink() {
+            const email = document.getElementById('auth-email').value.trim();
+            if (!email) return;
+            const btn = document.getElementById('auth-submit');
+            btn.disabled = true;
+            const { error } = await sb.auth.signInWithOtp({ email });
+            btn.disabled = false;
+            document.getElementById('auth-message').textContent = error
+                ? 'Something went wrong. Try again.'
+                : 'Check your email for the magic link!';
+        }
+
+        async function saveOnboarding() {
+            const baby_name = document.getElementById('baby-name').value.trim();
+            const baby_birthdate = document.getElementById('baby-dob').value;
+            if (!baby_name) return;
+            await apiFetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ baby_name, baby_birthdate: baby_birthdate || null }),
+            });
+            profile = { baby_name, baby_birthdate, onboarding_done: true };
+            startApp();
+        }
+
+        let appLoading = false;
+        async function loadApp() {
+            if (appLoading) return;
+            appLoading = true;
+            try {
+                const res = await apiFetch('/api/profile');
+                if (!res.ok) {
+                    showScreen('onboarding');
+                    return;
+                }
+                profile = await res.json();
+
+                if (!profile || !profile.onboarding_done) {
+                    showScreen('onboarding');
+                    return;
+                }
+
+                startApp();
+            } catch (e) {
+                console.warn('Failed to load profile:', e);
+                showScreen('onboarding');
+            } finally {
+                appLoading = false;
+            }
+        }
+
+        function startApp() {
+            showScreen('app');
+            const titleEl = document.getElementById('app-title');
+            if (profile && profile.baby_name) {
+                titleEl.textContent = profile.baby_name + "'s log";
+            }
+            initServiceWorker().then(() => {
+                checkNotifPermission();
+                if (Notification.permission === 'granted') {
+                    subscribeToPush();
+                }
+            });
+            migrateLocalStorage().then(() => fetchEntries()).then(() => updateFeedTimer());
+            if (!window._intervalsStarted) {
+                setInterval(() => {
+                    if (session) fetchEntries().then(() => updateFeedTimer());
+                }, 30000);
+                setInterval(() => {
+                    if (session) updateFeedTimer();
+                }, 10000);
+                window._intervalsStarted = true;
+            }
+        }
+
+        async function logout() {
+            await sb.auth.signOut();
+            session = null;
+            profile = null;
+            entries = [];
+            showScreen('auth');
+        }
+
+        // --- Add Entry Modal ---
         function toLocalISOString(date) {
             const offset = date.getTimezoneOffset();
             const local = new Date(date.getTime() - offset * 60000);
@@ -627,21 +881,29 @@
             document.getElementById('tab-stats').classList.toggle('active', tab === 'stats');
         }
 
-        function toggleMenu(e) {
-            e.stopPropagation();
-            document.getElementById('menu-dropdown').classList.toggle('open');
+        // --- Settings ---
+        let settingsOpen = false;
+        function openSettings() {
+            settingsOpen = !settingsOpen;
+            document.getElementById('settings-page').classList.toggle('active', settingsOpen);
+            document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
+            document.getElementById('back-btn').classList.toggle('visible', settingsOpen);
+            document.getElementById('settings-btn').style.visibility = settingsOpen ? 'hidden' : '';
         }
-        function closeMenu() {
-            document.getElementById('menu-dropdown').classList.remove('open');
-        }
-        document.addEventListener('click', closeMenu);
 
+        function confirmClearAll() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                clearAll();
+            }
+        }
+
+        // --- Data ---
         const ACTIVITIES = {
-            pee:    { emoji: '💦', label: 'Pee' },
-            poop:   { emoji: '💩', label: 'Poop' },
-            feed:   { emoji: '🍼', label: 'Feed' },
-            feed_l: { emoji: '🤱', label: 'Feed L' },
-            feed_r: { emoji: '🍼', label: 'Feed R' },
+            pee:    { emoji: '\u{1F4A6}', label: 'Pee' },
+            poop:   { emoji: '\u{1F4A9}', label: 'Poop' },
+            feed:   { emoji: '\u{1F37C}', label: 'Feed' },
+            feed_l: { emoji: '\u{1F931}', label: 'Feed L' },
+            feed_r: { emoji: '\u{1F37C}', label: 'Feed R' },
         };
 
         let entries = [];
@@ -652,7 +914,7 @@
 
         async function fetchEntries() {
             try {
-                const res = await fetch('/api/logs');
+                const res = await apiFetch('/api/logs');
                 entries = await res.json();
             } catch (e) {
                 console.warn('Failed to fetch logs:', e);
@@ -664,7 +926,7 @@
             hapticSuccess();
             const timestamp = customTimestamp || Date.now();
             try {
-                const res = await fetch('/api/logs', {
+                const res = await apiFetch('/api/logs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type, timestamp }),
@@ -682,7 +944,7 @@
                 updateFeedTimer();
                 const endpoint = localStorage.getItem('pushEndpoint');
                 if (endpoint) {
-                    fetch('/api/feed', {
+                    apiFetch('/api/feed', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ endpoint, timestamp }),
@@ -699,7 +961,7 @@
 
             if (entry && entry.id) {
                 try {
-                    await fetch('/api/logs', {
+                    await apiFetch('/api/logs', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: entry.id }),
@@ -711,19 +973,17 @@
         }
 
         async function clearAll() {
-            if (confirm('Clear all history?')) {
-                for (const entry of entries) {
-                    if (entry.id) {
-                        await fetch('/api/logs', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: entry.id }),
-                        }).catch(() => {});
-                    }
+            for (const entry of entries) {
+                if (entry.id) {
+                    await apiFetch('/api/logs', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: entry.id }),
+                    }).catch(() => {});
                 }
-                entries = [];
-                render();
             }
+            entries = [];
+            render();
         }
 
         function formatTime(ts) {
@@ -769,14 +1029,14 @@
                     html += `<div class="day-label">${dayLabel}</div>`;
                     const counts = dayGroups[dayLabel];
                     const parts = [];
-                    if (counts.pee) parts.push(`<span>💦 ${counts.pee}</span>`);
-                    if (counts.poop) parts.push(`<span>💩 ${counts.poop}</span>`);
-                    if (counts.feed_l) parts.push(`<span>🤱 ${counts.feed_l}</span>`);
-                    if (counts.feed_r) parts.push(`<span>🍼 ${counts.feed_r}</span>`);
+                    if (counts.pee) parts.push(`<span>\u{1F4A6} ${counts.pee}</span>`);
+                    if (counts.poop) parts.push(`<span>\u{1F4A9} ${counts.poop}</span>`);
+                    if (counts.feed_l) parts.push(`<span>\u{1F931} ${counts.feed_l}</span>`);
+                    if (counts.feed_r) parts.push(`<span>\u{1F37C} ${counts.feed_r}</span>`);
                     if (parts.length) html += `<div class="day-summary">${parts.join('')}</div>`;
                 }
 
-                const act = ACTIVITIES[entry.type] || { emoji: '❓', label: entry.type };
+                const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                 html += `
                     <div class="entry">
                         <span class="emoji">${act.emoji}</span>
@@ -810,10 +1070,10 @@
             days.reverse();
 
             const types = [
-                { key: 'pee', emoji: '💦', label: 'Pee', cls: 'pee' },
-                { key: 'poop', emoji: '💩', label: 'Poop', cls: 'poop' },
-                { key: 'feed_l', emoji: '🤱', label: 'Feed L', cls: 'feed' },
-                { key: 'feed_r', emoji: '🍼', label: 'Feed R', cls: 'feed' },
+                { key: 'pee', emoji: '\u{1F4A6}', label: 'Pee', cls: 'pee' },
+                { key: 'poop', emoji: '\u{1F4A9}', label: 'Poop', cls: 'poop' },
+                { key: 'feed_l', emoji: '\u{1F931}', label: 'Feed L', cls: 'feed' },
+                { key: 'feed_r', emoji: '\u{1F37C}', label: 'Feed R', cls: 'feed' },
             ];
 
             // Count per day per type
@@ -931,7 +1191,7 @@
                     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
                 });
             }
-            await fetch('/api/subscribe', {
+            await apiFetch('/api/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -959,10 +1219,9 @@
         async function skipNextReminder() {
             localStorage.setItem('skipReminderUntil', getLastFeedTime());
             document.getElementById('feed-timer').style.display = 'none';
-            // Also mark as notified on server so push notification is skipped
             const endpoint = localStorage.getItem('pushEndpoint');
             if (endpoint) {
-                await fetch('/api/skip-reminder', {
+                await apiFetch('/api/skip-reminder', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ endpoint }),
@@ -1005,14 +1264,6 @@
             }
         }
 
-        // Init
-        initServiceWorker().then(() => {
-            checkNotifPermission();
-            if (Notification.permission === 'granted') {
-                subscribeToPush();
-            }
-        });
-
         // One-time migration from localStorage to Supabase
         async function migrateLocalStorage() {
             if (localStorage.getItem('baby_log_migrated')) return;
@@ -1021,7 +1272,7 @@
 
             for (const entry of old) {
                 const type = entry.type === 'feed' ? 'feed_l' : entry.type;
-                await fetch('/api/logs', {
+                await apiFetch('/api/logs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type, timestamp: entry.timestamp }),
@@ -1033,14 +1284,19 @@
         // Expose functions for onclick handlers (module scope)
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, switchTab,
-            toggleMenu, closeMenu, deleteEntry, downloadBackup, clearAll,
-            requestNotifPermission
+            openSettings, confirmClearAll, deleteEntry, downloadBackup, clearAll,
+            requestNotifPermission, skipNextReminder, sendMagicLink, saveOnboarding, logout
         });
 
-        // Load from server and auto-refresh every 30s
-        migrateLocalStorage().then(() => fetchEntries()).then(() => updateFeedTimer());
-        setInterval(() => fetchEntries().then(() => updateFeedTimer()), 30000);
-        setInterval(updateFeedTimer, 10000);
+        // Boot
+        initSupabase().catch(e => {
+            console.error('Init failed:', e);
+            const errEl = document.createElement('pre');
+            errEl.style.cssText = 'padding:20px;color:red';
+            errEl.textContent = e.message + '\n' + e.stack;
+            document.body.prepend(errEl);
+            showScreen('auth');
+        });
     </script>
 </body>
 </html>

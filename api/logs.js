@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { getAuthUser } = require('../lib/auth');
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
@@ -6,10 +7,14 @@ const supabase = createClient(
 );
 
 module.exports = async function handler(req, res) {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
     if (req.method === 'GET') {
         const { data, error } = await supabase
             .from('baby_logs')
             .select('*')
+            .eq('user_id', user.id)
             .order('timestamp', { ascending: false })
             .limit(200);
 
@@ -25,7 +30,7 @@ module.exports = async function handler(req, res) {
 
         const { data, error } = await supabase
             .from('baby_logs')
-            .insert({ type, timestamp })
+            .insert({ type, timestamp, user_id: user.id })
             .select()
             .single();
 
@@ -40,7 +45,8 @@ module.exports = async function handler(req, res) {
         const { error } = await supabase
             .from('baby_logs')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .eq('user_id', user.id);
 
         if (error) return res.status(500).json({ error: error.message });
         return res.status(200).json({ ok: true });
