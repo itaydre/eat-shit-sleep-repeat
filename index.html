@@ -701,7 +701,7 @@
     </div>
 
     <!-- Auth Screen -->
-    <div class="auth-screen" id="auth-screen">
+    <div class="auth-screen" id="auth-screen" style="display:none">
         <h2>Eat shit sleep repeat</h2>
         <p>Track your baby's feeds, diapers, and more.</p>
         <button class="auth-btn" onclick="signInWithGoogle()" style="background:#fff; color:#333; border:1px solid #ddd; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
@@ -715,7 +715,7 @@
     </div>
 
     <!-- Onboarding Screen -->
-    <div class="onboarding-screen" id="onboarding-screen">
+    <div class="onboarding-screen" id="onboarding-screen" style="display:none">
         <h2>Welcome!</h2>
         <p>Tell us about your baby</p>
         <label>Baby's name</label>
@@ -1488,7 +1488,7 @@
         }
 
         // --- Notification & Feed Reminder ---
-        const FEED_INTERVAL = 2 * 60 * 60 * 1000; // 2 hours
+        const FEED_INTERVAL = 2.5 * 60 * 60 * 1000; // 2.5 hours
         const VAPID_PUBLIC_KEY = 'BMN9JQe4eiEidwuJEacqzsUsunUzEZkAQasEyJLquDZ8IocDKqPdQzWzBbpkNHf0Xh6UXRf3d40TvSa7ZZHCNlE';
 
         function urlBase64ToUint8Array(base64String) {

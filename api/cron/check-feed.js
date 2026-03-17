@@ -1,7 +1,7 @@
 const webpush = require('web-push');
 const { getAllSubscriptions, markNotified, removeSubscription } = require('../../lib/kv');
 
-const FEED_INTERVAL = 2 * 60 * 60 * 1000; // 2 hours
+const FEED_INTERVAL = 2.5 * 60 * 60 * 1000; // 2.5 hours
 
 webpush.setVapidDetails(
     process.env.VAPID_SUBJECT,
