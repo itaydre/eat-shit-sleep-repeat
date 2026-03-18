@@ -200,22 +200,31 @@
         }
 
         /* --- Main App --- */
-        .buttons {
+        .buttons-wrapper {
             position: fixed;
-            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-            left: 16px;
-            right: 16px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .buttons-fade {
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, #faf6f0);
+        }
+
+        .buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             padding: 14px;
+            padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-            z-index: 50;
+            background: #faf6f0;
+            pointer-events: auto;
         }
 
         .btn {
@@ -915,23 +924,26 @@
                 <span class="nav-label">Stats</span>
             </button>
         </nav>
-        <div class="buttons" id="action-buttons">
-            <button class="btn btn-sleep" onclick="log('pee')">
-                <span class="emoji">&#128166;</span>
-                <span>Pee</span>
-            </button>
-            <button class="btn btn-poop" onclick="log('poop')">
-                <span class="emoji">&#128169;</span>
-                <span>Poop</span>
-            </button>
-            <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
-                <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span>
-                <span>Feed L</span>
-            </button>
-            <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
-                <span class="emoji">&#127868;</span>
-                <span>Feed R</span>
-            </button>
+        <div class="buttons-wrapper" id="action-buttons">
+            <div class="buttons-fade"></div>
+            <div class="buttons">
+                <button class="btn btn-sleep" onclick="log('pee')">
+                    <span class="emoji">&#128166;</span>
+                    <span>Pee</span>
+                </button>
+                <button class="btn btn-poop" onclick="log('poop')">
+                    <span class="emoji">&#128169;</span>
+                    <span>Poop</span>
+                </button>
+                <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
+                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span>
+                    <span>Feed L</span>
+                </button>
+                <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
+                    <span class="emoji">&#127868;</span>
+                    <span>Feed R</span>
+                </button>
+            </div>
         </div>
 
         <div class="feed-session" id="feed-session" style="display:none">
@@ -1636,6 +1648,10 @@
         let feedSessionType = null;
         let feedSessionStart = null;
         let feedSessionInterval = null;
+
+        window.startFeedSession = startFeedSession;
+        window.stopFeedSession = stopFeedSession;
+        window.adjustFeedInterval = adjustFeedInterval;
 
         function startFeedSession(type) {
             feedSessionType = type;
