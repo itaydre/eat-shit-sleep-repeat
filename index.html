@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Eat shit sleep repeat</title>
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#5a4a3a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
             background: #fef9f0;
             color: #333;
             min-height: 100vh;
-            padding: 20px 20px 80px;
+            padding: 0 20px calc(80px + env(safe-area-inset-bottom));
         }
 
         /* --- Auth & Onboarding Screens --- */
@@ -93,13 +93,23 @@
         }
 
         /* --- Top Bar --- */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            background: #5a4a3a;
+            margin: 0 -20px;
+            padding: env(safe-area-inset-top) 20px 0;
+        }
+
         .top-bar {
             position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
             max-width: 500px;
-            margin: 0 auto 20px;
+            margin: 0 auto;
+            padding: 10px 0;
         }
 
         .top-bar-center {
@@ -120,19 +130,19 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #999;
+            color: rgba(255,255,255,0.5);
             padding: 4px;
             display: flex;
             align-items: center;
         }
 
         .top-bar-left .top-link.active {
-            color: #5a4a3a;
+            color: #fff;
         }
 
         .top-bar h1 {
             font-size: 1.1rem;
-            color: #5a4a3a;
+            color: #fff;
             margin: 0;
             text-align: center;
         }
@@ -142,7 +152,7 @@
             border: none;
             font-size: 1.3rem;
             cursor: pointer;
-            color: #999;
+            color: rgba(255,255,255,0.7);
             padding: 4px;
             visibility: hidden;
         }
@@ -156,7 +166,7 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #999;
+            color: rgba(255,255,255,0.7);
             padding: 4px;
             text-align: right;
         }
@@ -787,6 +797,7 @@
 
     <!-- Main App -->
     <div id="main-app" style="display:none">
+        <div class="app-header">
         <div class="top-bar">
             <div class="top-bar-left">
                 <button class="back-btn" id="back-btn" onclick="openSettings()">&#8592;</button>
@@ -799,9 +810,10 @@
             </div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
-                <div id="baby-age" style="font-size:0.75rem; color:#aaa; margin-top:2px;"></div>
+                <div id="baby-age" style="font-size:0.75rem; color:rgba(255,255,255,0.6); margin-top:2px;"></div>
             </div>
             <button class="settings-btn" id="settings-btn" onclick="openSettings()">&#9881;</button>
+        </div>
         </div>
 
         <div class="settings-page" id="settings-page">
