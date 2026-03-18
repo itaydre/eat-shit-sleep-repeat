@@ -94,11 +94,20 @@
 
         /* --- Top Bar --- */
         .top-bar {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
             max-width: 500px;
             margin: 0 auto 20px;
+        }
+
+        .top-bar-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
         }
 
         .top-bar-left {
@@ -820,7 +829,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 </button>
             </div>
-            <div style="text-align:center">
+            <div class="top-bar-center">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.75rem; color:#aaa; margin-top:2px;"></div>
             </div>
