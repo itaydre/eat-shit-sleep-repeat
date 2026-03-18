@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eat shit sleep repeat</title>
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
@@ -1649,10 +1649,6 @@
         let feedSessionStart = null;
         let feedSessionInterval = null;
 
-        window.startFeedSession = startFeedSession;
-        window.stopFeedSession = stopFeedSession;
-        window.adjustFeedInterval = adjustFeedInterval;
-
         function startFeedSession(type) {
             feedSessionType = type;
             feedSessionStart = Date.now();
@@ -1899,7 +1895,8 @@
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
-            requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout
+            requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
+            startFeedSession, stopFeedSession, adjustFeedInterval
         });
 
         // Boot
