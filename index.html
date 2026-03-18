@@ -1637,6 +1637,7 @@
             log(type, feedSessionStart);
             const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
             if (pendingEntry) pendingEntry.pending = true;
+            render();
             feedSessionInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
                 const m = Math.floor(elapsed / 60);
