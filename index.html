@@ -1354,18 +1354,22 @@
             const timestamp = customTimestamp || Date.now();
             const body = { type, timestamp };
             if (duration) body.duration = duration;
-            try {
-                const res = await apiFetch('/api/logs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body),
-                });
-                const saved = await res.json();
-                entries.push(saved);
-                entries.sort((a, b) => b.timestamp - a.timestamp);
-            } catch (e) {
-                entries.unshift({ type, timestamp });
-                console.warn('Failed to save log:', e);
+            if (isDevMode) {
+                entries.unshift({ type, timestamp, duration });
+            } else {
+                try {
+                    const res = await apiFetch('/api/logs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                    });
+                    const saved = await res.json();
+                    entries.push(saved);
+                    entries.sort((a, b) => b.timestamp - a.timestamp);
+                } catch (e) {
+                    entries.unshift({ type, timestamp });
+                    console.warn('Failed to save log:', e);
+                }
             }
             render();
 
