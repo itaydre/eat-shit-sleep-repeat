@@ -95,10 +95,31 @@
         /* --- Top Bar --- */
         .top-bar {
             display: grid;
-            grid-template-columns: 40px 1fr 40px;
+            grid-template-columns: 40px 1fr auto;
             align-items: center;
             max-width: 500px;
             margin: 0 auto 20px;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .top-bar-actions .top-link {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 6px;
+            font-family: inherit;
+        }
+
+        .top-bar-actions .top-link.active {
+            color: #5a4a3a;
+            font-weight: 600;
         }
 
         .top-bar h1 {
@@ -182,17 +203,19 @@
         /* --- Main App --- */
         .buttons {
             position: fixed;
-            bottom: calc(52px + env(safe-area-inset-bottom, 0px));
-            left: 0;
-            right: 0;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            left: 16px;
+            right: 16px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            padding: 12px 16px;
+            padding: 14px;
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
-            background: #faf6f0;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.10);
             z-index: 50;
         }
 
@@ -543,17 +566,7 @@
 
         /* --- Bottom Nav Bar --- */
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 10px 24px calc(10px + env(safe-area-inset-bottom, 0px));
-            background: #fff;
-            border-top: 1px solid #ebe3d8;
-            z-index: 50;
+            display: none;
         }
         .nav-tab {
             display: flex;
@@ -741,7 +754,12 @@
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.75rem; color:#aaa; margin-top:2px;"></div>
             </div>
-            <button class="settings-btn" id="settings-btn" onclick="openSettings()">&#9881;</button>
+            <div class="top-bar-actions">
+                <button class="top-link active" onclick="switchTab('today')">Today</button>
+                <button class="top-link" onclick="switchTab('history')">History</button>
+                <button class="top-link" onclick="switchTab('stats')">Stats</button>
+                <button class="settings-btn" id="settings-btn" onclick="openSettings()">&#9881;</button>
+            </div>
         </div>
 
         <div class="settings-page" id="settings-page">
@@ -1014,16 +1032,20 @@
             }
             if (profile && profile.baby_birthdate) {
                 const birth = new Date(profile.baby_birthdate);
-                const days = Math.floor((Date.now() - birth.getTime()) / 86400000);
+                const totalHours = (Date.now() - birth.getTime()) / 3600000;
+                const days = Math.floor(totalHours / 24);
+                const remainingHours = Math.floor(totalHours % 24);
                 let ageText;
                 if (days < 7) {
-                    ageText = days + ' days old';
+                    ageText = days + '.' + remainingHours + ' days old';
                 } else if (days < 30) {
                     const weeks = Math.floor(days / 7);
-                    ageText = weeks + (weeks === 1 ? ' week' : ' weeks') + ' old';
+                    const remainingDays = days % 7;
+                    ageText = weeks + '.' + remainingDays + (weeks === 1 ? ' week' : ' weeks') + ' old';
                 } else {
                     const months = Math.floor(days / 30);
-                    ageText = months + (months === 1 ? ' month' : ' months') + ' old';
+                    const remainingDaysInMonth = days % 30;
+                    ageText = months + '.' + remainingDaysInMonth + (months === 1 ? ' month' : ' months') + ' old';
                 }
                 document.getElementById('baby-age').textContent = ageText;
             }
@@ -1122,9 +1144,8 @@
                 const el = document.getElementById('tab-' + t);
                 if (el) el.classList.toggle('active', t === tab);
             });
-            document.querySelectorAll('.nav-tab').forEach(btn => {
-                const label = btn.querySelector('.nav-label').textContent.toLowerCase();
-                btn.classList.toggle('active', label === tab);
+            document.querySelectorAll('.top-link').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase() === tab);
             });
             document.getElementById('action-buttons').style.display = tab === 'today' ? '' : 'none';
         }
@@ -1135,7 +1156,6 @@
             settingsOpen = !settingsOpen;
             document.getElementById('settings-page').classList.toggle('active', settingsOpen);
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
-            document.getElementById('bottom-nav').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
             const ftw = document.getElementById('feed-timer-wrapper');
             if (settingsOpen) ftw.style.display = 'none';
