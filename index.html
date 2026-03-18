@@ -892,7 +892,6 @@
                         History
                         <button class="add-btn" onclick="openAddModal()">+</button>
                     </h2>
-                    <div id="feed-active-slot"></div>
                     <div id="entries"><div class="loader" id="loader"><div class="spinner"></div></div></div>
                 </div>
             </div>
@@ -1520,18 +1519,32 @@
                         const globalIndex = entries.indexOf(entry);
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                         const tFlip = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
-                        todayHtml += `
-                            <div class="entry-wrapper">
-                                <div class="entry-delete-bg">Delete</div>
-                                <div class="entry" data-index="${globalIndex}">
+                        if (entry.pending) {
+                            todayHtml += `
+                                <div class="feed-active-card">
                                     <span class="emoji"${tFlip}>${act.emoji}</span>
                                     <div class="details">
                                         <div class="activity">${act.label}</div>
-                                        <div class="time">${formatTime(entry.timestamp)}</div>
+                                        <div class="feed-stopwatch" id="feed-stopwatch">0:00</div>
+                                    </div>
+                                    <button class="stop-btn" onclick="stopFeedSession()">&#9632;</button>
+                                </div>
+                            `;
+                        } else {
+                            const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m ${entry.duration % 60}s)` : '';
+                            todayHtml += `
+                                <div class="entry-wrapper">
+                                    <div class="entry-delete-bg">Delete</div>
+                                    <div class="entry" data-index="${globalIndex}">
+                                        <span class="emoji"${tFlip}>${act.emoji}</span>
+                                        <div class="details">
+                                            <div class="activity">${act.label}${durationText}</div>
+                                            <div class="time">${formatTime(entry.timestamp)}</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     });
 
                     todayContainer.innerHTML = todayHtml;
@@ -1651,19 +1664,6 @@
             log(type, feedSessionStart);
             const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
             if (pendingEntry) pendingEntry.pending = true;
-            const act = ACTIVITIES[type];
-            const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
-            const slot = document.getElementById('feed-active-slot');
-            slot.innerHTML = `
-                <div class="feed-active-card">
-                    <span class="emoji"${flipStyle}>${act.emoji}</span>
-                    <div class="details">
-                        <div class="activity">${act.label}</div>
-                        <div class="feed-stopwatch" id="feed-stopwatch">0:00</div>
-                    </div>
-                    <button class="stop-btn" onclick="stopFeedSession()">&#9632;</button>
-                </div>
-            `;
             feedSessionInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
                 const m = Math.floor(elapsed / 60);
@@ -1676,7 +1676,6 @@
         function stopFeedSession() {
             clearInterval(feedSessionInterval);
             feedSessionInterval = null;
-            document.getElementById('feed-active-slot').innerHTML = '';
             const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
             // Update the entry with duration and remove pending flag
             const entry = entries.find(e => e.type === feedSessionType && e.timestamp === feedSessionStart);
