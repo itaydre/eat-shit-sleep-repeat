@@ -537,6 +537,60 @@
             color: #e74c3c;
         }
 
+        .feed-session {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feed-session-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px;
+            text-align: center;
+            min-width: 260px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .feed-session-card .feed-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .feed-session-card .feed-side {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 16px;
+        }
+
+        .feed-session-card .feed-stopwatch {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2e6b2e;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 24px;
+        }
+
+        .feed-session-card .stop-btn {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(231,76,60,0.3);
+        }
+
+        .feed-session-card .stop-btn:active {
+            transform: scale(0.95);
+        }
+
         .notif-banner {
             max-width: 500px;
             margin: 0 auto 16px;
@@ -775,6 +829,15 @@
                 <span class="settings-icon">&#128190;</span>
                 <span>Download backup</span>
             </button>
+            <div class="settings-item" style="flex-wrap:wrap;">
+                <span class="settings-icon">&#9200;</span>
+                <span>Feeding reminder</span>
+                <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+                    <button onclick="adjustFeedInterval(-0.5)" style="background:#f0ebe4; border:none; border-radius:8px; width:32px; height:32px; font-size:1.1rem; cursor:pointer; color:#5a4a3a;">−</button>
+                    <span id="feed-interval-display" style="font-weight:600; min-width:40px; text-align:center;">2.5h</span>
+                    <button onclick="adjustFeedInterval(0.5)" style="background:#f0ebe4; border:none; border-radius:8px; width:32px; height:32px; font-size:1.1rem; cursor:pointer; color:#5a4a3a;">+</button>
+                </div>
+            </div>
             <button class="settings-item danger" onclick="confirmClearAll()">
                 <span class="settings-icon">&#128465;&#65039;</span>
                 <span>Clear all data</span>
@@ -862,14 +925,23 @@
                 <span class="emoji">&#128169;</span>
                 <span>Poop</span>
             </button>
-            <button class="btn btn-feed" onclick="log('feed_l')">
+            <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
                 <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span>
                 <span>Feed L</span>
             </button>
-            <button class="btn btn-feed" onclick="log('feed_r')">
+            <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
                 <span class="emoji">&#127868;</span>
                 <span>Feed R</span>
             </button>
+        </div>
+
+        <div class="feed-session" id="feed-session" style="display:none">
+            <div class="feed-session-card">
+                <div class="feed-emoji">&#127868;</div>
+                <div class="feed-side" id="feed-session-side">Feed L</div>
+                <div class="feed-stopwatch" id="feed-stopwatch">0:00</div>
+                <button class="stop-btn" onclick="stopFeedSession()">&#9632;</button>
+            </div>
         </div>
     </div>
 
@@ -1052,6 +1124,7 @@
                 }
                 document.getElementById('baby-age').textContent = ageText;
             }
+            document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
             initServiceWorker().then(() => {
                 checkNotifPermission();
                 if (Notification.permission === 'granted') {
@@ -1236,16 +1309,18 @@
             setTimeout(() => container.remove(), 1500);
         }
 
-        async function log(type, customTimestamp) {
+        async function log(type, customTimestamp, duration) {
             hapticSuccess();
             const act = ACTIVITIES[type];
             if (act) emojiConfetti(act.emoji);
             const timestamp = customTimestamp || Date.now();
+            const body = { type, timestamp };
+            if (duration) body.duration = duration;
             try {
                 const res = await apiFetch('/api/logs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, timestamp }),
+                    body: JSON.stringify(body),
                 });
                 const saved = await res.json();
                 entries.push(saved);
@@ -1357,13 +1432,14 @@
 
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                 const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
+                const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m ${entry.duration % 60}s)` : '';
                 html += `
                     <div class="entry-wrapper">
                         <div class="entry-delete-bg">Delete</div>
                         <div class="entry" data-index="${i}">
                             <span class="emoji"${flipStyle}>${act.emoji}</span>
                             <div class="details">
-                                <div class="activity">${act.label}</div>
+                                <div class="activity">${act.label}${durationText}</div>
                                 <div class="time">${formatTime(entry.timestamp)}</div>
                             </div>
                         </div>
@@ -1518,8 +1594,53 @@
             localStorage.setItem('last_backup', Date.now());
         }
 
+        // --- Feed Session Timer ---
+        let feedSessionType = null;
+        let feedSessionStart = null;
+        let feedSessionInterval = null;
+
+        function startFeedSession(type) {
+            feedSessionType = type;
+            feedSessionStart = Date.now();
+            document.getElementById('feed-session-side').textContent = type === 'feed_l' ? 'Feed L' : 'Feed R';
+            document.getElementById('feed-stopwatch').textContent = '0:00';
+            document.getElementById('feed-session').style.display = '';
+            feedSessionInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
+                const m = Math.floor(elapsed / 60);
+                const s = elapsed % 60;
+                document.getElementById('feed-stopwatch').textContent = m + ':' + String(s).padStart(2, '0');
+            }, 1000);
+        }
+
+        function stopFeedSession() {
+            clearInterval(feedSessionInterval);
+            document.getElementById('feed-session').style.display = 'none';
+            const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
+            log(feedSessionType, null, duration);
+            feedSessionType = null;
+            feedSessionStart = null;
+        }
+
+        // --- Feed Interval Setting ---
+        function getFeedIntervalHours() {
+            return parseFloat(localStorage.getItem('feedIntervalHours') || '2.5');
+        }
+
+        function adjustFeedInterval(delta) {
+            let hours = getFeedIntervalHours() + delta;
+            if (hours < 0.5) hours = 0.5;
+            if (hours > 6) hours = 6;
+            localStorage.setItem('feedIntervalHours', hours);
+            document.getElementById('feed-interval-display').textContent = hours + 'h';
+            updateFeedTimer();
+        }
+
+        function getFeedInterval() {
+            return getFeedIntervalHours() * 60 * 60 * 1000;
+        }
+
         // --- Notification & Feed Reminder ---
-        const FEED_INTERVAL = 2.5 * 60 * 60 * 1000; // 2.5 hours
         const VAPID_PUBLIC_KEY = 'BMN9JQe4eiEidwuJEacqzsUsunUzEZkAQasEyJLquDZ8IocDKqPdQzWzBbpkNHf0Xh6UXRf3d40TvSa7ZZHCNlE';
 
         function urlBase64ToUint8Array(base64String) {
@@ -1640,7 +1761,7 @@
 
             wrapperEl.style.display = '';
             timerEl.style.display = 'flex';
-            const nextFeedAt = lastFeed + FEED_INTERVAL;
+            const nextFeedAt = lastFeed + getFeedInterval();
             const diff = nextFeedAt - Date.now();
 
             const feedTime = new Date(nextFeedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
