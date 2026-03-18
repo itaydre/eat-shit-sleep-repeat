@@ -1645,6 +1645,8 @@
             if (feedSessionInterval) return; // already active
             feedSessionType = type;
             feedSessionStart = Date.now();
+            // Log the entry immediately (duration updated on stop)
+            log(type, feedSessionStart);
             const act = ACTIVITIES[type];
             const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
             const slot = document.getElementById('feed-active-slot');
@@ -1672,7 +1674,12 @@
             feedSessionInterval = null;
             document.getElementById('feed-active-slot').innerHTML = '';
             const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
-            log(feedSessionType, null, duration);
+            // Update the most recent entry with duration
+            const entry = entries.find(e => e.type === feedSessionType && e.timestamp === feedSessionStart);
+            if (entry) {
+                entry.duration = duration;
+                render();
+            }
             feedSessionType = null;
             feedSessionStart = null;
         }
