@@ -818,9 +818,13 @@
                 <span class="settings-icon">&#9200;</span>
                 <span>Feeding reminder</span>
                 <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
-                    <button onclick="adjustFeedInterval(-0.5)" style="background:#f0ebe4; border:none; border-radius:8px; width:32px; height:32px; font-size:1.1rem; cursor:pointer; color:#5a4a3a;">−</button>
+                    <button onclick="previewFeedInterval(-0.5)" style="background:#f0ebe4; border:none; border-radius:8px; width:32px; height:32px; font-size:1.1rem; cursor:pointer; color:#5a4a3a;">−</button>
                     <span id="feed-interval-display" style="font-weight:600; min-width:40px; text-align:center;">2.5h</span>
-                    <button onclick="adjustFeedInterval(0.5)" style="background:#f0ebe4; border:none; border-radius:8px; width:32px; height:32px; font-size:1.1rem; cursor:pointer; color:#5a4a3a;">+</button>
+                    <button onclick="previewFeedInterval(0.5)" style="background:#f0ebe4; border:none; border-radius:8px; width:32px; height:32px; font-size:1.1rem; cursor:pointer; color:#5a4a3a;">+</button>
+                </div>
+                <div id="feed-interval-actions" style="display:none; width:100%; margin-top:8px; display:none; justify-content:flex-end; gap:8px;">
+                    <button onclick="cancelFeedInterval()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 16px; font-size:0.85rem; color:#999; cursor:pointer; font-family:inherit;">Cancel</button>
+                    <button onclick="saveFeedInterval()" style="background:#5a4a3a; border:none; border-radius:8px; padding:6px 16px; font-size:0.85rem; color:#fff; cursor:pointer; font-family:inherit;">Save</button>
                 </div>
             </div>
             <button class="settings-item danger" onclick="confirmClearAll()">
@@ -1667,13 +1671,30 @@
             return parseFloat(localStorage.getItem('feedIntervalHours') || '2.5');
         }
 
-        function adjustFeedInterval(delta) {
-            let hours = getFeedIntervalHours() + delta;
-            if (hours < 0.5) hours = 0.5;
-            if (hours > 6) hours = 6;
-            localStorage.setItem('feedIntervalHours', hours);
-            document.getElementById('feed-interval-display').textContent = hours + 'h';
-            updateFeedTimer();
+        let pendingFeedInterval = null;
+
+        function previewFeedInterval(delta) {
+            if (pendingFeedInterval === null) pendingFeedInterval = getFeedIntervalHours();
+            pendingFeedInterval += delta;
+            if (pendingFeedInterval < 0.5) pendingFeedInterval = 0.5;
+            if (pendingFeedInterval > 6) pendingFeedInterval = 6;
+            document.getElementById('feed-interval-display').textContent = pendingFeedInterval + 'h';
+            document.getElementById('feed-interval-actions').style.display = 'flex';
+        }
+
+        function saveFeedInterval() {
+            if (pendingFeedInterval !== null) {
+                localStorage.setItem('feedIntervalHours', pendingFeedInterval);
+                pendingFeedInterval = null;
+                updateFeedTimer();
+            }
+            document.getElementById('feed-interval-actions').style.display = 'none';
+        }
+
+        function cancelFeedInterval() {
+            pendingFeedInterval = null;
+            document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
+            document.getElementById('feed-interval-actions').style.display = 'none';
         }
 
         function getFeedInterval() {
@@ -1886,7 +1907,7 @@
             log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
-            startFeedSession, stopFeedSession, adjustFeedInterval
+            startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval
         });
 
         // Boot
