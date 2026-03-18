@@ -990,7 +990,14 @@
         let session = null;
         let profile = null;
 
+        const isDevMode = location.hostname.includes('-dev.');
+
         async function initSupabase() {
+            if (isDevMode) {
+                profile = { baby_name: 'Baby', baby_birthdate: new Date(Date.now() - 5 * 86400000).toISOString().slice(0,10), onboarding_done: true };
+                startApp();
+                return;
+            }
             const res = await fetch('/api/config');
             const { supabaseUrl, supabaseAnonKey } = await res.json();
             sb = createClient(supabaseUrl, supabaseAnonKey);
