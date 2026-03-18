@@ -992,10 +992,41 @@
 
         const isDevMode = location.hostname.includes('-dev.');
 
+        function loadDummyData() {
+            const now = Date.now();
+            const h = 3600000;
+            entries = [
+                { type: 'feed_r', timestamp: now - 0.3 * h, duration: 720 },
+                { type: 'pee', timestamp: now - 0.8 * h },
+                { type: 'feed_l', timestamp: now - 2.2 * h, duration: 540 },
+                { type: 'poop', timestamp: now - 3 * h },
+                { type: 'pee', timestamp: now - 3.5 * h },
+                { type: 'feed_r', timestamp: now - 5 * h, duration: 600 },
+                { type: 'feed_l', timestamp: now - 7.5 * h, duration: 480 },
+                { type: 'poop', timestamp: now - 8 * h },
+                { type: 'pee', timestamp: now - 9 * h },
+                { type: 'feed_r', timestamp: now - 10 * h, duration: 660 },
+                { type: 'pee', timestamp: now - 11 * h },
+                { type: 'feed_l', timestamp: now - 12.5 * h, duration: 420 },
+                { type: 'poop', timestamp: now - 14 * h },
+                { type: 'pee', timestamp: now - 15 * h },
+                { type: 'feed_r', timestamp: now - 16 * h, duration: 540 },
+                { type: 'feed_l', timestamp: now - 18.5 * h, duration: 600 },
+                { type: 'pee', timestamp: now - 20 * h },
+                { type: 'poop', timestamp: now - 22 * h },
+                { type: 'feed_r', timestamp: now - 24 * h, duration: 480 },
+                { type: 'pee', timestamp: now - 26 * h },
+                { type: 'feed_l', timestamp: now - 28 * h, duration: 720 },
+            ];
+        }
+
         async function initSupabase() {
             if (isDevMode) {
-                profile = { baby_name: 'Baby', baby_birthdate: new Date(Date.now() - 5 * 86400000).toISOString().slice(0,10), onboarding_done: true };
+                profile = { baby_name: 'Baby Dreyfus', baby_birthdate: new Date(Date.now() - 5 * 86400000).toISOString().slice(0,10), onboarding_done: true };
+                loadDummyData();
                 startApp();
+                render();
+                updateFeedTimer();
                 return;
             }
             const res = await fetch('/api/config');
@@ -1132,6 +1163,7 @@
                 document.getElementById('baby-age').textContent = ageText;
             }
             document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
+            if (isDevMode) return;
             initServiceWorker().then(() => {
                 checkNotifPermission();
                 if (Notification.permission === 'granted') {
