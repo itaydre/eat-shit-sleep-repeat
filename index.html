@@ -815,7 +815,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 </button>
             </div>
-            <div class="top-bar-center">
+            <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.75rem; color:#aaa; margin-top:2px;"></div>
             </div>
@@ -1454,11 +1454,13 @@
                 dayGroups[dayLabel][entry.type] = (dayGroups[dayLabel][entry.type] || 0) + 1;
             });
 
-            // Render full history (all days)
+            // Render full history (all days) — exclude pending feed sessions
+            const historyEntries = entries.filter(e => !e.pending);
             let html = '';
             let currentDay = '';
 
-            entries.forEach((entry, i) => {
+            historyEntries.forEach((entry) => {
+                const i = entries.indexOf(entry);
                 const dayLabel = formatDayLabel(entry.timestamp);
                 if (dayLabel !== currentDay) {
                     currentDay = dayLabel;
@@ -1645,8 +1647,10 @@
             if (feedSessionInterval) return; // already active
             feedSessionType = type;
             feedSessionStart = Date.now();
-            // Log the entry immediately (duration updated on stop)
+            // Log the entry immediately (shows on today, pending hides from history)
             log(type, feedSessionStart);
+            const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
+            if (pendingEntry) pendingEntry.pending = true;
             const act = ACTIVITIES[type];
             const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
             const slot = document.getElementById('feed-active-slot');
@@ -1674,12 +1678,13 @@
             feedSessionInterval = null;
             document.getElementById('feed-active-slot').innerHTML = '';
             const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
-            // Update the most recent entry with duration
+            // Update the entry with duration and remove pending flag
             const entry = entries.find(e => e.type === feedSessionType && e.timestamp === feedSessionStart);
             if (entry) {
                 entry.duration = duration;
-                render();
+                delete entry.pending;
             }
+            render();
             feedSessionType = null;
             feedSessionStart = null;
         }
