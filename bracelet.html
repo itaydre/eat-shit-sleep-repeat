@@ -99,10 +99,6 @@
             </select>
         </div>
         <div class="field">
-            <label>ID</label>
-            <input type="text" id="p-id" value="24502293-1" oninput="updateBracelet()">
-        </div>
-        <div class="field">
             <label>Hospital</label>
             <input type="text" id="p-hospital" value="" placeholder="e.g. Ichilov" oninput="updateBracelet()">
         </div>
@@ -260,19 +256,11 @@
             ctx.fillText(details.join('      '), tx, ty);
             ty += 42;
 
-            // ID
-            if (info.id) {
-                ctx.font = '22px monospace';
-                ctx.fillStyle = '#888';
-                ctx.fillText('ID: ' + info.id, tx, ty);
-                ty += 24;
-
-                // Barcode
-                for (let i = 0; i < 50; i++) {
-                    const w = Math.random() > 0.5 ? 3 : 1.5;
-                    ctx.fillStyle = '#1a1a1a';
-                    ctx.fillRect(tx + i * 6.5, ty, w, 36);
-                }
+            // Barcode
+            for (let i = 0; i < 50; i++) {
+                const w = Math.random() > 0.5 ? 3 : 1.5;
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(tx + i * 6.5, ty, w, 36);
             }
 
             // Punch holes last (after all drawing) so they cut through everything
