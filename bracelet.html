@@ -445,7 +445,7 @@
         function buildBand(len, w, droopAmt) {
             // Custom bracelet shape: narrow strip (left) → rounded taper → wider label (right)
             const stripW = w * 0.35; // narrow strip width
-            const labelW = w * 0.5; // label section width
+            const labelW = w; // full width for label section
             const taperLen = parseFloat(document.getElementById('p-taper')?.value || 0.1);
             const taperStart = 0.35; // where taper begins (fraction of length)
             const taperEnd = taperStart + taperLen; // where taper ends
@@ -903,10 +903,7 @@
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
             snap.rotation.x = Math.PI / 2;
-            // Position snap on the band surface following the droop curve
-            const snapU = (-0.35 * len / len) + 0.5; // u at snap X position = 0.15
-            const snapDroop = droop * (Math.cosh((snapU - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-            snap.position.set(len * -0.35, 0, -snapDroop + 0.008);
+            snap.position.set(len * -0.35, 0, 0.008);
             band.add(snap);
 
             scene.add(band);
