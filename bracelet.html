@@ -92,63 +92,65 @@
         function createBandTexture(info, bgColor) {
             const c = document.createElement('canvas');
             c.width = 2048;
-            c.height = 256;
+            c.height = 512;
             const ctx = c.getContext('2d');
+            const W = 2048, H = 512;
 
             ctx.fillStyle = bgColor;
-            ctx.fillRect(0, 0, 2048, 256);
+            ctx.fillRect(0, 0, W, H);
 
             // Grain
-            for (let i = 0; i < 4000; i++) {
+            for (let i = 0; i < 5000; i++) {
                 ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.015})`;
-                ctx.fillRect(Math.random() * 2048, Math.random() * 256, 1, 1);
+                ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
 
             // Holes on left portion
             for (let i = 0; i < 8; i++) {
                 const hx = 100 + i * 72;
-                const hy = 128;
+                const hy = H / 2;
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(hx, hy, 20, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 36, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
                 ctx.strokeStyle = 'rgba(0,0,0,0.1)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(hx, hy, 20, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 36, 0, Math.PI * 2);
                 ctx.stroke();
             }
 
-            // Info on right portion
+            // Info on right portion — vertically centered
             const tx = 800;
+            const midY = H / 2;
 
             ctx.fillStyle = '#1a1a1a';
-            ctx.font = 'bold 44px system-ui, sans-serif';
-            ctx.fillText(info.name, tx, 65);
+            ctx.font = 'bold 52px system-ui, sans-serif';
+            ctx.fillText(info.name, tx, midY - 80);
 
             ctx.strokeStyle = 'rgba(0,0,0,0.08)';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(tx, 80);
-            ctx.lineTo(tx + 650, 80);
+            ctx.moveTo(tx, midY - 60);
+            ctx.lineTo(tx + 650, midY - 60);
             ctx.stroke();
 
-            ctx.font = '26px system-ui, sans-serif';
+            ctx.font = '30px system-ui, sans-serif';
             ctx.fillStyle = '#444';
-            ctx.fillText(info.date + '   ' + info.time, tx, 115);
-            ctx.fillText('Weight: ' + info.weight + '      Gender: ' + info.gender, tx, 150);
+            ctx.fillText(info.date + '   ' + info.time, tx, midY - 20);
+            ctx.fillText('Weight: ' + info.weight + '      Gender: ' + info.gender, tx, midY + 20);
 
-            ctx.font = '20px monospace';
+            ctx.font = '22px monospace';
             ctx.fillStyle = '#888';
-            ctx.fillText('ID: ' + info.id, tx, 186);
+            ctx.fillText('ID: ' + info.id, tx, midY + 60);
 
             // Barcode
             for (let i = 0; i < 50; i++) {
-                const w = Math.random() > 0.5 ? 2.5 : 1;
+                const w = Math.random() > 0.5 ? 3 : 1.5;
                 ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(tx + i * 6, 198, w, 32);
+                ctx.fillRect(tx + i * 6.5, midY + 75, w, 36);
             }
 
             const tex = new THREE.CanvasTexture(c);
@@ -157,7 +159,7 @@
 
         // --- Band: PlaneGeometry with vertex displacement for droop ---
         const bandLen = 5.0;
-        const bandW = 0.5;
+        const bandW = 0.25;
         const segsX = 120;
         const segsY = 8;
 
@@ -190,7 +192,7 @@
         scene.add(band);
 
         // Clasp at right end
-        const claspGeo = new THREE.BoxGeometry(0.15, 0.28, 0.02);
+        const claspGeo = new THREE.BoxGeometry(0.15, 0.16, 0.02);
         const claspMat = new THREE.MeshPhysicalMaterial({
             color: 0xf0ebe4, roughness: 0.25, metalness: 0.05, clearcoat: 0.3,
         });
