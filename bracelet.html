@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baby Bracelet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #FAF6F1;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #info {
+            position: fixed;
+            bottom: 24px;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: 13px;
+            color: #9A8A7A;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <div id="info">Drag to rotate</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.171.0",
+            "three/addons/": "https://esm.sh/three@0.171.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Config ---
+        const babyInfo = {
+            name: 'Baby Dreyfus',
+            date: 'March 14, 2026',
+            time: '10:30 AM',
+            weight: '3,200g',
+            gender: 'Boy',
+            id: '13672332'
+        };
+
+        // --- Scene setup ---
+        const canvas = document.getElementById('c');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0.5, 4);
+
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.5;
+        controls.minPolarAngle = Math.PI * 0.3;
+        controls.maxPolarAngle = Math.PI * 0.7;
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+        keyLight.position.set(3, 4, 5);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0xe6f0ff, 0.4);
+        fillLight.position.set(-3, 2, -2);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        rimLight.position.set(0, -2, -4);
+        scene.add(rimLight);
+
+        // --- Create bracelet band geometry ---
+        // Curved band that wraps around like a hospital bracelet
+        const bandRadius = 1.0;
+        const bandWidth = 0.35;
+        const bandThickness = 0.015;
+        const bandArc = Math.PI * 1.6; // not fully closed
+
+        function createBandGeometry(radius, width, thickness, arc, segments) {
+            const shape = new THREE.Shape();
+            const hw = width / 2;
+            const ht = thickness / 2;
+            const r = 0.005; // corner radius
+            shape.moveTo(-hw + r, -ht);
+            shape.lineTo(hw - r, -ht);
+            shape.quadraticCurveTo(hw, -ht, hw, -ht + r);
+            shape.lineTo(hw, ht - r);
+            shape.quadraticCurveTo(hw, ht, hw - r, ht);
+            shape.lineTo(-hw + r, ht);
+            shape.quadraticCurveTo(-hw, ht, -hw, ht - r);
+            shape.lineTo(-hw, -ht + r);
+            shape.quadraticCurveTo(-hw, -ht, -hw + r, -ht);
+
+            const path = new THREE.CurvePath();
+            const startAngle = -arc / 2;
+            const points = [];
+            for (let i = 0; i <= segments; i++) {
+                const angle = startAngle + (arc / segments) * i;
+                points.push(new THREE.Vector3(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                ));
+            }
+            const curve = new THREE.CatmullRomCurve3(points, false);
+
+            const extrudeSettings = {
+                steps: segments * 4,
+                bevelEnabled: false,
+                extrudePath: curve,
+            };
+
+            return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        }
+
+        // --- Text texture ---
+        function createTextTexture(info) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // Semi-transparent white plastic
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.fillRect(0, 0, 1024, 512);
+
+            // Subtle texture noise
+            for (let i = 0; i < 3000; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 512;
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.03})`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+
+            // Info section (right side of band)
+            const startX = 520;
+            const startY = 100;
+
+            // Name — large
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 48px system-ui, sans-serif';
+            ctx.fillText(info.name, startX, startY);
+
+            // Separator line
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY + 20);
+            ctx.lineTo(startX + 400, startY + 20);
+            ctx.stroke();
+
+            // Details
+            ctx.font = '28px system-ui, sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.fillText(info.date + '  ' + info.time, startX, startY + 60);
+            ctx.fillText('Weight: ' + info.weight + '    Gender: ' + info.gender, startX, startY + 100);
+
+            // ID / barcode area
+            ctx.font = '22px monospace';
+            ctx.fillStyle = '#666';
+            ctx.fillText('ID: ' + info.id, startX, startY + 150);
+
+            // Barcode-like lines
+            const barcodeY = startY + 170;
+            for (let i = 0; i < 60; i++) {
+                const x = startX + i * 5;
+                const w = Math.random() > 0.5 ? 3 : 1.5;
+                const h = 30 + Math.random() * 10;
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(x, barcodeY, w, h);
+            }
+
+            // Holes on left side of band
+            for (let i = 0; i < 8; i++) {
+                const hx = 80 + i * 45;
+                const hy = 256;
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(hx, hy, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Hole border
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(hx, hy, 12, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            return texture;
+        }
+
+        // --- Build bracelet ---
+        const bandGeo = createBandGeometry(bandRadius, bandWidth, bandThickness, bandArc, 64);
+        const textTexture = createTextTexture(babyInfo);
+
+        const bandMaterial = new THREE.MeshPhysicalMaterial({
+            map: textTexture,
+            color: 0xffffff,
+            roughness: 0.4,
+            metalness: 0.0,
+            clearcoat: 0.3,
+            clearcoatRoughness: 0.2,
+            transmission: 0.15,
+            thickness: 0.5,
+            transparent: true,
+            opacity: 0.92,
+            side: THREE.DoubleSide,
+        });
+
+        const band = new THREE.Mesh(bandGeo, bandMaterial);
+        band.rotation.x = Math.PI * 0.1;
+        scene.add(band);
+
+        // --- Tag (wider section at the end) ---
+        const tagWidth = 0.55;
+        const tagHeight = 0.4;
+        const tagGeo = new THREE.BoxGeometry(tagWidth, bandThickness * 1.2, tagHeight);
+        const tagMaterial = new THREE.MeshPhysicalMaterial({
+            map: textTexture,
+            color: 0xffffff,
+            roughness: 0.35,
+            metalness: 0.0,
+            clearcoat: 0.4,
+            clearcoatRoughness: 0.15,
+            transparent: true,
+            opacity: 0.94,
+            side: THREE.DoubleSide,
+        });
+
+        // Position tag at end of band arc
+        const tagAngle = -bandArc / 2;
+        const tag = new THREE.Mesh(tagGeo, tagMaterial);
+        tag.position.set(
+            Math.cos(tagAngle) * bandRadius,
+            0,
+            Math.sin(tagAngle) * bandRadius
+        );
+        tag.rotation.y = tagAngle + Math.PI / 2;
+        tag.rotation.x = Math.PI * 0.1;
+        band.add(tag);
+
+        // --- Snap button ---
+        const snapGeo = new THREE.CylinderGeometry(0.03, 0.035, 0.02, 16);
+        const snapMat = new THREE.MeshPhysicalMaterial({
+            color: 0xeeeeee,
+            roughness: 0.2,
+            metalness: 0.1,
+        });
+        const snap = new THREE.Mesh(snapGeo, snapMat);
+        snap.position.set(0, bandThickness, 0.12);
+        snap.rotation.x = Math.PI / 2;
+        tag.add(snap);
+
+        // --- Animation ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- Resize ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Stop auto-rotate on interaction
+        canvas.addEventListener('pointerdown', () => {
+            controls.autoRotate = false;
+        });
+
+        // Resume after 3s of no interaction
+        let idleTimer;
+        canvas.addEventListener('pointerup', () => {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                controls.autoRotate = true;
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
