@@ -528,20 +528,20 @@
         function buildCurvedBand() {
             const group = new THREE.Group();
             const info = getInfo();
-            const bandW = 0.10;
+            const bandW = 0.12;
             const rx = 0.7, ry = 0.45;
             const ovalSegs = 200;
+            const arcSpan = Math.PI * 1.85; // almost closed, like clinical
 
-            // Closed oval path
             const ovalPoints = [];
             for (let i = 0; i <= ovalSegs; i++) {
-                const angle = (i / ovalSegs) * Math.PI * 2;
+                const angle = (i / ovalSegs) * arcSpan - arcSpan * 0.5;
                 ovalPoints.push(new THREE.Vector3(Math.cos(angle) * rx, 0, Math.sin(angle) * ry));
             }
-            const ovalCurve = new THREE.CatmullRomCurve3(ovalPoints, true);
+            const ovalCurve = new THREE.CatmullRomCurve3(ovalPoints, false);
 
             const shape = new THREE.Shape();
-            const sw = bandW / 2, st = 0.002;
+            const sw = bandW / 2, st = 0.003;
             shape.moveTo(-sw, -st); shape.lineTo(sw, -st);
             shape.lineTo(sw, st); shape.lineTo(-sw, st); shape.lineTo(-sw, -st);
 
@@ -549,15 +549,17 @@
                 steps: ovalSegs * 2, bevelEnabled: false, extrudePath: ovalCurve,
             });
 
-            const bandMat2 = new THREE.MeshPhysicalMaterial({
+            // PVC material — same as clinical
+            const pvcMat = new THREE.MeshPhysicalMaterial({
                 color: new THREE.Color(currentColor),
-                roughness: 0.7, clearcoat: 0.15, clearcoatRoughness: 0.6,
-                sheen: 0.3, sheenRoughness: 0.8, sheenColor: new THREE.Color(0xe8e0d8),
+                roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.3,
+                sheen: 0.15, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xeee8e0),
                 side: THREE.DoubleSide,
             });
-            group.add(new THREE.Mesh(bandGeo, bandMat2));
+            group.add(new THREE.Mesh(bandGeo, pvcMat));
 
-            addSnap(group, rx, 0);
+            const endPt = ovalCurve.getPoint(0.5);
+            addSnap(group, endPt.x, endPt.z);
             addHoles(group, rx, ry, bandW, info.holes || 5);
             addCurvedLabel(group, rx, ry, bandW, info);
 
