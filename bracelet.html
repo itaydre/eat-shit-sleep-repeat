@@ -269,6 +269,50 @@
             ctx.arcTo(labelStart, labelPad, labelStart + r, labelPad, r);
             ctx.fill();
 
+            // Inner shadow — clip to label shape, draw shadows from edges
+            ctx.save();
+            ctx.clip(); // clip to the rounded rect path
+            // Top inner shadow
+            const topGrad = ctx.createLinearGradient(0, labelPad, 0, labelPad + 30);
+            topGrad.addColorStop(0, 'rgba(0,0,0,0.12)');
+            topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = topGrad;
+            ctx.fillRect(labelStart, labelPad, labelEnd - labelStart, 30);
+            // Bottom inner shadow
+            const botGrad = ctx.createLinearGradient(0, H - labelPad - 30, 0, H - labelPad);
+            botGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            botGrad.addColorStop(1, 'rgba(0,0,0,0.08)');
+            ctx.fillStyle = botGrad;
+            ctx.fillRect(labelStart, H - labelPad - 30, labelEnd - labelStart, 30);
+            // Left inner shadow
+            const leftGrad = ctx.createLinearGradient(labelStart, 0, labelStart + 25, 0);
+            leftGrad.addColorStop(0, 'rgba(0,0,0,0.1)');
+            leftGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = leftGrad;
+            ctx.fillRect(labelStart, labelPad, 25, H - labelPad * 2);
+            // Right inner shadow
+            const rightGrad = ctx.createLinearGradient(labelEnd - 25, 0, labelEnd, 0);
+            rightGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            rightGrad.addColorStop(1, 'rgba(0,0,0,0.06)');
+            ctx.fillStyle = rightGrad;
+            ctx.fillRect(labelEnd - 25, labelPad, 25, H - labelPad * 2);
+            ctx.restore();
+
+            // Subtle border around label pocket
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(labelStart + r, labelPad);
+            ctx.lineTo(labelEnd - r, labelPad);
+            ctx.arcTo(labelEnd, labelPad, labelEnd, labelPad + r, r);
+            ctx.lineTo(labelEnd, H - labelPad - r);
+            ctx.arcTo(labelEnd, H - labelPad, labelEnd - r, H - labelPad, r);
+            ctx.lineTo(labelStart + r, H - labelPad);
+            ctx.arcTo(labelStart, H - labelPad, labelStart, H - labelPad - r, r);
+            ctx.lineTo(labelStart, labelPad + r);
+            ctx.arcTo(labelStart, labelPad, labelStart + r, labelPad, r);
+            ctx.stroke();
+
             // Info text on the label area
             const tx = labelStart + 30;
             const midY = H / 2;
