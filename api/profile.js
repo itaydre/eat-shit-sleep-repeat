@@ -16,7 +16,12 @@ module.exports = async function handler(req, res) {
             .select('*')
             .eq('id', user.id)
             .single();
-        if (error) return res.status(500).json({ error: error.message });
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return res.status(404).json({ error: 'Profile not found' });
+            }
+            return res.status(500).json({ error: error.message });
+        }
         return res.status(200).json(data);
     }
 

@@ -1226,10 +1226,20 @@
             appLoading = true;
             try {
                 const res = await apiFetch('/api/profile');
-                if (!res.ok) {
+
+                // Profile not found — genuinely new user, show onboarding
+                if (res.status === 404) {
                     showScreen('onboarding');
                     return;
                 }
+
+                // Server error — don't dump existing users into onboarding
+                if (!res.ok) {
+                    console.error('Profile fetch error, status:', res.status);
+                    showScreen('auth');
+                    return;
+                }
+
                 profile = await res.json();
 
                 if (!profile || !profile.onboarding_done) {
@@ -1239,8 +1249,8 @@
 
                 startApp();
             } catch (e) {
-                console.warn('Failed to load profile:', e);
-                showScreen('onboarding');
+                console.error('Failed to load profile:', e);
+                showScreen('auth');
             } finally {
                 appLoading = false;
             }
