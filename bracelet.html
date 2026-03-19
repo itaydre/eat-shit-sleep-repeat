@@ -212,22 +212,11 @@
                 ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
 
-            // Holes on left portion
+            // Holes on left portion — draw all content first, punch holes last
             const holeCount = info.holes || 5;
+            const holes = [];
             for (let i = 0; i < holeCount; i++) {
-                const hx = 120 + i * 100;
-                const hy = H / 2;
-                ctx.save();
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(hx, hy, 28, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(hx, hy, 28, 0, Math.PI * 2);
-                ctx.stroke();
+                holes.push({ x: 120 + i * 100, y: H / 2, r: 28 });
             }
 
             // Info on right portion — vertically centered
@@ -284,6 +273,22 @@
                     ctx.fillStyle = '#1a1a1a';
                     ctx.fillRect(tx + i * 6.5, ty, w, 36);
                 }
+            }
+
+            // Punch holes last (after all drawing) so they cut through everything
+            for (const h of holes) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.clearRect(h.x - h.r, h.y - h.r, h.r * 2, h.r * 2);
+                ctx.restore();
+                // Rim
+                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
+                ctx.stroke();
             }
 
             const tex = new THREE.CanvasTexture(c);
