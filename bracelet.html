@@ -159,7 +159,7 @@
 
         // --- Band: PlaneGeometry with vertex displacement for droop ---
         const bandLen = 5.0;
-        const bandW = 1.0;
+        const bandW = 0.8;
         const segsX = 120;
         const segsY = 8;
 
@@ -192,7 +192,7 @@
         scene.add(band);
 
         // Clasp at right end
-        const claspGeo = new THREE.BoxGeometry(0.15, 0.5, 0.02);
+        const claspGeo = new THREE.BoxGeometry(0.15, 0.4, 0.02);
         const claspMat = new THREE.MeshPhysicalMaterial({
             color: 0xf0ebe4, roughness: 0.25, metalness: 0.05, clearcoat: 0.3,
         });
