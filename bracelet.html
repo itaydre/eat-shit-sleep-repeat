@@ -126,6 +126,10 @@
         </div>
 
         <div class="field">
+            <label>Scale <span class="val" id="v-scale">1</span></label>
+            <input type="range" id="p-scale" min="0.3" max="2" step="0.05" value="1" oninput="showVal(this,'v-scale'); updateScale()">
+        </div>
+        <div class="field">
             <label>Band Length <span class="val" id="v-length">5</span></label>
             <input type="range" id="p-length" min="3" max="7" step="0.1" value="5" oninput="showVal(this,'v-length'); updateGeometry()">
         </div>
@@ -1158,6 +1162,11 @@
         };
         window.updateBracelet = function() { refreshBracelet(); };
         window.updateGeometry = function() { refreshBracelet(); };
+        window.updateScale = function() {
+            if (!band) return;
+            const s = parseFloat(document.getElementById('p-scale').value);
+            band.scale.set(s, s, s);
+        };
         window.updateLighting = function() {
             keyLight.intensity = parseFloat(document.getElementById('p-key-light').value);
             fillLight.intensity = parseFloat(document.getElementById('p-fill-light').value);
