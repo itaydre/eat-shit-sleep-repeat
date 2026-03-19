@@ -134,8 +134,8 @@
             <input type="range" id="p-width" min="0.3" max="1.5" step="0.05" value="0.8" oninput="showVal(this,'v-width'); updateGeometry()">
         </div>
         <div class="field">
-            <label>Droop <span class="val" id="v-droop">0.1</span></label>
-            <input type="range" id="p-droop" min="0" max="10" step="0.05" value="0.1" oninput="showVal(this,'v-droop'); updateGeometry()">
+            <label>Droop <span class="val" id="v-droop">3</span></label>
+            <input type="range" id="p-droop" min="0" max="10" step="0.05" value="3" oninput="showVal(this,'v-droop'); updateGeometry()">
         </div>
         <div class="field">
             <label>Holes <span class="val" id="v-holes">5</span></label>
@@ -166,6 +166,30 @@
         <div class="field">
             <label>Shadow Spread <span class="val" id="v-shadow-spread">30</span></label>
             <input type="range" id="p-shadow-spread" min="10" max="60" step="1" value="30" oninput="showVal(this,'v-shadow-spread'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Edge Fade <span class="val" id="v-edge-fade">20</span></label>
+            <input type="range" id="p-edge-fade" min="0" max="60" step="1" value="20" oninput="showVal(this,'v-edge-fade'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Edge Warmth <span class="val" id="v-edge-warmth">0.15</span></label>
+            <input type="range" id="p-edge-warmth" min="0" max="0.5" step="0.01" value="0.15" oninput="showVal(this,'v-edge-warmth'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Label Brightness <span class="val" id="v-label-bright">244</span></label>
+            <input type="range" id="p-label-bright" min="200" max="255" step="1" value="244" oninput="showVal(this,'v-label-bright'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Grain Density <span class="val" id="v-grain">6000</span></label>
+            <input type="range" id="p-grain" min="0" max="15000" step="500" value="6000" oninput="showVal(this,'v-grain'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Border Width <span class="val" id="v-border-w">1</span></label>
+            <input type="range" id="p-border-w" min="0" max="4" step="0.5" value="1" oninput="showVal(this,'v-border-w'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Label Radius <span class="val" id="v-label-radius">4</span></label>
+            <input type="range" id="p-label-radius" min="0" max="40" step="1" value="4" oninput="showVal(this,'v-label-radius'); updateBracelet()">
         </div>
 
         <div class="divider"></div>
@@ -380,8 +404,9 @@
             const shadowAlpha = parseFloat(document.getElementById('p-shadow')?.value || 0.12);
             const shadowSpread = parseFloat(document.getElementById('p-shadow-spread')?.value || 30);
 
-            // Sticker base — off-white thermal paper color
-            ctx.fillStyle = '#f4f0e8';
+            // Sticker base — thermal paper color
+            const lb = parseInt(document.getElementById('p-label-bright')?.value || 244);
+            ctx.fillStyle = `rgb(${lb},${lb-4},${lb-12})`;
             ctx.beginPath();
             ctx.moveTo(labelStart + r, labelPad);
             ctx.lineTo(labelEnd - r, labelPad);
@@ -397,7 +422,8 @@
             // Paper grain texture — dense fine noise
             ctx.save();
             ctx.clip();
-            for (let i = 0; i < 6000; i++) {
+            const grainCount = parseInt(document.getElementById('p-grain')?.value || 6000);
+            for (let i = 0; i < grainCount; i++) {
                 const gx = labelStart + Math.random() * (labelEnd - labelStart);
                 const gy = labelPad + Math.random() * (H - labelPad * 2);
                 const v = Math.random();
@@ -410,25 +436,26 @@
             }
 
             // Faded/worn edges — darker at borders
-            const edgeFade = 20;
+            const edgeFade = parseInt(document.getElementById('p-edge-fade')?.value || 20);
+            const edgeWarmth = parseFloat(document.getElementById('p-edge-warmth')?.value || 0.15);
             const topG = ctx.createLinearGradient(0, labelPad, 0, labelPad + edgeFade);
-            topG.addColorStop(0, 'rgba(180,170,155,0.15)');
+            topG.addColorStop(0, `rgba(180,170,155,${edgeWarmth})`);
             topG.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = topG;
             ctx.fillRect(labelStart, labelPad, labelEnd - labelStart, edgeFade);
             const botG = ctx.createLinearGradient(0, H - labelPad - edgeFade, 0, H - labelPad);
             botG.addColorStop(0, 'rgba(0,0,0,0)');
-            botG.addColorStop(1, 'rgba(180,170,155,0.12)');
+            botG.addColorStop(1, `rgba(180,170,155,${edgeWarmth * 0.8})`);
             ctx.fillStyle = botG;
             ctx.fillRect(labelStart, H - labelPad - edgeFade, labelEnd - labelStart, edgeFade);
             const leftG = ctx.createLinearGradient(labelStart, 0, labelStart + edgeFade, 0);
-            leftG.addColorStop(0, 'rgba(180,170,155,0.12)');
+            leftG.addColorStop(0, `rgba(180,170,155,${edgeWarmth * 0.8})`);
             leftG.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = leftG;
             ctx.fillRect(labelStart, labelPad, edgeFade, H - labelPad * 2);
             const rightG = ctx.createLinearGradient(labelEnd - edgeFade, 0, labelEnd, 0);
             rightG.addColorStop(0, 'rgba(0,0,0,0)');
-            rightG.addColorStop(1, 'rgba(180,170,155,0.1)');
+            rightG.addColorStop(1, `rgba(180,170,155,${edgeWarmth * 0.65})`);
             ctx.fillStyle = rightG;
             ctx.fillRect(labelEnd - edgeFade, labelPad, edgeFade, H - labelPad * 2);
 
@@ -456,8 +483,9 @@
             ctx.restore();
 
             // Sticker border — very subtle
+            const borderW = parseFloat(document.getElementById('p-border-w')?.value || 1);
             ctx.strokeStyle = `rgba(0,0,0,${shadowAlpha * 0.3})`;
-            ctx.lineWidth = 1;
+            ctx.lineWidth = borderW;
             ctx.beginPath();
             ctx.moveTo(labelStart + r, labelPad);
             ctx.lineTo(labelEnd - r, labelPad);
