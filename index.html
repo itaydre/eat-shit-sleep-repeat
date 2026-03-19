@@ -1186,7 +1186,7 @@
             if (!email) return;
             const btn = document.getElementById('auth-submit');
             btn.disabled = true;
-            const { error } = await sb.auth.signInWithOtp({ email });
+            const { error } = await sb.auth.signInWithOtp({ email, options: { redirectTo: window.location.origin } });
             btn.disabled = false;
             const msgEl = document.getElementById('auth-message');
             if (error) {
