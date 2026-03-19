@@ -806,7 +806,7 @@
 </head>
 <body>
     <!-- Splash Screen -->
-    <div id="loading-screen" style="display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0 -20px;">
+    <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:#fef9f0; z-index:999;">
         <div id="splash-word" style="font-size:2rem; font-weight:700; color:#5a4a3a; letter-spacing:0.05em; text-transform:uppercase; opacity:0; transition: opacity 0.15s ease;"></div>
     </div>
 
@@ -1823,13 +1823,13 @@
         let feedSessionStart = null;
         let feedSessionInterval = null;
 
-        function startFeedSession(type) {
+        async function startFeedSession(type) {
             if (feedSessionType === type) return; // same side already active
             if (feedSessionInterval) stopFeedSession(); // stop other side first
             feedSessionType = type;
             feedSessionStart = Date.now();
             // Log the entry immediately (shows on today, pending hides from history)
-            log(type, feedSessionStart);
+            await log(type, feedSessionStart);
             const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
             if (pendingEntry) pendingEntry.pending = true;
             render();
