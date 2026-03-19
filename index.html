@@ -61,6 +61,22 @@
             font-family: inherit;
         }
 
+        .gender-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #fff;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .gender-btn.active {
+            border-color: #5a4a3a;
+            background: #f0ebe4;
+        }
+
         .auth-btn {
             width: 100%;
             padding: 12px;
@@ -795,11 +811,11 @@
         <label>Birth weight (grams)</label>
         <input type="number" id="baby-birth-weight" class="auth-input" placeholder="e.g. 3200">
         <label>Gender</label>
-        <select id="baby-gender" class="auth-input">
-            <option value="">Select...</option>
-            <option value="boy">👦 Boy</option>
-            <option value="girl">👧 Girl</option>
-        </select>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button type="button" class="gender-btn" data-gender="boy" onclick="selectGender(this, 'baby-gender')">👦 Boy</button>
+            <button type="button" class="gender-btn" data-gender="girl" onclick="selectGender(this, 'baby-gender')">👧 Girl</button>
+        </div>
+        <input type="hidden" id="baby-gender">
         <label>Invite code (optional — to join a partner's account)</label>
         <input type="text" id="invite-code" class="auth-input" placeholder="Paste invite code">
         <button class="auth-btn" onclick="saveOnboarding()">Let's go!</button>
@@ -874,11 +890,11 @@
             <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Birth weight (grams)</label>
             <input type="number" id="edit-baby-birth-weight" class="auth-input" placeholder="e.g. 3200" style="margin-bottom:12px;">
             <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Gender</label>
-            <select id="edit-baby-gender" class="auth-input" style="margin-bottom:20px;">
-                <option value="">Select...</option>
-                <option value="boy">Boy</option>
-                <option value="girl">Girl</option>
-            </select>
+            <div style="display:flex; gap:8px; margin-bottom:20px;">
+                <button type="button" class="gender-btn" data-gender="boy" onclick="selectGender(this, 'edit-baby-gender')">👦 Boy</button>
+                <button type="button" class="gender-btn" data-gender="girl" onclick="selectGender(this, 'edit-baby-gender')">👧 Girl</button>
+            </div>
+            <input type="hidden" id="edit-baby-gender">
             <div style="display:flex; gap:8px;">
                 <button onclick="closeProfileEdit()" style="flex:1; background:none; border:1px solid #ddd; border-radius:12px; padding:12px; font-size:0.95rem; color:#999; cursor:pointer; font-family:inherit;">Cancel</button>
                 <button onclick="saveProfileEdit()" style="flex:1; background:#5a4a3a; border:none; border-radius:12px; padding:12px; font-size:0.95rem; color:#fff; cursor:pointer; font-family:inherit;">Save</button>
@@ -1297,6 +1313,14 @@
         }
 
         function switchTab(tab) {
+            // Close settings if open
+            if (settingsOpen) {
+                settingsOpen = false;
+                document.getElementById('settings-page').classList.remove('active');
+                document.getElementById('profile-edit-page').classList.remove('active');
+                document.getElementById('main-content').style.display = '';
+                document.getElementById('action-buttons').style.display = tab === 'today' ? '' : 'none';
+            }
             ['today', 'history', 'stats'].forEach(t => {
                 const el = document.getElementById('tab-' + t);
                 if (el) el.classList.toggle('active', t === tab);
@@ -1319,6 +1343,13 @@
             document.getElementById('profile-edit-page').classList.remove('active');
         }
 
+        function selectGender(btn, inputId) {
+            const gender = btn.dataset.gender;
+            document.getElementById(inputId).value = gender;
+            btn.parentElement.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
         function openProfileEdit() {
             document.getElementById('settings-page').classList.remove('active');
             document.getElementById('profile-edit-page').classList.add('active');
@@ -1329,6 +1360,9 @@
                 document.getElementById('edit-baby-birth-time').value = bd.includes('T') ? bd.split('T')[1].slice(0,5) : '';
                 document.getElementById('edit-baby-birth-weight').value = profile.baby_birth_weight || '';
                 document.getElementById('edit-baby-gender').value = profile.baby_gender || '';
+                document.querySelectorAll('#profile-edit-page .gender-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.gender === profile.baby_gender);
+                });
             }
         }
 
@@ -2008,7 +2042,7 @@
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
-            openProfileEdit, closeProfileEdit, saveProfileEdit
+            openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender
         });
 
         // Splash animation
