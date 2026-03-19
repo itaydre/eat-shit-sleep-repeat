@@ -395,82 +395,134 @@
             return new THREE.CanvasTexture(lc);
         }
 
-        function addCurvedLabel(group, rx, ry, bandW, info) {
-            const arcSpan = parseFloat(document.getElementById('p-label-arc')?.value || 0.35);
-            const sleevePad = parseFloat(document.getElementById('p-sleeve-pad')?.value || 0.004);
-            const sleeveOpacity = parseFloat(document.getElementById('p-sleeve-opacity')?.value || 0.22);
-            const segs = 60;
-            const hw = bandW / 2;
+        // Create a texture for oval bands — band color + white label + info + holes, all in one
+        function createOvalBandTexture(info, bgColor, arcSpan) {
+            const c = document.createElement('canvas');
+            const W = 2048, H = 512;
+            c.width = W; c.height = H;
+            const ctx = c.getContext('2d');
 
-            // Build a curved quad strip manually — vertices placed precisely on the oval
-            function buildCurvedStrip(offset, halfH, uSegs) {
-                const verts = [];
-                const uvs = [];
-                const indices = [];
+            // Band color background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, W, H);
 
-                for (let i = 0; i <= uSegs; i++) {
-                    const t = i / uSegs;
-                    const a = Math.PI - arcSpan / 2 + t * arcSpan;
-                    const r0 = rx + offset;
-                    const r1 = ry + offset;
-                    const x = Math.cos(a) * r0;
-                    const z = Math.sin(a) * r1;
-
-                    // Two verts per column: top and bottom (along Y axis)
-                    verts.push(x, halfH, z);   // top
-                    verts.push(x, -halfH, z);  // bottom
-                    uvs.push(1 - t, 1);   // top — flip U so text reads correctly from outside
-                    uvs.push(1 - t, 0);   // bottom
-
-                    if (i < uSegs) {
-                        const a0 = i * 2;
-                        const b0 = a0 + 1;
-                        const a1 = a0 + 2;
-                        const b1 = a0 + 3;
-                        indices.push(a0, a1, b0);
-                        indices.push(b0, a1, b1);
-                    }
-                }
-
-                const geo = new THREE.BufferGeometry();
-                geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-                geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-                geo.setIndex(indices);
-                geo.computeVertexNormals();
-                return geo;
+            // Grain
+            for (let i = 0; i < 4000; i++) {
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.012})`;
+                ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
 
-            // 1. Label — sits on band surface, exact band width
-            const labelGeo = buildCurvedStrip(0.001, hw, segs);
-            const labelTex = createLabelTexture(info);
-            const labelMat = new THREE.MeshPhysicalMaterial({
-                map: labelTex, color: 0xffffff, roughness: 0.55, clearcoat: 0.1, side: THREE.DoubleSide,
-            });
-            group.add(new THREE.Mesh(labelGeo, labelMat));
+            // White label area — centered on the texture (U=0.5 maps to the label side of the band)
+            // Label covers ~35% of the arc, centered in the middle of the texture
+            const labelArc = parseFloat(document.getElementById('p-label-arc')?.value || 0.35);
+            const labelFrac = labelArc / arcSpan; // fraction of total arc the label covers
+            const labelStart = (0.5 - labelFrac / 2) * W;
+            const labelEnd = (0.5 + labelFrac / 2) * W;
+            const labelPadV = H * 0.06; // small vertical padding
+            const r = 12;
 
-            // 2. Sleeve — on top of label, slightly taller
-            const sleeveGeo = buildCurvedStrip(0.002, hw + sleevePad, segs);
-            const sleeveMat = new THREE.MeshPhysicalMaterial({
-                color: 0xffffff, roughness: 0.12, clearcoat: 0.8, clearcoatRoughness: 0.05,
-                transparent: true, opacity: sleeveOpacity, transmission: 0.55, thickness: 0.08, ior: 1.4,
-                side: THREE.DoubleSide,
-            });
-            group.add(new THREE.Mesh(sleeveGeo, sleeveMat));
+            // White rectangle with rounded corners
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(labelStart + r, labelPadV);
+            ctx.lineTo(labelEnd - r, labelPadV);
+            ctx.arcTo(labelEnd, labelPadV, labelEnd, labelPadV + r, r);
+            ctx.lineTo(labelEnd, H - labelPadV - r);
+            ctx.arcTo(labelEnd, H - labelPadV, labelEnd - r, H - labelPadV, r);
+            ctx.lineTo(labelStart + r, H - labelPadV);
+            ctx.arcTo(labelStart, H - labelPadV, labelStart, H - labelPadV - r, r);
+            ctx.lineTo(labelStart, labelPadV + r);
+            ctx.arcTo(labelStart, labelPadV, labelStart + r, labelPadV, r);
+            ctx.fill();
 
-            // 3. Heat-sealed rims at top and bottom edges
-            const rimMat = new THREE.MeshPhysicalMaterial({
-                color: 0xe5ddd5, roughness: 0.45, clearcoat: 0.2, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
-            });
-            const rimW = 0.003;
-            const sleeveH = hw + sleevePad;
+            // Subtle border
+            ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
 
-            // Top and bottom rim strips
-            for (const ySign of [1, -1]) {
-                const rimGeo = buildCurvedStrip(0.0025, rimW, segs);
-                const rim = new THREE.Mesh(rimGeo, rimMat);
-                rim.position.y = ySign * sleeveH;
-                group.add(rim);
+            // Info text on the label
+            const tx = labelStart + 30;
+            const midY = H / 2;
+            let ty = midY - 100;
+
+            if (info.hospital) {
+                ctx.fillStyle = '#aaa';
+                ctx.font = '20px system-ui, sans-serif';
+                ctx.fillText(info.hospital, tx, ty);
+                ty += 30;
             }
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 48px system-ui, sans-serif';
+            ctx.fillText(info.name, tx, ty);
+            ty += 16;
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(labelEnd - 30, ty); ctx.stroke();
+            ty += 36;
+            ctx.font = '28px system-ui, sans-serif';
+            ctx.fillStyle = '#444';
+            const dateTime = [info.date, info.time].filter(Boolean).join('   ');
+            ctx.fillText(dateTime, tx, ty);
+            ty += 36;
+            const details = [];
+            if (info.weight) details.push('Weight: ' + info.weight);
+            if (info.gender) details.push('Gender: ' + info.gender);
+            ctx.fillText(details.join('      '), tx, ty);
+            ty += 38;
+            // Barcode
+            for (let i = 0; i < 45; i++) {
+                const w = Math.random() > 0.5 ? 3 : 1.5;
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(tx + i * 6, ty, w, 32);
+            }
+
+            // Holes — on the right portion of the texture (U > 0.75)
+            const holeCount = info.holes || 5;
+            const holesStart = W * 0.78;
+            const holesSpacing = W * 0.04;
+            for (let i = 0; i < holeCount; i++) {
+                const hx = holesStart + i * holesSpacing;
+                const hy = H / 2;
+                const holeR = 22;
+                // Compensate aspect ratio for circles
+                const bandLen = arcSpan; // approximate
+                const canvasRatio = W / H;
+                const bandRatio = 6; // approximate
+                const yScale = canvasRatio / bandRatio;
+                ctx.save();
+                ctx.beginPath();
+                ctx.ellipse(hx, hy, holeR, holeR / yScale, 0, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.clearRect(hx - holeR - 2, hy - holeR / yScale - 2, holeR * 2 + 4, (holeR / yScale) * 2 + 4);
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(hx, hy, holeR, holeR / yScale, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            return new THREE.CanvasTexture(c);
+        }
+
+        // Fix UVs on ExtrudeGeometry along an arc path
+        function fixArcUVs(geo, arcSpan) {
+            const posAttr = geo.attributes.position;
+            const uvAttr = geo.attributes.uv;
+            geo.computeBoundingBox();
+            const bb = geo.boundingBox;
+            for (let i = 0; i < posAttr.count; i++) {
+                const px = posAttr.getX(i);
+                const py = posAttr.getY(i);
+                const pz = posAttr.getZ(i);
+                const angle = Math.atan2(pz, px);
+                // Map angle to U: the arc goes from -arcSpan/2 to +arcSpan/2
+                let u = (angle + arcSpan / 2) / arcSpan;
+                u = 1 - u; // flip so text reads correctly from outside
+                const v = (py - bb.min.y) / (bb.max.y - bb.min.y);
+                uvAttr.setXY(i, Math.max(0, Math.min(1, u)), Math.max(0, Math.min(1, v)));
+            }
+            uvAttr.needsUpdate = true;
         }
 
         function addHoles(group, rx, ry, bandW, holeCount) {
@@ -528,10 +580,10 @@
         function buildCurvedBand() {
             const group = new THREE.Group();
             const info = getInfo();
-            const bandW = 0.12;
+            const bandW = 0.15;
             const rx = 0.7, ry = 0.45;
             const ovalSegs = 200;
-            const arcSpan = Math.PI * 1.85; // almost closed, like clinical
+            const arcSpan = Math.PI * 1.85;
 
             const ovalPoints = [];
             for (let i = 0; i <= ovalSegs; i++) {
@@ -549,19 +601,20 @@
                 steps: ovalSegs * 2, bevelEnabled: false, extrudePath: ovalCurve,
             });
 
-            // PVC material — same as clinical
+            fixArcUVs(bandGeo, arcSpan);
+
+            const tex = createOvalBandTexture(info, currentColor, arcSpan);
             const pvcMat = new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color(currentColor),
+                map: tex,
+                color: 0xffffff,
                 roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.3,
-                sheen: 0.15, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xeee8e0),
+                transparent: true, alphaTest: 0.3,
                 side: THREE.DoubleSide,
             });
             group.add(new THREE.Mesh(bandGeo, pvcMat));
 
             const endPt = ovalCurve.getPoint(0.5);
             addSnap(group, endPt.x, endPt.z);
-            addHoles(group, rx, ry, bandW, info.holes || 5);
-            addCurvedLabel(group, rx, ry, bandW, info);
 
             group.rotation.x = -0.25;
             return group;
@@ -570,7 +623,7 @@
         function buildClinicalBand() {
             const group = new THREE.Group();
             const info = getInfo();
-            const bandW = 0.08;
+            const bandW = 0.12;
             const rx = 0.65, ry = 0.42;
             const ovalSegs = 200;
             const arcSpan = Math.PI * 1.85;
@@ -591,18 +644,20 @@
                 steps: ovalSegs * 2, bevelEnabled: false, extrudePath: ovalCurve,
             });
 
+            fixArcUVs(bandGeo, arcSpan);
+
+            const tex = createOvalBandTexture(info, currentColor, arcSpan);
             const pvcMat = new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color(currentColor),
+                map: tex,
+                color: 0xffffff,
                 roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.3,
-                sheen: 0.15, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xeee8e0),
+                transparent: true, alphaTest: 0.3,
                 side: THREE.DoubleSide,
             });
             group.add(new THREE.Mesh(bandGeo, pvcMat));
 
             const endPt = ovalCurve.getPoint(0.5);
             addSnap(group, endPt.x, endPt.z);
-            addHoles(group, rx, ry, bandW, info.holes || 5);
-            addCurvedLabel(group, rx, ry, bandW, info);
 
             return group;
         }
