@@ -61,6 +61,7 @@
         }
         .color-btn.active { border-color: #5a4a3a; transform: scale(1.1); }
         .divider { height: 1px; background: #f0ebe4; }
+        .val { float: right; font-family: monospace; font-weight: 400; color: #5a4a3a; font-size: 10px; }
         #info {
             position: fixed; bottom: 24px; left: 0; right: 280px;
             text-align: center; font-size: 13px; color: #9A8A7A;
@@ -116,54 +117,55 @@
         <div class="field">
             <label>Band Color</label>
             <div class="color-row">
-                <button class="color-btn active" data-color="#b8d8f0" style="background:#b8d8f0;" onclick="setColor(this)"></button>
-                <button class="color-btn" data-color="#f5b0b0" style="background:#f5b0b0;" onclick="setColor(this)"></button>
-                <button class="color-btn" data-color="#b0f0b0" style="background:#b0f0b0;" onclick="setColor(this)"></button>
-                <button class="color-btn" data-color="#dfbff0" style="background:#dfbff0;" onclick="setColor(this)"></button>
+                <button class="color-btn active" data-color="#7EB8E0" style="background:#7EB8E0;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#F08080" style="background:#F08080;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#7ED67E" style="background:#7ED67E;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#C89EF2" style="background:#C89EF2;" onclick="setColor(this)"></button>
             </div>
+            <input type="text" id="p-color-hex" value="#7EB8E0" style="margin-top:6px; font-size:11px; font-family:monospace; padding:4px 8px; border:1px solid #e0d8ce; border-radius:6px; width:100%;" oninput="setColorHex(this.value)">
         </div>
 
         <div class="field">
-            <label>Band Length</label>
-            <input type="range" id="p-length" min="3" max="7" step="0.1" value="5" oninput="updateGeometry()">
+            <label>Band Length <span class="val" id="v-length">5</span></label>
+            <input type="range" id="p-length" min="3" max="7" step="0.1" value="5" oninput="showVal(this,'v-length'); updateGeometry()">
         </div>
         <div class="field">
-            <label>Band Width</label>
-            <input type="range" id="p-width" min="0.3" max="1.5" step="0.05" value="0.8" oninput="updateGeometry()">
+            <label>Band Width <span class="val" id="v-width">0.8</span></label>
+            <input type="range" id="p-width" min="0.3" max="1.5" step="0.05" value="0.8" oninput="showVal(this,'v-width'); updateGeometry()">
         </div>
         <div class="field">
-            <label>Droop</label>
-            <input type="range" id="p-droop" min="0" max="0.4" step="0.01" value="0.1" oninput="updateGeometry()">
+            <label>Droop <span class="val" id="v-droop">0.1</span></label>
+            <input type="range" id="p-droop" min="0" max="0.4" step="0.01" value="0.1" oninput="showVal(this,'v-droop'); updateGeometry()">
         </div>
         <div class="field">
-            <label>Holes</label>
-            <input type="range" id="p-holes" min="0" max="10" step="1" value="5" oninput="updateBracelet()">
+            <label>Holes <span class="val" id="v-holes">5</span></label>
+            <input type="range" id="p-holes" min="0" max="10" step="1" value="5" oninput="showVal(this,'v-holes'); updateBracelet()">
         </div>
 
         <div class="divider"></div>
         <div class="field">
-            <label>Label Size</label>
-            <input type="range" id="p-label-arc" min="0.15" max="0.8" step="0.01" value="0.35" oninput="updateBracelet()">
+            <label>Label Size <span class="val" id="v-label-arc">0.35</span></label>
+            <input type="range" id="p-label-arc" min="0.15" max="0.8" step="0.01" value="0.35" oninput="showVal(this,'v-label-arc'); updateBracelet()">
         </div>
         <div class="field">
-            <label>Sleeve Opacity</label>
-            <input type="range" id="p-sleeve-opacity" min="0" max="0.6" step="0.02" value="0.22" oninput="updateBracelet()">
+            <label>Sleeve Opacity <span class="val" id="v-sleeve-opacity">0.22</span></label>
+            <input type="range" id="p-sleeve-opacity" min="0" max="0.6" step="0.02" value="0.22" oninput="showVal(this,'v-sleeve-opacity'); updateBracelet()">
         </div>
         <div class="field">
-            <label>Sleeve Padding</label>
-            <input type="range" id="p-sleeve-pad" min="0" max="0.02" step="0.001" value="0.004" oninput="updateBracelet()">
+            <label>Sleeve Padding <span class="val" id="v-sleeve-pad">0.004</span></label>
+            <input type="range" id="p-sleeve-pad" min="0" max="0.02" step="0.001" value="0.004" oninput="showVal(this,'v-sleeve-pad'); updateBracelet()">
         </div>
         <div class="field">
-            <label>Taper Length</label>
-            <input type="range" id="p-taper" min="0.02" max="0.3" step="0.01" value="0.1" oninput="updateGeometry()">
+            <label>Taper Length <span class="val" id="v-taper">0.1</span></label>
+            <input type="range" id="p-taper" min="0.02" max="0.3" step="0.01" value="0.1" oninput="showVal(this,'v-taper'); updateGeometry()">
         </div>
         <div class="field">
-            <label>Sleeve Shadow</label>
-            <input type="range" id="p-shadow" min="0" max="0.3" step="0.01" value="0.12" oninput="updateBracelet()">
+            <label>Sleeve Shadow <span class="val" id="v-shadow">0.12</span></label>
+            <input type="range" id="p-shadow" min="0" max="0.3" step="0.01" value="0.12" oninput="showVal(this,'v-shadow'); updateBracelet()">
         </div>
         <div class="field">
-            <label>Shadow Spread</label>
-            <input type="range" id="p-shadow-spread" min="10" max="60" step="1" value="30" oninput="updateBracelet()">
+            <label>Shadow Spread <span class="val" id="v-shadow-spread">30</span></label>
+            <input type="range" id="p-shadow-spread" min="10" max="60" step="1" value="30" oninput="showVal(this,'v-shadow-spread'); updateBracelet()">
         </div>
     </div>
 
@@ -222,7 +224,7 @@
         scene.add(fill);
 
         // --- Texture ---
-        let currentColor = '#b8d8f0';
+        let currentColor = '#7EB8E0';
 
         function createBandTexture(info, bgColor) {
             const c = document.createElement('canvas');
@@ -896,9 +898,21 @@
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentColor = btn.dataset.color;
+            document.getElementById('p-color-hex').value = currentColor;
             refreshBracelet();
         };
 
+        window.setColorHex = function(hex) {
+            if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+                currentColor = hex;
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                refreshBracelet();
+            }
+        };
+
+        window.showVal = function(input, spanId) {
+            document.getElementById(spanId).textContent = input.value;
+        };
         window.updateBracelet = function() { refreshBracelet(); };
         window.updateGeometry = function() { refreshBracelet(); };
 
