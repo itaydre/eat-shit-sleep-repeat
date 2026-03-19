@@ -765,7 +765,7 @@
 <body>
     <!-- Splash Screen -->
     <div id="loading-screen" style="display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0 -20px;">
-        <div id="splash-word" style="font-size:2rem; font-weight:700; color:#5a4a3a; letter-spacing:0.05em; text-transform:uppercase; opacity:0; transition: opacity 0.3s ease;"></div>
+        <div id="splash-word" style="font-size:2rem; font-weight:700; color:#5a4a3a; letter-spacing:0.05em; text-transform:uppercase; opacity:0; transition: opacity 0.15s ease;"></div>
     </div>
 
     <!-- Auth Screen -->
@@ -2024,9 +2024,9 @@
             for (const word of words) {
                 el.textContent = word.text + ' ' + word.emoji;
                 el.style.opacity = '1';
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 400));
                 el.style.opacity = '0';
-                await new Promise(r => setTimeout(r, 200));
+                await new Promise(r => setTimeout(r, 120));
             }
         }
 
