@@ -925,12 +925,13 @@
                 </div>
 
                 <div class="history">
-                    <h2>
-                        Today
-                        <span style="flex:1"></span>
-                        <span id="today-summary" class="day-summary" style="margin:0; padding:0; font-size:0.75rem;"></span>
-                        <button class="add-btn" onclick="openAddModal()" style="margin-left:24px">+</button>
-                    </h2>
+                    <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px;">
+                        <button id="day-prev" onclick="navigateDay(-1)" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999; padding:4px 8px;">&#8249;</button>
+                        <h2 id="day-label" style="margin:0; flex:none;">Today</h2>
+                        <button id="day-next" onclick="navigateDay(1)" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999; padding:4px 8px; visibility:hidden;">&#8250;</button>
+                        <button class="add-btn" onclick="openAddModal()" style="position:absolute; right:20px;">+</button>
+                    </div>
+                    <div id="today-summary" class="day-summary" style="text-align:center; margin-bottom:12px; font-size:0.75rem;"></div>
                     <div id="today-entries"></div>
                 </div>
             </div>
@@ -1312,6 +1313,31 @@
             await log(type, timestamp);
         }
 
+        let dayOffset = 0; // 0 = today, -1 = yesterday, etc.
+
+        function navigateDay(dir) {
+            dayOffset += dir;
+            if (dayOffset > 0) dayOffset = 0;
+            updateDayNav();
+            render();
+        }
+
+        function updateDayNav() {
+            const target = new Date();
+            target.setDate(target.getDate() + dayOffset);
+            const label = dayOffset === 0 ? 'Today' : formatDayLabel(target.getTime());
+            document.getElementById('day-label').textContent = label;
+            document.getElementById('day-next').style.visibility = dayOffset === 0 ? 'hidden' : 'visible';
+            // Hide prev if no entries exist before current view
+            const hasPrev = entries.some(e => {
+                const d = new Date(e.timestamp);
+                const prev = new Date();
+                prev.setDate(prev.getDate() + dayOffset - 1);
+                return d.toDateString() === prev.toDateString();
+            });
+            document.getElementById('day-prev').style.visibility = hasPrev ? 'visible' : 'hidden';
+        }
+
         function switchTab(tab) {
             // Close settings if open
             if (settingsOpen) {
@@ -1612,17 +1638,21 @@
 
             historyContainer.innerHTML = html;
 
-            // Render today-only entries
+            // Render day entries (today + day navigation)
             if (todayContainer) {
-                const today = new Date();
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + dayOffset);
                 const todayEntries = entries.filter(e => {
                     const d = new Date(e.timestamp);
-                    return d.toDateString() === today.toDateString();
+                    return d.toDateString() === targetDate.toDateString();
                 });
 
-                // Today summary in header
+                updateDayNav();
+
+                // Day summary
                 const todaySummaryEl = document.getElementById('today-summary');
-                const todayCounts = dayGroups['Today'] || {};
+                const dayLabel = formatDayLabel(targetDate.getTime());
+                const todayCounts = dayGroups[dayLabel] || {};
                 const summaryParts = [];
                 if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
                 if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
@@ -2042,7 +2072,7 @@
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
-            openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender
+            openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay
         });
 
         // Splash animation
