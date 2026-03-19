@@ -266,14 +266,7 @@
             margin-right: auto;
             background: #faf6f0;
             pointer-events: auto;
-            transition: gap 0.3s ease, padding 0.3s ease;
-        }
-
-        .buttons.compact {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 8px;
-            padding: 10px 14px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            transform-origin: bottom center;
         }
 
         .btn {
@@ -286,22 +279,9 @@
             flex-direction: column;
             align-items: center;
             gap: 6px;
-            transition: all 0.3s ease;
             box-shadow: none;
             flex: 1;
             min-width: 0;
-        }
-
-        .buttons.compact .btn {
-            padding: 10px 0;
-            border-radius: 12px;
-        }
-
-        .buttons.compact .btn span:not(.emoji) {
-            font-size: 0;
-            height: 0;
-            opacity: 0;
-            overflow: hidden;
         }
 
         .btn:active {
@@ -2124,17 +2104,13 @@
             }
         }
 
-        // Compact buttons on scroll
-        let isCompact = false;
+        // Shrink buttons progressively on scroll
         window.addEventListener('scroll', () => {
-            const shouldCompact = window.scrollY > 60;
-            if (shouldCompact !== isCompact) {
-                isCompact = shouldCompact;
-                const wrapper = document.getElementById('action-buttons');
-                const buttons = wrapper?.querySelector('.buttons');
-                if (wrapper) wrapper.classList.toggle('compact', isCompact);
-                if (buttons) buttons.classList.toggle('compact', isCompact);
-            }
+            const buttons = document.querySelector('#action-buttons .buttons');
+            if (!buttons) return;
+            const t = Math.min(window.scrollY / 120, 1); // 0 to 1 over 120px scroll
+            const scale = 1 - t * 0.25; // scale from 1.0 to 0.75
+            buttons.style.transform = `scale(${scale})`;
         }, { passive: true });
 
         // Boot
