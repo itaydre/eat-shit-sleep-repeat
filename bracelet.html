@@ -210,8 +210,7 @@
         controls.dampingFactor = 0.08;
         controls.enableZoom = true;
         controls.enablePan = false;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.0;
+        controls.autoRotate = false;
         controls.target.set(0, 0, 0);
 
         // Lighting
@@ -329,7 +328,8 @@
             ctx.restore();
 
             // Subtle border around label pocket
-            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            const borderAlpha = shadowAlpha * 0.5;
+            ctx.strokeStyle = `rgba(0,0,0,${borderAlpha})`;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(labelStart + r, labelPad);
@@ -955,7 +955,7 @@
         });
         canvas.addEventListener('pointerup', () => {
             clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => { controls.autoRotate = true; }, 3000);
+            // no auto-rotate resume
         });
     </script>
 </body>
