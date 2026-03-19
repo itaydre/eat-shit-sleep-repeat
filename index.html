@@ -606,6 +606,45 @@
             transform: scale(0.95);
         }
 
+        .entry .edit-duration-btn {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            color: #aaa;
+            cursor: pointer;
+            padding: 2px 4px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .duration-editor {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .duration-editor input {
+            width: 48px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        .duration-editor .save-dur {
+            background: #5a4a3a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
         .entry .feed-stopwatch {
             font-weight: 700;
             color: #2e6b2e;
@@ -1696,19 +1735,25 @@
                         const globalIndex = entries.indexOf(entry);
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                         const tFlip = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
-                        const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m ${entry.duration % 60}s)` : '';
-                        const stopBtn = entry.pending ? `<button class="stop-btn" onclick="stopFeedSession()" style="margin-left:auto;">&#9632;</button>` : '';
+                        const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m)` : '';
+                        const isFeed = entry.type === 'feed_l' || entry.type === 'feed_r';
+                        let trailingHtml = '';
+                        if (entry.pending) {
+                            trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" style="margin-left:auto;">&#9632;</button>`;
+                        } else if (isFeed && entry.duration) {
+                            trailingHtml = `<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button>`;
+                        }
                         const timeText = entry.pending ? `<span class="feed-stopwatch" id="feed-stopwatch">0:00</span>` : formatTime(entry.timestamp);
                         todayHtml += `
                             <div class="entry-wrapper">
                                 <div class="entry-delete-bg">Delete</div>
-                                <div class="entry" data-index="${globalIndex}">
+                                <div class="entry" data-index="${globalIndex}" id="entry-${globalIndex}">
                                     <span class="emoji"${tFlip}>${act.emoji}</span>
                                     <div class="details">
                                         <div class="activity">${act.label}${durationText}</div>
                                         <div class="time">${timeText}</div>
                                     </div>
-                                    ${stopBtn}
+                                    ${trailingHtml}
                                 </div>
                             </div>
                         `;
@@ -1822,6 +1867,37 @@
         let feedSessionType = null;
         let feedSessionStart = null;
         let feedSessionInterval = null;
+
+        function editDuration(index) {
+            const entry = entries[index];
+            if (!entry) return;
+            const mins = Math.floor((entry.duration || 0) / 60);
+            const el = document.getElementById('entry-' + index);
+            if (!el) return;
+            const editBtn = el.querySelector('.edit-duration-btn');
+            if (editBtn) editBtn.remove();
+            const editor = document.createElement('div');
+            editor.className = 'duration-editor';
+            editor.innerHTML = `<input type="number" value="${mins}" min="0" max="120" id="dur-input-${index}">m <button class="save-dur" onclick="saveDuration(${index})">Save</button>`;
+            el.appendChild(editor);
+            document.getElementById('dur-input-' + index).focus();
+        }
+
+        function saveDuration(index) {
+            const entry = entries[index];
+            if (!entry) return;
+            const input = document.getElementById('dur-input-' + index);
+            const mins = parseInt(input.value) || 0;
+            entry.duration = mins * 60;
+            if (!isDevMode && entry.id) {
+                apiFetch('/api/logs', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: entry.id, duration: entry.duration }),
+                }).catch(e => console.warn('Failed to update duration:', e));
+            }
+            render();
+        }
 
         async function startFeedSession(type) {
             if (feedSessionType === type) return; // same side already active
@@ -2126,7 +2202,8 @@
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
-            openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay
+            openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay,
+            editDuration, saveDuration
         });
 
         // Splash animation
