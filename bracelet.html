@@ -135,7 +135,7 @@
         </div>
         <div class="field">
             <label>Droop <span class="val" id="v-droop">0.1</span></label>
-            <input type="range" id="p-droop" min="0" max="1.5" step="0.01" value="0.1" oninput="showVal(this,'v-droop'); updateGeometry()">
+            <input type="range" id="p-droop" min="0" max="3" step="0.01" value="0.1" oninput="showVal(this,'v-droop'); updateGeometry()">
         </div>
         <div class="field">
             <label>Holes <span class="val" id="v-holes">5</span></label>
@@ -150,10 +150,6 @@
         <div class="field">
             <label>Sleeve Opacity <span class="val" id="v-sleeve-opacity">0.22</span></label>
             <input type="range" id="p-sleeve-opacity" min="0" max="0.6" step="0.02" value="0.22" oninput="showVal(this,'v-sleeve-opacity'); updateBracelet()">
-        </div>
-        <div class="field">
-            <label>Sleeve Gloss <span class="val" id="v-sleeve-gloss">0.9</span></label>
-            <input type="range" id="p-sleeve-gloss" min="0" max="1" step="0.05" value="0.9" oninput="showVal(this,'v-sleeve-gloss'); updateBracelet()">
         </div>
         <div class="field">
             <label>Sleeve Padding <span class="val" id="v-sleeve-pad">0.004</span></label>
@@ -264,21 +260,59 @@
                 holes.push({ x: hx, y: H / 2, rx: holeRx, ry: holeRy });
             }
 
-            // Embossed dot-matrix text on narrow strip — rotated 90°
+            // Dot-matrix embossed text on narrow strip — rotated 90°
+            // Each character rendered as a pattern of small dots
+            const dotFont = {
+                '0': [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]],
+                '1': [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
+                '2': [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]],
+                '3': [[1,1,1],[0,0,1],[1,1,1],[0,0,1],[1,1,1]],
+                '4': [[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]],
+                '5': [[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]],
+                '6': [[1,1,1],[1,0,0],[1,1,1],[1,0,1],[1,1,1]],
+                '7': [[1,1,1],[0,0,1],[0,0,1],[0,1,0],[0,1,0]],
+                '8': [[1,1,1],[1,0,1],[1,1,1],[1,0,1],[1,1,1]],
+                '9': [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]],
+                'T': [[1,1,1],[0,1,0],[0,1,0],[0,1,0],[0,1,0]],
+            };
+            const dotSize = 2.8;
+            const dotGap = 6;
+            const charW = 3 * dotGap;
+            const charH = 5 * dotGap;
+            const charGap = 8;
+
             const stampLines = [
                 String(Math.floor(Math.random() * 90000) + 10000),
                 'T' + String(Math.floor(Math.random() * 900) + 100),
+                String(Math.floor(Math.random() * 90000) + 10000),
             ];
             const stampX = W * 0.44;
             const stampY = H / 2;
             ctx.save();
             ctx.translate(stampX, stampY);
             ctx.rotate(-Math.PI / 2);
+
             stampLines.forEach((line, lineIdx) => {
-                const lx = lineIdx * 50 - (stampLines.length * 50) / 2;
-                ctx.font = 'bold 40px monospace';
-                ctx.fillStyle = 'rgba(50,40,30,0.3)';
-                ctx.fillText(line, -line.length * 12, lx + 14);
+                const lineOffsetX = lineIdx * (charH + 16) - (stampLines.length * (charH + 16)) / 2;
+                const totalW = line.length * (charW + charGap);
+                for (let ci = 0; ci < line.length; ci++) {
+                    const ch = line[ci];
+                    const grid = dotFont[ch];
+                    if (!grid) continue;
+                    const cx = ci * (charW + charGap) - totalW / 2;
+                    for (let row = 0; row < grid.length; row++) {
+                        for (let col = 0; col < grid[row].length; col++) {
+                            if (grid[row][col]) {
+                                const dx = cx + col * dotGap;
+                                const dy = lineOffsetX + row * dotGap;
+                                ctx.fillStyle = `rgba(40,35,28,${0.3 + Math.random() * 0.15})`;
+                                ctx.beginPath();
+                                ctx.arc(dx, dy, dotSize + Math.random() * 0.5, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        }
+                    }
+                }
             });
             ctx.restore();
 
@@ -793,12 +827,11 @@
                 steps: sleeveSegs * 2, bevelEnabled: false, extrudePath: sleeveCurve,
             });
 
-            const sleeveGloss = parseFloat(document.getElementById('p-sleeve-gloss')?.value || 0.9);
             const sleeveMat = new THREE.MeshPhysicalMaterial({
                 color: 0xffffff,
-                roughness: 1 - sleeveGloss,
-                clearcoat: sleeveGloss,
-                clearcoatRoughness: (1 - sleeveGloss) * 0.3,
+                roughness: 0.3,
+                clearcoat: 0.4,
+                clearcoatRoughness: 0.2,
                 transparent: true,
                 opacity: sleeveOpacity,
                 transmission: 0.5,
