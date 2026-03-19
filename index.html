@@ -8,11 +8,19 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#5a4a3a">
-    <!-- Privacy-friendly analytics by Plausible -->
-    <script async src="https://plausible.io/js/pa-BYjRLKlXaDsw1dSsVnNrK.js"></script>
+    <!-- Privacy-friendly analytics by Plausible — only tracks production domain -->
     <script>
-      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-      plausible.init()
+      // Skip analytics on non-production domains (dev, preview, localhost)
+      (function() {
+        var prodDomain = 'eat-shit-sleep.com';
+        if (window.location.hostname !== prodDomain && window.location.hostname !== 'www.' + prodDomain) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://plausible.io/js/pa-BYjRLKlXaDsw1dSsVnNrK.js';
+        document.head.appendChild(s);
+        window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+        plausible.init();
+      })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
