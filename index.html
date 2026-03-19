@@ -763,9 +763,9 @@
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" style="display:flex; justify-content:center; padding-top:120px;">
-        <div class="spinner"></div>
+    <!-- Splash Screen -->
+    <div id="loading-screen" style="display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0 -20px;">
+        <div id="splash-word" style="font-size:2rem; font-weight:700; color:#5a4a3a; letter-spacing:0.05em; text-transform:uppercase; opacity:0; transition: opacity 0.3s ease;"></div>
     </div>
 
     <!-- Auth Screen -->
@@ -1053,6 +1053,7 @@
         }
 
         async function initSupabase() {
+            await window._splashDone;
             if (isDevMode) {
                 profile = { baby_name: 'Baby Dreyfus', baby_birthdate: new Date(Date.now() - 5 * 86400000).toISOString().slice(0,10), onboarding_done: true };
                 loadDummyData();
@@ -2010,7 +2011,27 @@
             openProfileEdit, closeProfileEdit, saveProfileEdit
         });
 
+        // Splash animation
+        async function playSplash() {
+            const words = [
+                { text: 'EAT', emoji: '🍼' },
+                { text: 'SHIT', emoji: '💩' },
+                { text: 'SLEEP', emoji: '😴' },
+                { text: 'REPEAT', emoji: '🔁' },
+            ];
+            const el = document.getElementById('splash-word');
+            if (!el) return;
+            for (const word of words) {
+                el.textContent = word.text + ' ' + word.emoji;
+                el.style.opacity = '1';
+                await new Promise(r => setTimeout(r, 600));
+                el.style.opacity = '0';
+                await new Promise(r => setTimeout(r, 200));
+            }
+        }
+
         // Boot
+        window._splashDone = playSplash();
         initSupabase().catch(e => {
             console.error('Init failed:', e);
             const errEl = document.createElement('pre');
