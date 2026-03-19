@@ -820,6 +820,10 @@
 
         <div class="settings-page" id="settings-page">
             <h2>Settings</h2>
+            <button class="settings-item" onclick="openProfileEdit()">
+                <span class="settings-icon">&#128118;</span>
+                <span>Edit profile</span>
+            </button>
             <button class="settings-item" onclick="copyInviteCode()">
                 <span class="settings-icon">&#128101;</span>
                 <span id="invite-btn-text">Copy invite code for partner</span>
@@ -849,6 +853,20 @@
                 <span class="settings-icon">&#128682;</span>
                 <span>Sign out</span>
             </button>
+        </div>
+
+        <div class="settings-page" id="profile-edit-page">
+            <h2>Edit profile</h2>
+            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Baby's name</label>
+            <input type="text" id="edit-baby-name" class="auth-input" placeholder="e.g. Maya" style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Date of birth</label>
+            <input type="date" id="edit-baby-dob" class="auth-input" style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Time of birth</label>
+            <input type="time" id="edit-baby-birth-time" class="auth-input" style="margin-bottom:20px;">
+            <div style="display:flex; gap:8px;">
+                <button onclick="closeProfileEdit()" style="flex:1; background:none; border:1px solid #ddd; border-radius:12px; padding:12px; font-size:0.95rem; color:#999; cursor:pointer; font-family:inherit;">Cancel</button>
+                <button onclick="saveProfileEdit()" style="flex:1; background:#5a4a3a; border:none; border-radius:12px; padding:12px; font-size:0.95rem; color:#fff; cursor:pointer; font-family:inherit;">Save</button>
+            </div>
         </div>
 
         <div id="main-content">
@@ -1276,8 +1294,44 @@
             document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
             const ftw = document.getElementById('feed-timer-wrapper');
             if (settingsOpen) ftw.style.display = 'none';
-            document.getElementById('back-btn').classList.toggle('visible', settingsOpen);
-            document.getElementById('settings-btn').style.visibility = settingsOpen ? 'hidden' : '';
+            document.getElementById('profile-edit-page').classList.remove('active');
+        }
+
+        function openProfileEdit() {
+            document.getElementById('settings-page').classList.remove('active');
+            document.getElementById('profile-edit-page').classList.add('active');
+            if (profile) {
+                const bd = profile.baby_birthdate || '';
+                document.getElementById('edit-baby-name').value = profile.baby_name || '';
+                document.getElementById('edit-baby-dob').value = bd.includes('T') ? bd.split('T')[0] : bd;
+                document.getElementById('edit-baby-birth-time').value = bd.includes('T') ? bd.split('T')[1].slice(0,5) : '';
+            }
+        }
+
+        function closeProfileEdit() {
+            document.getElementById('profile-edit-page').classList.remove('active');
+            document.getElementById('settings-page').classList.add('active');
+        }
+
+        async function saveProfileEdit() {
+            const baby_name = document.getElementById('edit-baby-name').value.trim();
+            const baby_dob = document.getElementById('edit-baby-dob').value;
+            const baby_time = document.getElementById('edit-baby-birth-time').value;
+            if (!baby_name) return;
+            const birthdate = baby_dob && baby_time ? baby_dob + 'T' + baby_time : baby_dob || null;
+            if (!isDevMode) {
+                const res = await apiFetch('/api/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ baby_name, baby_birthdate: birthdate }),
+                });
+                profile = await res.json();
+            } else {
+                profile.baby_name = baby_name;
+                profile.baby_birthdate = birthdate;
+            }
+            document.getElementById('app-title').textContent = profile.baby_name + "'s log";
+            closeProfileEdit();
         }
 
         async function copyInviteCode() {
@@ -1925,7 +1979,8 @@
             log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
             openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
-            startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval
+            startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
+            openProfileEdit, closeProfileEdit, saveProfileEdit
         });
 
         // Boot
