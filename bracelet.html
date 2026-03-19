@@ -111,13 +111,13 @@
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(hx, hy, 20, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 14, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
                 ctx.strokeStyle = 'rgba(0,0,0,0.1)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(hx, hy, 20, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 14, 0, Math.PI * 2);
                 ctx.stroke();
             }
 
@@ -157,7 +157,7 @@
 
         // --- Band: PlaneGeometry with vertex displacement for droop ---
         const bandLen = 5.0;
-        const bandW = 0.5;
+        const bandW = 0.25;
         const segsX = 120;
         const segsY = 8;
 
