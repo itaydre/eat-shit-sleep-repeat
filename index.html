@@ -1474,7 +1474,13 @@
         async function fetchEntries() {
             try {
                 const res = await apiFetch('/api/logs');
-                entries = await res.json();
+                const fetched = await res.json();
+                // Preserve pending flag for active feed session
+                if (feedSessionStart && feedSessionType) {
+                    const pending = fetched.find(e => e.timestamp === feedSessionStart && e.type === feedSessionType);
+                    if (pending) pending.pending = true;
+                }
+                entries = fetched;
             } catch (e) {
                 console.warn('Failed to fetch logs:', e);
             }
