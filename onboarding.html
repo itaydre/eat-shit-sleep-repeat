@@ -183,6 +183,17 @@
             margin-top: 8px;
         }
 
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 0;
+            margin-bottom: 8px;
+            align-self: flex-start;
+        }
+
         /* Invite code */
         .invite-section {
             margin-top: 24px;
@@ -256,12 +267,7 @@
     <div class="onboarding" id="onboarding" style="display:none;">
         <!-- Step 1: Name -->
         <div class="step active" id="step-1">
-            <div class="progress">
-                <div class="progress-dot done"></div>
-                <div class="progress-dot"></div>
-                <div class="progress-dot"></div>
-                <div class="progress-dot"></div>
-            </div>
+            <div class="progress" id="progress-1"></div>
             <div class="step-content">
                 <div class="step-emoji">👶</div>
                 <h2>What's your baby's name?</h2>
@@ -275,12 +281,8 @@
 
         <!-- Step 2: Birthday -->
         <div class="step" id="step-2">
-            <div class="progress">
-                <div class="progress-dot done"></div>
-                <div class="progress-dot done"></div>
-                <div class="progress-dot"></div>
-                <div class="progress-dot"></div>
-            </div>
+            <div class="progress" id="progress-2"></div>
+            <button class="btn-back" onclick="goStep(1)">&#8249;</button>
             <div class="step-content">
                 <div class="step-emoji">🎂</div>
                 <h2>When were they born?</h2>
@@ -296,12 +298,8 @@
 
         <!-- Step 3: Gender & Weight -->
         <div class="step" id="step-3">
-            <div class="progress">
-                <div class="progress-dot done"></div>
-                <div class="progress-dot done"></div>
-                <div class="progress-dot done"></div>
-                <div class="progress-dot"></div>
-            </div>
+            <div class="progress" id="progress-3"></div>
+            <button class="btn-back" onclick="goStep(2)">&#8249;</button>
             <div class="step-content">
                 <div class="step-emoji">⚖️</div>
                 <h2>A few more details</h2>
@@ -324,12 +322,8 @@
 
         <!-- Step 4: Summary + Invite -->
         <div class="step" id="step-4">
-            <div class="progress">
-                <div class="progress-dot done"></div>
-                <div class="progress-dot done"></div>
-                <div class="progress-dot done"></div>
-                <div class="progress-dot done"></div>
-            </div>
+            <div class="progress" id="progress-4"></div>
+            <button class="btn-back" onclick="goStep(3)">&#8249;</button>
             <div class="step-content">
                 <div class="step-emoji">🎉</div>
                 <h2>All set!</h2>
@@ -387,12 +381,28 @@
             btn.classList.add('active');
         }
 
+        const totalSteps = 4;
+
+        function updateProgress(step) {
+            for (let s = 1; s <= totalSteps; s++) {
+                const bar = document.getElementById('progress-' + s);
+                bar.innerHTML = '';
+                for (let i = 1; i <= totalSteps; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'progress-dot' + (i <= step ? ' done' : '');
+                    bar.appendChild(dot);
+                }
+            }
+        }
+
         function goStep(n) {
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
             document.getElementById('step-' + n).classList.add('active');
-
+            updateProgress(n);
             if (n === 4) renderSummary();
         }
+
+        updateProgress(1);
 
         function renderSummary() {
             const name = document.getElementById('ob-name').value.trim();
