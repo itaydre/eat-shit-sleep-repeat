@@ -282,8 +282,13 @@
             const labelStart = W * 0.48;
             const labelEnd = W * 0.78;
             const labelPad = H * 0.08;
-            ctx.fillStyle = '#ffffff';
-            const r = parseFloat(document.getElementById('p-label-radius')?.value || 10);
+            // --- Thermal paper sticker ---
+            const r = parseFloat(document.getElementById('p-label-radius')?.value || 4);
+            const shadowAlpha = parseFloat(document.getElementById('p-shadow')?.value || 0.12);
+            const shadowSpread = parseFloat(document.getElementById('p-shadow-spread')?.value || 30);
+
+            // Sticker base — off-white thermal paper color
+            ctx.fillStyle = '#f4f0e8';
             ctx.beginPath();
             ctx.moveTo(labelStart + r, labelPad);
             ctx.lineTo(labelEnd - r, labelPad);
@@ -296,41 +301,70 @@
             ctx.arcTo(labelStart, labelPad, labelStart + r, labelPad, r);
             ctx.fill();
 
-            // Inner shadow — clip to label shape, draw shadows from edges
-            const shadowAlpha = parseFloat(document.getElementById('p-shadow')?.value || 0.12);
-            const shadowSpread = parseFloat(document.getElementById('p-shadow-spread')?.value || 30);
+            // Paper grain texture — dense fine noise
             ctx.save();
             ctx.clip();
-            // Top inner shadow
-            const topGrad = ctx.createLinearGradient(0, labelPad, 0, labelPad + shadowSpread);
-            topGrad.addColorStop(0, `rgba(0,0,0,${shadowAlpha})`);
-            topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = topGrad;
+            for (let i = 0; i < 6000; i++) {
+                const gx = labelStart + Math.random() * (labelEnd - labelStart);
+                const gy = labelPad + Math.random() * (H - labelPad * 2);
+                const v = Math.random();
+                if (v < 0.5) {
+                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.03})`;
+                } else {
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`;
+                }
+                ctx.fillRect(gx, gy, 1 + Math.random(), 1);
+            }
+
+            // Faded/worn edges — darker at borders
+            const edgeFade = 20;
+            const topG = ctx.createLinearGradient(0, labelPad, 0, labelPad + edgeFade);
+            topG.addColorStop(0, 'rgba(180,170,155,0.15)');
+            topG.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = topG;
+            ctx.fillRect(labelStart, labelPad, labelEnd - labelStart, edgeFade);
+            const botG = ctx.createLinearGradient(0, H - labelPad - edgeFade, 0, H - labelPad);
+            botG.addColorStop(0, 'rgba(0,0,0,0)');
+            botG.addColorStop(1, 'rgba(180,170,155,0.12)');
+            ctx.fillStyle = botG;
+            ctx.fillRect(labelStart, H - labelPad - edgeFade, labelEnd - labelStart, edgeFade);
+            const leftG = ctx.createLinearGradient(labelStart, 0, labelStart + edgeFade, 0);
+            leftG.addColorStop(0, 'rgba(180,170,155,0.12)');
+            leftG.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = leftG;
+            ctx.fillRect(labelStart, labelPad, edgeFade, H - labelPad * 2);
+            const rightG = ctx.createLinearGradient(labelEnd - edgeFade, 0, labelEnd, 0);
+            rightG.addColorStop(0, 'rgba(0,0,0,0)');
+            rightG.addColorStop(1, 'rgba(180,170,155,0.1)');
+            ctx.fillStyle = rightG;
+            ctx.fillRect(labelEnd - edgeFade, labelPad, edgeFade, H - labelPad * 2);
+
+            // Inner sleeve shadow
+            const topSh = ctx.createLinearGradient(0, labelPad, 0, labelPad + shadowSpread);
+            topSh.addColorStop(0, `rgba(0,0,0,${shadowAlpha})`);
+            topSh.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = topSh;
             ctx.fillRect(labelStart, labelPad, labelEnd - labelStart, shadowSpread);
-            // Bottom inner shadow
-            const botGrad = ctx.createLinearGradient(0, H - labelPad - shadowSpread, 0, H - labelPad);
-            botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-            botGrad.addColorStop(1, `rgba(0,0,0,${shadowAlpha * 0.65})`);
-            ctx.fillStyle = botGrad;
+            const botSh = ctx.createLinearGradient(0, H - labelPad - shadowSpread, 0, H - labelPad);
+            botSh.addColorStop(0, 'rgba(0,0,0,0)');
+            botSh.addColorStop(1, `rgba(0,0,0,${shadowAlpha * 0.6})`);
+            ctx.fillStyle = botSh;
             ctx.fillRect(labelStart, H - labelPad - shadowSpread, labelEnd - labelStart, shadowSpread);
-            // Left inner shadow
-            const leftGrad = ctx.createLinearGradient(labelStart, 0, labelStart + shadowSpread * 0.8, 0);
-            leftGrad.addColorStop(0, `rgba(0,0,0,${shadowAlpha * 0.85})`);
-            leftGrad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = leftGrad;
-            ctx.fillRect(labelStart, labelPad, shadowSpread * 0.8, H - labelPad * 2);
-            // Right inner shadow
-            const rightGrad = ctx.createLinearGradient(labelEnd - shadowSpread * 0.8, 0, labelEnd, 0);
-            rightGrad.addColorStop(0, 'rgba(0,0,0,0)');
-            rightGrad.addColorStop(1, `rgba(0,0,0,${shadowAlpha * 0.5})`);
-            ctx.fillStyle = rightGrad;
-            ctx.fillRect(labelEnd - shadowSpread * 0.8, labelPad, shadowSpread * 0.8, H - labelPad * 2);
+            const leftSh = ctx.createLinearGradient(labelStart, 0, labelStart + shadowSpread * 0.7, 0);
+            leftSh.addColorStop(0, `rgba(0,0,0,${shadowAlpha * 0.8})`);
+            leftSh.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = leftSh;
+            ctx.fillRect(labelStart, labelPad, shadowSpread * 0.7, H - labelPad * 2);
+            const rightSh = ctx.createLinearGradient(labelEnd - shadowSpread * 0.7, 0, labelEnd, 0);
+            rightSh.addColorStop(0, 'rgba(0,0,0,0)');
+            rightSh.addColorStop(1, `rgba(0,0,0,${shadowAlpha * 0.4})`);
+            ctx.fillStyle = rightSh;
+            ctx.fillRect(labelEnd - shadowSpread * 0.7, labelPad, shadowSpread * 0.7, H - labelPad * 2);
             ctx.restore();
 
-            // Subtle border around label pocket
-            const borderAlpha = shadowAlpha * 0.5;
-            ctx.strokeStyle = `rgba(0,0,0,${borderAlpha})`;
-            ctx.lineWidth = 2;
+            // Sticker border — very subtle
+            ctx.strokeStyle = `rgba(0,0,0,${shadowAlpha * 0.3})`;
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(labelStart + r, labelPad);
             ctx.lineTo(labelEnd - r, labelPad);
@@ -343,53 +377,81 @@
             ctx.arcTo(labelStart, labelPad, labelStart + r, labelPad, r);
             ctx.stroke();
 
-            // Info text on the label area
-            const tx = labelStart + 30;
-            const midY = H / 2;
-            let ty = midY - 100;
+            // --- Thermal print text (faded, soft contrast) ---
+            ctx.save();
+            // Clip to label area
+            ctx.beginPath();
+            ctx.rect(labelStart, labelPad, labelEnd - labelStart, H - labelPad * 2);
+            ctx.clip();
 
-            // Hospital (if set)
+            const tx = labelStart + 28;
+            const midY = H / 2;
+            let ty = midY - 95;
+            // Thermal print color — not pure black, slightly faded gray-brown
+            const printColor = '#3a3530';
+            const printLight = '#6a6258';
+
+            // Hospital
             if (info.hospital) {
-                ctx.fillStyle = '#999';
-                ctx.font = '20px system-ui, sans-serif';
+                ctx.fillStyle = printLight;
+                ctx.font = '500 18px system-ui, sans-serif';
                 ctx.fillText(info.hospital, tx, ty);
-                ty += 30;
+                ty += 28;
             }
 
-            // Name
-            ctx.fillStyle = '#1a1a1a';
-            ctx.font = 'bold 52px system-ui, sans-serif';
+            // Name — bold but slightly faded
+            ctx.fillStyle = printColor;
+            ctx.font = 'bold 46px system-ui, sans-serif';
             ctx.fillText(info.name, tx, ty);
-            ty += 16;
+            ty += 14;
 
-            ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-            ctx.lineWidth = 1;
+            // Thin separator
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(tx, ty);
-            ctx.lineTo(tx + 650, ty);
+            ctx.lineTo(labelEnd - 28, ty);
             ctx.stroke();
+            ty += 32;
+
+            // Date & time — medium weight
+            ctx.font = '500 26px system-ui, sans-serif';
+            ctx.fillStyle = printLight;
+            ctx.fillText('DOB:', tx, ty);
+            ctx.fillStyle = printColor;
+            const dateTime = [info.date, info.time].filter(Boolean).join('  ');
+            ctx.fillText(dateTime, tx + 60, ty);
+            ty += 34;
+
+            // Weight & gender as separate labeled fields
+            ctx.fillStyle = printLight;
+            ctx.font = '500 22px system-ui, sans-serif';
+            if (info.weight) {
+                ctx.fillText('WT:', tx, ty);
+                ctx.fillStyle = printColor;
+                ctx.fillText(info.weight, tx + 42, ty);
+                ctx.fillStyle = printLight;
+            }
+            if (info.gender) {
+                ctx.fillText('SEX:', tx + 180, ty);
+                ctx.fillStyle = printColor;
+                ctx.fillText(info.gender.charAt(0).toUpperCase(), tx + 232, ty);
+            }
             ty += 36;
 
-            // Date & time
-            ctx.font = '30px system-ui, sans-serif';
-            ctx.fillStyle = '#444';
-            const dateTime = [info.date, info.time].filter(Boolean).join('   ');
-            ctx.fillText(dateTime, tx, ty);
-            ty += 40;
-
-            // Weight & gender
-            const details = [];
-            if (info.weight) details.push('Weight: ' + info.weight);
-            if (info.gender) details.push('Gender: ' + info.gender);
-            ctx.fillText(details.join('      '), tx, ty);
-            ty += 42;
-
-            // Barcode
-            for (let i = 0; i < 50; i++) {
-                const w = Math.random() > 0.5 ? 3 : 1.5;
-                ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(tx + i * 6.5, ty, w, 36);
+            // Barcode — thermal style (slightly uneven)
+            for (let i = 0; i < 45; i++) {
+                const bw = Math.random() > 0.4 ? 3 : 1.2;
+                const bh = 30 + Math.random() * 4;
+                ctx.fillStyle = `rgba(50,45,40,${0.7 + Math.random() * 0.25})`;
+                ctx.fillRect(tx + i * 6, ty, bw, bh);
             }
+            // Barcode number underneath
+            ctx.font = '12px monospace';
+            ctx.fillStyle = printLight;
+            ctx.fillText(String(Math.floor(Math.random() * 9000000000) + 1000000000), tx, ty + 40);
+
+            ctx.restore();
 
             // Punch holes last (after all drawing) so they cut through everything
             for (const h of holes) {
