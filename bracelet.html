@@ -406,11 +406,13 @@
                 ctx.stroke();
             }
 
-            // 3 holes on the right side of the label
+            // 3 holes on the right side of the label — same 3D size as left holes
             const rightHoleStart = W * 0.82;
+            const rightPxPerUnitY = H / bandFullW; // wider section
+            const rightHoleRy = holeR3D * rightPxPerUnitY;
             for (let i = 0; i < 3; i++) {
                 const hx = rightHoleStart + i * (W * 0.055);
-                const rh = { x: hx, y: H / 2, rx: holeRx, ry: holeRy };
+                const rh = { x: hx, y: H / 2, rx: holeRx, ry: rightHoleRy };
                 ctx.save();
                 ctx.beginPath();
                 ctx.ellipse(rh.x, rh.y, rh.rx, rh.ry, 0, 0, Math.PI * 2);
