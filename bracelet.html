@@ -140,6 +140,20 @@
             <label>Holes</label>
             <input type="range" id="p-holes" min="0" max="10" step="1" value="5" oninput="updateBracelet()">
         </div>
+
+        <div class="divider"></div>
+        <div class="field">
+            <label>Label Size</label>
+            <input type="range" id="p-label-arc" min="0.15" max="0.8" step="0.01" value="0.35" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Sleeve Opacity</label>
+            <input type="range" id="p-sleeve-opacity" min="0" max="0.6" step="0.02" value="0.22" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Sleeve Padding</label>
+            <input type="range" id="p-sleeve-pad" min="0" max="0.02" step="0.001" value="0.004" oninput="updateBracelet()">
+        </div>
     </div>
 
     <div id="info">Drag to rotate</div>
@@ -382,92 +396,81 @@
         }
 
         function addCurvedLabel(group, rx, ry, bandW, info) {
-            const arcSpan = 0.35;
-            const segs = 50;
-            const hw = bandW / 2; // same width as band — no gaps
+            const arcSpan = parseFloat(document.getElementById('p-label-arc')?.value || 0.35);
+            const sleevePad = parseFloat(document.getElementById('p-sleeve-pad')?.value || 0.004);
+            const sleeveOpacity = parseFloat(document.getElementById('p-sleeve-opacity')?.value || 0.22);
+            const segs = 60;
+            const hw = bandW / 2;
 
-            // Helper to make a curved strip at a given radial offset with correct UVs
-            function makeArcMesh(offset, height, thickness, mat) {
-                const pts = [];
-                for (let i = 0; i <= segs; i++) {
-                    const a = Math.PI - arcSpan / 2 + (i / segs) * arcSpan;
-                    pts.push(new THREE.Vector3(Math.cos(a) * (rx + offset), 0, Math.sin(a) * (ry + offset)));
+            // Build a curved quad strip manually — vertices placed precisely on the oval
+            function buildCurvedStrip(offset, halfH, uSegs) {
+                const verts = [];
+                const uvs = [];
+                const indices = [];
+
+                for (let i = 0; i <= uSegs; i++) {
+                    const t = i / uSegs;
+                    const a = Math.PI - arcSpan / 2 + t * arcSpan;
+                    const r0 = rx + offset;
+                    const r1 = ry + offset;
+                    const x = Math.cos(a) * r0;
+                    const z = Math.sin(a) * r1;
+
+                    // Two verts per column: top and bottom (along Y axis)
+                    verts.push(x, halfH, z);   // top
+                    verts.push(x, -halfH, z);  // bottom
+                    uvs.push(t, 1);   // top
+                    uvs.push(t, 0);   // bottom
+
+                    if (i < uSegs) {
+                        const a0 = i * 2;
+                        const b0 = a0 + 1;
+                        const a1 = a0 + 2;
+                        const b1 = a0 + 3;
+                        indices.push(a0, b0, a1);
+                        indices.push(b0, b1, a1);
+                    }
                 }
-                const curve = new THREE.CatmullRomCurve3(pts, false);
-                const shape = new THREE.Shape();
-                shape.moveTo(-height, -thickness);
-                shape.lineTo(height, -thickness);
-                shape.lineTo(height, thickness);
-                shape.lineTo(-height, thickness);
-                shape.lineTo(-height, -thickness);
-                const geo = new THREE.ExtrudeGeometry(shape, { steps: segs * 2, bevelEnabled: false, extrudePath: curve });
 
-                // Fix UVs: compute based on position along curve (u) and cross-section (v)
-                const posAttr = geo.attributes.position;
-                const uvAttr = geo.attributes.uv;
-                const center = new THREE.Vector3();
-                // Find bounding box for normalization
-                geo.computeBoundingBox();
-                const bb = geo.boundingBox;
-                for (let i = 0; i < posAttr.count; i++) {
-                    const px = posAttr.getX(i);
-                    const py = posAttr.getY(i);
-                    const pz = posAttr.getZ(i);
-                    // U: angle around the oval mapped to 0..1
-                    const angle = Math.atan2(pz, px);
-                    const u = (angle - (Math.PI - arcSpan / 2)) / arcSpan;
-                    // V: height position mapped to 0..1
-                    const v = (py - bb.min.y) / (bb.max.y - bb.min.y);
-                    uvAttr.setXY(i, Math.max(0, Math.min(1, u)), Math.max(0, Math.min(1, v)));
-                }
-                uvAttr.needsUpdate = true;
-
-                return new THREE.Mesh(geo, mat);
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+                geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+                geo.setIndex(indices);
+                geo.computeVertexNormals();
+                return geo;
             }
 
-            // 1. Label paper — exactly same height as band, flush on surface
+            // 1. Label — sits on band surface, exact band width
+            const labelGeo = buildCurvedStrip(0.001, hw, segs);
             const labelTex = createLabelTexture(info);
             const labelMat = new THREE.MeshPhysicalMaterial({
                 map: labelTex, color: 0xffffff, roughness: 0.55, clearcoat: 0.1, side: THREE.DoubleSide,
             });
-            group.add(makeArcMesh(0.001, hw, 0.0005, labelMat));
+            group.add(new THREE.Mesh(labelGeo, labelMat));
 
-            // 2. Clear vinyl sleeve — same height as band + small padding
-            const sleevePad = 0.004;
+            // 2. Sleeve — on top of label, slightly taller
+            const sleeveGeo = buildCurvedStrip(0.002, hw + sleevePad, segs);
             const sleeveMat = new THREE.MeshPhysicalMaterial({
                 color: 0xffffff, roughness: 0.12, clearcoat: 0.8, clearcoatRoughness: 0.05,
-                transparent: true, opacity: 0.22, transmission: 0.55, thickness: 0.08, ior: 1.4,
+                transparent: true, opacity: sleeveOpacity, transmission: 0.55, thickness: 0.08, ior: 1.4,
                 side: THREE.DoubleSide,
             });
-            group.add(makeArcMesh(0.002, hw + sleevePad, 0.0003, sleeveMat));
+            group.add(new THREE.Mesh(sleeveGeo, sleeveMat));
 
-            // 3. Heat-sealed rim — top and bottom edges of sleeve
+            // 3. Heat-sealed rims at top and bottom edges
             const rimMat = new THREE.MeshPhysicalMaterial({
                 color: 0xe5ddd5, roughness: 0.45, clearcoat: 0.2, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
             });
-            const rimH = 0.002;
+            const rimW = 0.003;
             const sleeveH = hw + sleevePad;
-            // Top rim
-            const topPts = [];
-            const botPts = [];
-            for (let i = 0; i <= segs; i++) {
-                const a = Math.PI - arcSpan / 2 + (i / segs) * arcSpan;
-                const ox = Math.cos(a) * (rx + 0.0025);
-                const oz = Math.sin(a) * (ry + 0.0025);
-                topPts.push(new THREE.Vector3(ox, sleeveH, oz));
-                botPts.push(new THREE.Vector3(ox, -sleeveH, oz));
-            }
-            const rimShape = new THREE.Shape();
-            rimShape.moveTo(-rimH, -0.001);
-            rimShape.lineTo(rimH, -0.001);
-            rimShape.lineTo(rimH, 0.001);
-            rimShape.lineTo(-rimH, 0.001);
-            rimShape.lineTo(-rimH, -0.001);
 
-            const topGeo = new THREE.ExtrudeGeometry(rimShape, { steps: segs, bevelEnabled: false, extrudePath: new THREE.CatmullRomCurve3(topPts, false) });
-            const botGeo = new THREE.ExtrudeGeometry(rimShape, { steps: segs, bevelEnabled: false, extrudePath: new THREE.CatmullRomCurve3(botPts, false) });
-            group.add(new THREE.Mesh(topGeo, rimMat));
-            group.add(new THREE.Mesh(botGeo, rimMat));
+            // Top and bottom rim strips
+            for (const ySign of [1, -1]) {
+                const rimGeo = buildCurvedStrip(0.0025, rimW, segs);
+                const rim = new THREE.Mesh(rimGeo, rimMat);
+                rim.position.y = ySign * sleeveH;
+                group.add(rim);
+            }
         }
 
         function addHoles(group, rx, ry, bandW, holeCount) {
