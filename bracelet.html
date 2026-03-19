@@ -341,146 +341,134 @@
         }
 
         function buildCurvedBand() {
-            // Narrow strip that curves into a C/U shape
             const group = new THREE.Group();
+            const info = getInfo();
             const stripWidth = 0.12;
-            const stripLen = 3.5;
-            const segs = 100;
 
-            // Create C-curve path
-            const points = [];
-            for (let i = 0; i <= segs; i++) {
-                const t = i / segs;
-                const angle = t * Math.PI * 1.3 - Math.PI * 0.15;
-                const r = 0.5;
-                points.push(new THREE.Vector3(
-                    Math.sin(angle) * r,
-                    -Math.cos(angle) * r,
-                    0
+            // Closed oval path
+            const rx = 0.7; // wider
+            const ry = 0.45; // narrower
+            const ovalSegs = 200;
+            const ovalPoints = [];
+            for (let i = 0; i <= ovalSegs; i++) {
+                const angle = (i / ovalSegs) * Math.PI * 2;
+                ovalPoints.push(new THREE.Vector3(
+                    Math.cos(angle) * rx,
+                    0,
+                    Math.sin(angle) * ry
                 ));
             }
-            const curve = new THREE.CatmullRomCurve3(points, false);
+            const ovalCurve = new THREE.CatmullRomCurve3(ovalPoints, true);
 
-            // Strip cross-section
+            // Flat band cross-section
             const shape = new THREE.Shape();
             const sw = stripWidth / 2;
-            const st = 0.006;
+            const st = 0.005;
             shape.moveTo(-sw, -st);
             shape.lineTo(sw, -st);
             shape.lineTo(sw, st);
             shape.lineTo(-sw, st);
             shape.lineTo(-sw, -st);
 
-            const stripGeo = new THREE.ExtrudeGeometry(shape, {
-                steps: segs * 2,
+            const bandGeo = new THREE.ExtrudeGeometry(shape, {
+                steps: ovalSegs * 2,
                 bevelEnabled: false,
-                extrudePath: curve,
+                extrudePath: ovalCurve,
             });
 
-            // Strip texture with holes
-            const sc = document.createElement('canvas');
-            sc.width = 1024; sc.height = 128;
-            const sctx = sc.getContext('2d');
-            sctx.fillStyle = currentColor;
-            sctx.fillRect(0, 0, 1024, 128);
-            // Holes
-            const holeCount = parseInt(document.getElementById('p-holes').value) || 5;
-            for (let i = 0; i < holeCount; i++) {
-                const hx = 100 + i * (800 / Math.max(holeCount, 1));
-                sctx.save();
-                sctx.beginPath();
-                sctx.arc(hx, 64, 18, 0, Math.PI * 2);
-                sctx.clip();
-                sctx.clearRect(hx - 20, 44, 40, 40);
-                sctx.restore();
-                sctx.strokeStyle = 'rgba(0,0,0,0.1)';
-                sctx.lineWidth = 1;
-                sctx.beginPath();
-                sctx.arc(hx, 64, 18, 0, Math.PI * 2);
-                sctx.stroke();
-            }
-            const stripTex = new THREE.CanvasTexture(sc);
+            // Band material — soft plastic
+            const bandOvalMat = new THREE.MeshPhysicalMaterial({
+                color: new THREE.Color(currentColor),
+                roughness: 0.7,
+                metalness: 0.0,
+                clearcoat: 0.15,
+                clearcoatRoughness: 0.6,
+                sheen: 0.3,
+                sheenRoughness: 0.8,
+                sheenColor: new THREE.Color(0xe8e0d8),
+                side: THREE.DoubleSide,
+            });
 
-            const stripMat = new THREE.MeshPhysicalMaterial({
-                map: stripTex,
-                color: 0xffffff,
-                roughness: 0.3,
+            const bandMesh = new THREE.Mesh(bandGeo, bandOvalMat);
+            group.add(bandMesh);
+
+            // --- White round snap button on the band ---
+            const snapGeo = new THREE.CylinderGeometry(0.025, 0.028, 0.012, 20);
+            const snapMat = new THREE.MeshPhysicalMaterial({
+                color: 0xfafafa,
+                roughness: 0.2,
+                metalness: 0.05,
                 clearcoat: 0.5,
-                transparent: true,
-                alphaTest: 0.3,
-                side: THREE.DoubleSide,
             });
+            const snap = new THREE.Mesh(snapGeo, snapMat);
+            // Position at front of oval (angle = 0)
+            snap.position.set(rx, stripWidth * 0.6, 0);
+            snap.rotation.z = Math.PI / 2;
+            group.add(snap);
 
-            const strip = new THREE.Mesh(stripGeo, stripMat);
-            group.add(strip);
+            // --- White label sticker on the band (front section) ---
+            const labelW = 0.38;
+            const labelH = 0.11;
+            const labelGeo = new THREE.PlaneGeometry(labelW, labelH);
 
-            // Flat card at the top end
-            const info = getInfo();
-            const cardW = 0.55;
-            const cardH = 0.35;
-            const cardGeo = new THREE.PlaneGeometry(cardW, cardH);
+            const lc = document.createElement('canvas');
+            lc.width = 512; lc.height = 150;
+            const lctx = lc.getContext('2d');
 
-            const cc = document.createElement('canvas');
-            cc.width = 512; cc.height = 320;
-            const cctx = cc.getContext('2d');
-            cctx.fillStyle = '#ffffff';
-            cctx.fillRect(0, 0, 512, 320);
-            // Grain
-            for (let i = 0; i < 1000; i++) {
-                cctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.01})`;
-                cctx.fillRect(Math.random() * 512, Math.random() * 320, 1, 1);
-            }
-            // Info
-            let ty = 50;
+            // White sticker bg with slight rounded feel
+            lctx.fillStyle = '#ffffff';
+            lctx.fillRect(0, 0, 512, 150);
+            // Subtle edge shadow
+            lctx.strokeStyle = 'rgba(0,0,0,0.04)';
+            lctx.lineWidth = 2;
+            lctx.strokeRect(1, 1, 510, 148);
+
+            // Info text
+            let ty = 28;
             if (info.hospital) {
-                cctx.font = '16px system-ui, sans-serif';
-                cctx.fillStyle = '#888';
-                cctx.fillText(info.hospital, 24, ty);
-                ty += 26;
+                lctx.font = '14px system-ui, sans-serif';
+                lctx.fillStyle = '#999';
+                lctx.fillText(info.hospital, 16, ty);
+                ty += 20;
             }
-            cctx.font = 'bold 28px system-ui, sans-serif';
-            cctx.fillStyle = '#1a1a1a';
-            cctx.fillText(info.name, 24, ty);
-            ty += 32;
-            cctx.font = '16px system-ui, sans-serif';
-            cctx.fillStyle = '#444';
+            lctx.font = 'bold 24px system-ui, sans-serif';
+            lctx.fillStyle = '#1a1a1a';
+            lctx.fillText(info.name, 16, ty);
+            ty += 26;
+            lctx.font = '14px system-ui, sans-serif';
+            lctx.fillStyle = '#555';
             const dt = [info.date, info.time].filter(Boolean).join('  ');
-            cctx.fillText('DOB: ' + dt, 24, ty);
-            ty += 24;
-            const details = [];
-            if (info.weight) details.push(info.weight);
-            if (info.gender) details.push(info.gender);
-            cctx.fillText(details.join('  ·  '), 24, ty);
-            ty += 30;
-            // Barcode
-            for (let i = 0; i < 35; i++) {
-                const w = Math.random() > 0.5 ? 2.5 : 1;
-                cctx.fillStyle = '#1a1a1a';
-                cctx.fillRect(24 + i * 5, ty, w, 24);
+            if (dt) lctx.fillText('DOB: ' + dt, 16, ty);
+            ty += 20;
+            const dets = [];
+            if (info.weight) dets.push(info.weight);
+            if (info.gender) dets.push(info.gender);
+            if (dets.length) lctx.fillText(dets.join('  ·  '), 16, ty);
+            ty += 18;
+            // Mini barcode
+            for (let i = 0; i < 30; i++) {
+                const w = Math.random() > 0.5 ? 2 : 1;
+                lctx.fillStyle = '#1a1a1a';
+                lctx.fillRect(16 + i * 4, ty, w, 14);
             }
 
-            const cardTex = new THREE.CanvasTexture(cc);
-            const cardMat = new THREE.MeshPhysicalMaterial({
-                map: cardTex,
+            const labelTex = new THREE.CanvasTexture(lc);
+            const labelMat = new THREE.MeshPhysicalMaterial({
+                map: labelTex,
                 color: 0xffffff,
-                roughness: 0.3,
-                clearcoat: 0.4,
+                roughness: 0.4,
+                clearcoat: 0.2,
                 side: THREE.DoubleSide,
             });
 
-            const card = new THREE.Mesh(cardGeo, cardMat);
-            // Position at the top of the C-curve
-            const topPt = curve.getPoint(0);
-            card.position.set(topPt.x - cardW / 2 - 0.05, topPt.y + cardH / 2 + 0.01, 0);
-            group.add(card);
+            const label = new THREE.Mesh(labelGeo, labelMat);
+            // Place on outside of oval at front (angle ~PI, the far side facing camera)
+            label.position.set(-rx - 0.001, 0, 0);
+            label.rotation.y = Math.PI / 2;
+            group.add(label);
 
-            // Clasp tab at bottom end
-            const tabGeo = new THREE.BoxGeometry(0.08, 0.14, 0.012);
-            const tabMat = new THREE.MeshPhysicalMaterial({ color: 0xf0ebe4, roughness: 0.25, clearcoat: 0.3 });
-            const endPt = curve.getPoint(1);
-            const tab = new THREE.Mesh(tabGeo, tabMat);
-            tab.position.set(endPt.x + 0.05, endPt.y, 0);
-            group.add(tab);
+            // Tilt the whole thing
+            group.rotation.x = -0.25;
 
             return group;
         }
