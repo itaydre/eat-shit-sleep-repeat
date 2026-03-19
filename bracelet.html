@@ -305,7 +305,7 @@
                             if (grid[row][col]) {
                                 const dx = cx + col * dotGap;
                                 const dy = lineOffsetX + row * dotGap;
-                                ctx.fillStyle = `rgba(40,35,28,${0.3 + Math.random() * 0.15})`;
+                                ctx.fillStyle = `rgba(30,25,18,${0.6 + Math.random() * 0.2})`;
                                 ctx.beginPath();
                                 ctx.arc(dx, dy, dotSize + Math.random() * 0.5, 0, Math.PI * 2);
                                 ctx.fill();
@@ -1022,18 +1022,20 @@
                 color: 0xfafafa, roughness: 0.2, metalness: 0.05, clearcoat: 0.5,
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
-            // Compute droop and surface angle at snap position
+            // Compute surface normal at snap position
             const snapXfrac = 0.42;
             const snapU = snapXfrac + 0.5;
-            const snapDroop = droop * (Math.cosh((snapU - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-            // Surface tangent angle: derivative of droop curve
-            const epsilon = 0.001;
-            const snapU2 = snapU + epsilon;
-            const droopNext = droop * (Math.cosh((snapU2 - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-            const slopeZ = -(droopNext - snapDroop) / (epsilon * len);
-            const surfaceAngle = Math.atan2(slopeZ, 1);
-            snap.rotation.x = Math.PI / 2 + surfaceAngle;
-            snap.position.set(len * snapXfrac, 0, -snapDroop + 0.008);
+            const droopAt = (u) => droop * (Math.cosh((u - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+            const snapZ = -droopAt(snapU);
+            // Surface tangent in X direction
+            const eps = 0.001;
+            const tangent = new THREE.Vector3(eps * len, 0, -(droopAt(snapU + eps) - droopAt(snapU)));
+            tangent.normalize();
+            // Normal is perpendicular to tangent in XZ plane, pointing up/out
+            const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+            // Orient cylinder so its Y axis aligns with surface normal
+            snap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+            snap.position.set(len * snapXfrac, 0, snapZ + 0.006);
             band.add(snap);
 
             scene.add(band);
