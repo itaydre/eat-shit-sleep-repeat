@@ -9,12 +9,8 @@
         body { background: #FAF6F1; overflow: hidden; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
         #colors {
-            position: fixed;
-            bottom: 60px;
-            left: 0; right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
+            position: fixed; bottom: 60px; left: 0; right: 0;
+            display: flex; justify-content: center; gap: 12px;
         }
         .color-btn {
             width: 36px; height: 36px; border-radius: 50%;
@@ -33,11 +29,11 @@
 <body>
     <canvas id="c"></canvas>
     <div id="colors">
-        <button class="color-btn active" data-color="#f5f0ea" style="background:#f5f0ea;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
+        <button class="color-btn active" data-color="0.92,0.93,0.96" data-bg="#e0e2ec" style="background:#dce0ee;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="0.85,0.92,0.97" data-bg="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="0.97,0.87,0.87" data-bg="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="0.87,0.97,0.87" data-bg="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="0.94,0.90,0.97" data-bg="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
     </div>
     <div id="info">Drag to rotate</div>
 
@@ -54,7 +50,7 @@
             time: '10:30 AM',
             weight: '3,200g',
             gender: 'Boy',
-            id: '13672332'
+            id: '24502293-1'
         };
 
         const canvas = document.getElementById('c');
@@ -62,11 +58,11 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.3;
+        renderer.toneMappingExposure = 1.2;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 1.5, 5);
+        const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1.8, 4.5);
 
         const controls = new OrbitControls(camera, canvas);
         controls.enableDamping = true;
@@ -74,145 +70,226 @@
         controls.enableZoom = true;
         controls.enablePan = false;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.0;
+        controls.autoRotateSpeed = 1.2;
         controls.target.set(0, 0, 0);
 
         // Lighting
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const key = new THREE.DirectionalLight(0xfff8ee, 1.4);
-        key.position.set(4, 6, 5);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const key = new THREE.DirectionalLight(0xfff8ee, 1.2);
+        key.position.set(3, 5, 4);
         scene.add(key);
-        const fill = new THREE.DirectionalLight(0xeef0ff, 0.5);
-        fill.position.set(-4, 3, -3);
+        const fill = new THREE.DirectionalLight(0xe8eeff, 0.4);
+        fill.position.set(-3, 2, -2);
         scene.add(fill);
+        const rim = new THREE.DirectionalLight(0xffffff, 0.3);
+        rim.position.set(0, -2, 3);
+        scene.add(rim);
 
-        // --- Texture ---
-        let currentColor = '#f5f0ea';
-
+        // --- Band texture ---
         function createBandTexture(info, bgColor) {
             const c = document.createElement('canvas');
-            c.width = 2048;
-            c.height = 512;
+            const W = 2048, H = 256;
+            c.width = W; c.height = H;
             const ctx = c.getContext('2d');
-            const W = 2048, H = 512;
 
-            ctx.fillStyle = bgColor;
+            // Translucent plastic background
+            ctx.fillStyle = bgColor || '#dce0ee';
             ctx.fillRect(0, 0, W, H);
 
-            // Grain
-            for (let i = 0; i < 5000; i++) {
-                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.015})`;
+            // Subtle grain
+            for (let i = 0; i < 3000; i++) {
+                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`;
+                ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+            }
+            for (let i = 0; i < 1500; i++) {
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.02})`;
                 ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
 
-            // Holes on left portion
-            for (let i = 0; i < 8; i++) {
-                const hx = 100 + i * 72;
+            // --- Holes section (left ~30% of band, u = 0.0 to 0.3) ---
+            const holesStart = W * 0.05;
+            for (let i = 0; i < 7; i++) {
+                const hx = holesStart + i * 65;
                 const hy = H / 2;
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(hx, hy, 36, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 16, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
-                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-                ctx.lineWidth = 2;
+                // Rim shadow
+                ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
-                ctx.arc(hx, hy, 36, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 16, 0, Math.PI * 2);
                 ctx.stroke();
             }
 
-            // Info on right portion — vertically centered
-            const tx = 800;
-            const midY = H / 2;
-
-            ctx.fillStyle = '#1a1a1a';
-            ctx.font = 'bold 52px system-ui, sans-serif';
-            ctx.fillText(info.name, tx, midY - 80);
-
-            ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+            // --- Snap button area (around u ~0.32) ---
+            const snapX = W * 0.32;
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.beginPath();
+            ctx.arc(snapX, H / 2, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(tx, midY - 60);
-            ctx.lineTo(tx + 650, midY - 60);
+            ctx.arc(snapX, H / 2, 14, 0, Math.PI * 2);
             ctx.stroke();
 
-            ctx.font = '30px system-ui, sans-serif';
-            ctx.fillStyle = '#444';
-            ctx.fillText(info.date + '   ' + info.time, tx, midY - 20);
-            ctx.fillText('Weight: ' + info.weight + '      Gender: ' + info.gender, tx, midY + 20);
+            // --- Label/sticker section (u ~0.5 to 0.9) - yellowish sticker ---
+            const labelX = W * 0.42;
+            const labelW = W * 0.45;
+            const labelY = H * 0.12;
+            const labelH = H * 0.76;
+            const r = 8;
 
-            ctx.font = '22px monospace';
-            ctx.fillStyle = '#888';
-            ctx.fillText('ID: ' + info.id, tx, midY + 60);
+            // Sticker background
+            ctx.fillStyle = '#f0e6c8';
+            ctx.beginPath();
+            ctx.moveTo(labelX + r, labelY);
+            ctx.lineTo(labelX + labelW - r, labelY);
+            ctx.arcTo(labelX + labelW, labelY, labelX + labelW, labelY + r, r);
+            ctx.lineTo(labelX + labelW, labelY + labelH - r);
+            ctx.arcTo(labelX + labelW, labelY + labelH, labelX + labelW - r, labelY + labelH, r);
+            ctx.lineTo(labelX + r, labelY + labelH);
+            ctx.arcTo(labelX, labelY + labelH, labelX, labelY + labelH - r, r);
+            ctx.lineTo(labelX, labelY + r);
+            ctx.arcTo(labelX, labelY, labelX + r, labelY, r);
+            ctx.fill();
+
+            // Sticker border
+            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Form lines on sticker
+            const lx = labelX + 16;
+            const lw = labelW - 32;
+            ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+            ctx.lineWidth = 0.5;
+            for (let i = 1; i <= 4; i++) {
+                const ly = labelY + labelH * (i / 5);
+                ctx.beginPath();
+                ctx.moveTo(lx, ly);
+                ctx.lineTo(lx + lw, ly);
+                ctx.stroke();
+            }
+
+            // Text on sticker
+            const tx = lx + 4;
+            let ty = labelY + 36;
+
+            ctx.fillStyle = '#2a2016';
+            ctx.font = 'bold 28px system-ui, sans-serif';
+            ctx.fillText(info.name, tx, ty);
+            ty += 34;
+
+            ctx.font = '18px system-ui, sans-serif';
+            ctx.fillStyle = '#4a3a2a';
+            ctx.fillText(info.date + '  ' + info.time, tx, ty);
+            ty += 26;
+
+            ctx.fillText('Weight: ' + info.weight + '   Gender: ' + info.gender, tx, ty);
+            ty += 28;
+
+            // ID
+            ctx.font = '14px monospace';
+            ctx.fillStyle = '#6a5a4a';
+            ctx.fillText('ID: ' + info.id, tx, ty);
+            ty += 6;
 
             // Barcode
-            for (let i = 0; i < 50; i++) {
-                const w = Math.random() > 0.5 ? 3 : 1.5;
+            const by = ty + 4;
+            for (let i = 0; i < 40; i++) {
+                const w = Math.random() > 0.5 ? 2.5 : 1;
                 ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(tx + i * 6.5, midY + 75, w, 36);
+                ctx.fillRect(tx + i * 5, by, w, 22);
             }
 
             const tex = new THREE.CanvasTexture(c);
             return tex;
         }
 
-        // --- Band: PlaneGeometry with vertex displacement for droop ---
-        const bandLen = 5.0;
-        const bandW = 0.25;
-        const segsX = 120;
-        const segsY = 8;
-
-        const planeGeo = new THREE.PlaneGeometry(bandLen, bandW, segsX, segsY);
-        const pos = planeGeo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-            const x = pos.getX(i);
-            const t = (x / bandLen) + 0.5; // 0..1
-            const droop = 0.1 * (Math.cosh((t - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-            pos.setZ(i, -droop);
+        // --- Oval loop geometry using TubeGeometry ---
+        // Elliptical path
+        class EllipseCurve3D extends THREE.Curve {
+            constructor(rx, ry) {
+                super();
+                this.rx = rx;
+                this.ry = ry;
+            }
+            getPoint(t) {
+                const angle = t * Math.PI * 2;
+                return new THREE.Vector3(
+                    Math.cos(angle) * this.rx,
+                    0,
+                    Math.sin(angle) * this.ry
+                );
+            }
         }
-        planeGeo.computeVertexNormals();
 
-        let bandTexture = createBandTexture(babyInfo, currentColor);
+        const ovalPath = new EllipseCurve3D(1.2, 0.7);
+        const bandThick = 0.008;
+        const bandHeight = 0.06;
+
+        // Custom flat cross-section via TubeGeometry with custom frames
+        // Instead, use ExtrudeGeometry along the oval path
+        const bandShape = new THREE.Shape();
+        const bh = bandHeight / 2;
+        const bt = bandThick / 2;
+        bandShape.moveTo(-bh, -bt);
+        bandShape.lineTo(bh, -bt);
+        bandShape.lineTo(bh, bt);
+        bandShape.lineTo(-bh, bt);
+        bandShape.lineTo(-bh, -bt);
+
+        const bandGeo = new THREE.ExtrudeGeometry(bandShape, {
+            steps: 200,
+            bevelEnabled: false,
+            extrudePath: ovalPath,
+        });
+
+        // Fix UVs to map texture along the loop
+        const uvAttr = bandGeo.attributes.uv;
+        const posAttr = bandGeo.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+            const x = posAttr.getX(i);
+            const z = posAttr.getZ(i);
+            const angle = Math.atan2(z, x);
+            const u = ((angle / (Math.PI * 2)) + 1) % 1;
+            const y = posAttr.getY(i);
+            const v = (y + bh) / (2 * bh);
+            uvAttr.setXY(i, u, v);
+        }
+        uvAttr.needsUpdate = true;
+
+        let currentBg = '#dce0ee';
+        let bandTexture = createBandTexture(babyInfo, currentBg);
 
         const bandMat = new THREE.MeshPhysicalMaterial({
             map: bandTexture,
             color: 0xffffff,
-            roughness: 0.35,
+            roughness: 0.3,
             metalness: 0.0,
-            clearcoat: 0.5,
-            clearcoatRoughness: 0.15,
+            clearcoat: 0.6,
+            clearcoatRoughness: 0.1,
             transparent: true,
-            alphaTest: 0.5,
+            alphaTest: 0.3,
+            transmission: 0.12,
+            thickness: 0.2,
             side: THREE.DoubleSide,
         });
 
-        const band = new THREE.Mesh(planeGeo, bandMat);
-        band.rotation.x = -0.3;
+        const band = new THREE.Mesh(bandGeo, bandMat);
         scene.add(band);
-
-        // Clasp at right end
-        const claspGeo = new THREE.BoxGeometry(0.15, 0.16, 0.02);
-        const claspMat = new THREE.MeshPhysicalMaterial({
-            color: 0xf0ebe4, roughness: 0.25, metalness: 0.05, clearcoat: 0.3,
-        });
-        const clasp = new THREE.Mesh(claspGeo, claspMat);
-        clasp.position.set(bandLen / 2 + 0.1, 0, -0.1);
-        band.add(clasp);
-
-        const snapGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.012, 16);
-        const snapMat = new THREE.MeshPhysicalMaterial({ color: 0xfafafa, roughness: 0.15, metalness: 0.1 });
-        const snap = new THREE.Mesh(snapGeo, snapMat);
-        snap.rotation.x = Math.PI / 2;
-        snap.position.y = 0.015;
-        clasp.add(snap);
 
         // --- Color picker ---
         window.setColor = function(btn) {
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentColor = btn.dataset.color;
-            bandTexture = createBandTexture(babyInfo, currentColor);
+            currentBg = btn.dataset.bg;
+            bandTexture = createBandTexture(babyInfo, currentBg);
             bandMat.map = bandTexture;
             bandMat.map.needsUpdate = true;
         };
