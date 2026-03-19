@@ -77,7 +77,8 @@
             <label>Style</label>
             <select id="p-style" onchange="updateBracelet()">
                 <option value="flat">Flat Band</option>
-                <option value="curved">Card + Curved Band</option>
+                <option value="curved">Oval + Label</option>
+                <option value="clinical">Clinical PVC</option>
             </select>
         </div>
         <div class="divider"></div>
@@ -393,7 +394,7 @@
             group.add(bandMesh);
 
             // --- White round snap button on the band ---
-            const snapGeo = new THREE.CylinderGeometry(0.025, 0.028, 0.012, 20);
+            const snapGeo = new THREE.CylinderGeometry(0.04, 0.045, 0.015, 24);
             const snapMat = new THREE.MeshPhysicalMaterial({
                 color: 0xfafafa,
                 roughness: 0.2,
@@ -401,8 +402,8 @@
                 clearcoat: 0.5,
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
-            // Position at front of oval (angle = 0)
-            snap.position.set(rx, stripWidth * 0.6, 0);
+            // Position at the overlap point (right side of oval, centered on band)
+            snap.position.set(rx, 0, 0);
             snap.rotation.z = Math.PI / 2;
             group.add(snap);
 
@@ -478,6 +479,131 @@
             return group;
         }
 
+        function buildClinicalBand() {
+            const group = new THREE.Group();
+            const info = getInfo();
+            const holeCount = info.holes || 5;
+
+            // Oval path — slightly open C-shape (not fully closed, like a real one snapped on)
+            const rx = 0.65;
+            const ry = 0.42;
+            const ovalSegs = 200;
+            const arcSpan = Math.PI * 1.85; // almost closed
+            const ovalPoints = [];
+            for (let i = 0; i <= ovalSegs; i++) {
+                const angle = (i / ovalSegs) * arcSpan - arcSpan * 0.5;
+                ovalPoints.push(new THREE.Vector3(
+                    Math.cos(angle) * rx,
+                    0,
+                    Math.sin(angle) * ry
+                ));
+            }
+            const ovalCurve = new THREE.CatmullRomCurve3(ovalPoints, false);
+
+            // Wider band cross-section for PVC wristband
+            const bandW = 0.08;
+            const bandT = 0.003;
+            const shape = new THREE.Shape();
+            shape.moveTo(-bandW / 2, -bandT);
+            shape.lineTo(bandW / 2, -bandT);
+            shape.lineTo(bandW / 2, bandT);
+            shape.lineTo(-bandW / 2, bandT);
+            shape.lineTo(-bandW / 2, -bandT);
+
+            const bandGeo = new THREE.ExtrudeGeometry(shape, {
+                steps: ovalSegs * 2,
+                bevelEnabled: false,
+                extrudePath: ovalCurve,
+            });
+
+            // PVC material — smooth, slightly slick, matte printed side
+            const pvcMat = new THREE.MeshPhysicalMaterial({
+                color: new THREE.Color(currentColor),
+                roughness: 0.45,
+                metalness: 0.0,
+                clearcoat: 0.3,
+                clearcoatRoughness: 0.3,
+                sheen: 0.15,
+                sheenRoughness: 0.5,
+                sheenColor: new THREE.Color(0xeee8e0),
+                side: THREE.DoubleSide,
+            });
+
+            const bandMesh = new THREE.Mesh(bandGeo, pvcMat);
+            group.add(bandMesh);
+
+            // Snap button at overlap (right side where ends meet)
+            const snapGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.014, 24);
+            const snapMat = new THREE.MeshPhysicalMaterial({
+                color: 0xfafafa, roughness: 0.2, metalness: 0.05, clearcoat: 0.5,
+            });
+            const endPt = ovalCurve.getPoint(0.5);
+            const snap = new THREE.Mesh(snapGeo, snapMat);
+            snap.position.set(endPt.x, 0, endPt.z);
+            snap.rotation.z = Math.PI / 2;
+            group.add(snap);
+
+            // White info label — slightly raised, glued on the outside
+            const labelW = 0.32;
+            const labelH = 0.075;
+            const labelGeo = new THREE.PlaneGeometry(labelW, labelH);
+
+            const lc = document.createElement('canvas');
+            lc.width = 512; lc.height = 120;
+            const ctx = lc.getContext('2d');
+            ctx.fillStyle = '#fefefe';
+            ctx.fillRect(0, 0, 512, 120);
+            // Subtle border
+            ctx.strokeStyle = 'rgba(0,0,0,0.03)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(1, 1, 510, 118);
+
+            let ty = 22;
+            if (info.hospital) {
+                ctx.font = '12px system-ui, sans-serif';
+                ctx.fillStyle = '#aaa';
+                ctx.fillText(info.hospital, 14, ty);
+                ty += 16;
+            }
+            ctx.font = 'bold 20px system-ui, sans-serif';
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillText(info.name, 14, ty);
+            ty += 22;
+            ctx.font = '12px system-ui, sans-serif';
+            ctx.fillStyle = '#555';
+            const dt = [info.date, info.time].filter(Boolean).join('  ');
+            if (dt) ctx.fillText('DOB: ' + dt, 14, ty);
+            ty += 16;
+            const dets = [];
+            if (info.weight) dets.push(info.weight);
+            if (info.gender) dets.push(info.gender);
+            if (dets.length) ctx.fillText(dets.join('  ·  '), 14, ty);
+            ty += 14;
+            // Barcode
+            for (let i = 0; i < 28; i++) {
+                const w = Math.random() > 0.5 ? 2 : 1;
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(14 + i * 4, ty, w, 12);
+            }
+
+            const labelTex = new THREE.CanvasTexture(lc);
+            const labelMat = new THREE.MeshPhysicalMaterial({
+                map: labelTex,
+                color: 0xffffff,
+                roughness: 0.5,
+                clearcoat: 0.15,
+                side: THREE.DoubleSide,
+            });
+
+            const label = new THREE.Mesh(labelGeo, labelMat);
+            // Place on the outside of the oval, opposite the snap (left side)
+            label.position.set(-rx - 0.004, 0, 0);
+            label.rotation.y = -Math.PI / 2;
+            group.add(label);
+
+            return group;
+        }
+
         function refreshBracelet() {
             if (band) scene.remove(band);
 
@@ -485,6 +611,14 @@
 
             if (style === 'curved') {
                 band = buildCurvedBand();
+                band.rotation.x = -0.2;
+                band.rotation.y = 0.3;
+                scene.add(band);
+                return;
+            }
+
+            if (style === 'clinical') {
+                band = buildClinicalBand();
                 band.rotation.x = -0.2;
                 band.rotation.y = 0.3;
                 scene.add(band);
