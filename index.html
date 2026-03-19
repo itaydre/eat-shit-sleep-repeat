@@ -1195,7 +1195,8 @@
 
         function updateProfileDisplay() {
             if (profile && profile.baby_name) {
-                document.getElementById('app-title').textContent = profile.baby_name + "'s log";
+                const genderEmoji = profile.baby_gender === 'boy' ? '👦 ' : profile.baby_gender === 'girl' ? '👧 ' : '';
+                document.getElementById('app-title').textContent = genderEmoji + profile.baby_name + "'s log";
             }
             if (profile && profile.baby_birthdate) {
                 const birth = new Date(profile.baby_birthdate);

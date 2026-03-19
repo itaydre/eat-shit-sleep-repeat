@@ -21,8 +21,10 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-        const { baby_name, baby_birthdate, invite_code } = req.body;
+        const { baby_name, baby_birthdate, baby_birth_weight, baby_gender, invite_code } = req.body;
         const updates = { baby_name, baby_birthdate, onboarding_done: true };
+        if (baby_birth_weight !== undefined) updates.baby_birth_weight = baby_birth_weight;
+        if (baby_gender !== undefined) updates.baby_gender = baby_gender;
 
         // If invite code provided, join that household
         if (invite_code) {
