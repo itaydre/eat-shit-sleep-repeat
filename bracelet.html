@@ -291,17 +291,34 @@
                 ctx.stroke();
             }
 
-            const tex = new THREE.CanvasTexture(c);
-            return tex;
+            return new THREE.CanvasTexture(c);
         }
 
+        // --- Roughness map for plastic grain ---
+        const roughCanvas = document.createElement('canvas');
+        roughCanvas.width = 512; roughCanvas.height = 128;
+        const rctx = roughCanvas.getContext('2d');
+        rctx.fillStyle = '#b0b0b0';
+        rctx.fillRect(0, 0, 512, 128);
+        for (let i = 0; i < 10000; i++) {
+            const v = 155 + Math.random() * 50;
+            rctx.fillStyle = `rgb(${v},${v},${v})`;
+            rctx.fillRect(Math.random() * 512, Math.random() * 128, 2, 1);
+        }
+        const roughnessMap = new THREE.CanvasTexture(roughCanvas);
+
         // --- Band ---
+        // Soft matte plastic - like a real hospital wristband
         const bandMat = new THREE.MeshPhysicalMaterial({
             color: 0xffffff,
-            roughness: 0.35,
+            roughness: 0.7,
             metalness: 0.0,
-            clearcoat: 0.5,
-            clearcoatRoughness: 0.15,
+            clearcoat: 0.15,
+            clearcoatRoughness: 0.6,
+            sheen: 0.4,
+            sheenRoughness: 0.8,
+            sheenColor: new THREE.Color(0xe8e0d8),
+            roughnessMap: roughnessMap,
             transparent: true,
             alphaTest: 0.5,
             side: THREE.DoubleSide,
