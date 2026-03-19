@@ -167,6 +167,59 @@
             <label>Shadow Spread <span class="val" id="v-shadow-spread">30</span></label>
             <input type="range" id="p-shadow-spread" min="10" max="60" step="1" value="30" oninput="showVal(this,'v-shadow-spread'); updateBracelet()">
         </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:12px; color:#9A8A7A; margin:0;">Band Material</h3>
+        <div class="field">
+            <label>Roughness <span class="val" id="v-roughness">0.7</span></label>
+            <input type="range" id="p-roughness" min="0" max="1" step="0.05" value="0.7" oninput="showVal(this,'v-roughness'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Clearcoat <span class="val" id="v-clearcoat">0.15</span></label>
+            <input type="range" id="p-clearcoat" min="0" max="1" step="0.05" value="0.15" oninput="showVal(this,'v-clearcoat'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Sheen <span class="val" id="v-sheen">0.4</span></label>
+            <input type="range" id="p-sheen" min="0" max="1" step="0.05" value="0.4" oninput="showVal(this,'v-sheen'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Sheen Roughness <span class="val" id="v-sheen-rough">0.8</span></label>
+            <input type="range" id="p-sheen-rough" min="0" max="1" step="0.05" value="0.8" oninput="showVal(this,'v-sheen-rough'); updateBracelet()">
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:12px; color:#9A8A7A; margin:0;">Lighting</h3>
+        <div class="field">
+            <label>Key Light <span class="val" id="v-key-light">1.4</span></label>
+            <input type="range" id="p-key-light" min="0" max="3" step="0.1" value="1.4" oninput="showVal(this,'v-key-light'); updateLighting()">
+        </div>
+        <div class="field">
+            <label>Fill Light <span class="val" id="v-fill-light">0.5</span></label>
+            <input type="range" id="p-fill-light" min="0" max="2" step="0.1" value="0.5" oninput="showVal(this,'v-fill-light'); updateLighting()">
+        </div>
+        <div class="field">
+            <label>Ambient <span class="val" id="v-ambient">0.7</span></label>
+            <input type="range" id="p-ambient" min="0" max="2" step="0.1" value="0.7" oninput="showVal(this,'v-ambient'); updateLighting()">
+        </div>
+        <div class="field">
+            <label>Exposure <span class="val" id="v-exposure">1.3</span></label>
+            <input type="range" id="p-exposure" min="0.5" max="3" step="0.1" value="1.3" oninput="showVal(this,'v-exposure'); updateLighting()">
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:12px; color:#9A8A7A; margin:0;">Dots & Text</h3>
+        <div class="field">
+            <label>Dot Size <span class="val" id="v-dot-size">2.8</span></label>
+            <input type="range" id="p-dot-size" min="1" max="5" step="0.2" value="2.8" oninput="showVal(this,'v-dot-size'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Dot Opacity <span class="val" id="v-dot-opacity">0.6</span></label>
+            <input type="range" id="p-dot-opacity" min="0.1" max="1" step="0.05" value="0.6" oninput="showVal(this,'v-dot-opacity'); updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Print Darkness <span class="val" id="v-print-dark">0.8</span></label>
+            <input type="range" id="p-print-dark" min="0.2" max="1" step="0.05" value="0.8" oninput="showVal(this,'v-print-dark'); updateBracelet()">
+        </div>
     </div>
 
     <div id="info">Drag to rotate</div>
@@ -214,13 +267,14 @@
         controls.target.set(0, 0, 0);
 
         // Lighting
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const key = new THREE.DirectionalLight(0xfff8ee, 1.4);
-        key.position.set(4, 6, 5);
-        scene.add(key);
-        const fill = new THREE.DirectionalLight(0xeef0ff, 0.5);
-        fill.position.set(-4, 3, -3);
-        scene.add(fill);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.4);
+        keyLight.position.set(4, 6, 5);
+        scene.add(keyLight);
+        const fillLight = new THREE.DirectionalLight(0xeef0ff, 0.5);
+        fillLight.position.set(-4, 3, -3);
+        scene.add(fillLight);
 
         // --- Texture ---
         let currentColor = '#7EB8E0';
@@ -275,7 +329,7 @@
                 '9': [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]],
                 'T': [[1,1,1],[0,1,0],[0,1,0],[0,1,0],[0,1,0]],
             };
-            const dotSize = 2.8;
+            const dotSize = parseFloat(document.getElementById('p-dot-size')?.value || 2.8);
             const dotGap = 6;
             const charW = 3 * dotGap;
             const charH = 5 * dotGap;
@@ -305,7 +359,8 @@
                             if (grid[row][col]) {
                                 const dx = cx + col * dotGap;
                                 const dy = lineOffsetX + row * dotGap;
-                                ctx.fillStyle = `rgba(30,25,18,${0.6 + Math.random() * 0.2})`;
+                                const dotOp = parseFloat(document.getElementById('p-dot-opacity')?.value || 0.6);
+                                ctx.fillStyle = `rgba(30,25,18,${dotOp + Math.random() * 0.15})`;
                                 ctx.beginPath();
                                 ctx.arc(dx, dy, dotSize + Math.random() * 0.5, 0, Math.PI * 2);
                                 ctx.fill();
@@ -426,16 +481,11 @@
             const midY = H / 2;
             let ty = midY - 95;
             // Thermal print color — not pure black, slightly faded gray-brown
-            const printColor = '#3a3530';
-            const printLight = '#6a6258';
-
-            // Hospital
-            if (info.hospital) {
-                ctx.fillStyle = printLight;
-                ctx.font = '500 18px system-ui, sans-serif';
-                ctx.fillText(info.hospital, tx, ty);
-                ty += 28;
-            }
+            const printDark = parseFloat(document.getElementById('p-print-dark')?.value || 0.8);
+            const pd = Math.round(58 * (1 - printDark));
+            const pl = Math.round(58 + 40 * (1 - printDark));
+            const printColor = `rgb(${pd},${pd},${pd})`;
+            const printLight = `rgb(${pl},${pl},${pl})`;
 
             // Name — bold but slightly faded
             ctx.fillStyle = printColor;
@@ -475,7 +525,17 @@
                 ctx.fillStyle = printColor;
                 ctx.fillText(info.gender.charAt(0).toUpperCase(), tx + 232, ty);
             }
-            ty += 36;
+            ty += 30;
+
+            // Hospital
+            if (info.hospital) {
+                ctx.fillStyle = printLight;
+                ctx.font = '500 22px system-ui, sans-serif';
+                ctx.fillText('HOSP:', tx, ty);
+                ctx.fillStyle = printColor;
+                ctx.fillText(info.hospital, tx + 70, ty);
+                ty += 30;
+            }
 
             // Barcode — thermal style (slightly uneven)
             for (let i = 0; i < 45; i++) {
@@ -1011,6 +1071,11 @@
             const geo = buildBand(len, w, droop);
             bandMat.map = createBandTexture(info, currentColor);
             bandMat.map.needsUpdate = true;
+            bandMat.roughness = parseFloat(document.getElementById('p-roughness')?.value || 0.7);
+            bandMat.clearcoat = parseFloat(document.getElementById('p-clearcoat')?.value || 0.15);
+            bandMat.sheen = parseFloat(document.getElementById('p-sheen')?.value || 0.4);
+            bandMat.sheenRoughness = parseFloat(document.getElementById('p-sheen-rough')?.value || 0.8);
+            bandMat.needsUpdate = true;
 
             band = new THREE.Mesh(geo, bandMat);
             band.rotation.x = -0.3;
@@ -1023,7 +1088,7 @@
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
             // Compute surface normal at snap position
-            const snapXfrac = 0.42;
+            const snapXfrac = 0.47;
             const snapU = snapXfrac + 0.5;
             const droopAt = (u) => droop * (Math.cosh((u - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
             const snapZ = -droopAt(snapU);
@@ -1065,6 +1130,12 @@
         };
         window.updateBracelet = function() { refreshBracelet(); };
         window.updateGeometry = function() { refreshBracelet(); };
+        window.updateLighting = function() {
+            keyLight.intensity = parseFloat(document.getElementById('p-key-light').value);
+            fillLight.intensity = parseFloat(document.getElementById('p-fill-light').value);
+            ambientLight.intensity = parseFloat(document.getElementById('p-ambient').value);
+            renderer.toneMappingExposure = parseFloat(document.getElementById('p-exposure').value);
+        };
 
         // --- Animate ---
         function animate() {
