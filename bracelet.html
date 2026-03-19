@@ -382,10 +382,10 @@
         }
 
         function addCurvedLabel(group, rx, ry, bandW, info) {
-            // Label follows the oval curve on the outside (left side, around angle PI)
-            const labelArcSpan = 0.35; // portion of the oval the label covers
+            // Sleeve sits on the band, label sits inside the sleeve
+            const labelArcSpan = 0.35;
             const labelSegs = 40;
-            const labelOffset = 0.004; // slightly outside the band
+            const labelOffset = 0.005; // label inside sleeve
             const labelPoints = [];
             for (let i = 0; i <= labelSegs; i++) {
                 const angle = Math.PI - labelArcSpan / 2 + (i / labelSegs) * labelArcSpan;
@@ -422,10 +422,10 @@
             const label = new THREE.Mesh(labelGeo, labelMat);
             group.add(label);
 
-            // --- Clear plastic sleeve over the label ---
-            const sleeveOffset = labelOffset + 0.003; // sits just above the label
-            const sleeveArcSpan = labelArcSpan + 0.04; // slightly wider than label
-            const sleeveW = bandW / 2 + 0.004; // slightly taller
+            // --- Clear plastic sleeve — sits between band and label ---
+            const sleeveOffset = 0.002; // closer to band than label
+            const sleeveArcSpan = labelArcSpan + 0.06; // wider than label
+            const sleeveW = bandW / 2 + 0.012; // taller than label (padding top/bottom)
             const sleeveSegs = 40;
 
             const sleevePoints = [];
@@ -466,8 +466,28 @@
                 side: THREE.DoubleSide,
             });
 
+            // Back of sleeve (between band and label)
             const sleeve = new THREE.Mesh(sleeveGeo, sleeveMat);
             group.add(sleeve);
+
+            // Front of sleeve (on top of label)
+            const frontOffset = labelOffset + 0.002;
+            const frontPoints = [];
+            for (let i = 0; i <= sleeveSegs; i++) {
+                const angle = Math.PI - sleeveArcSpan / 2 + (i / sleeveSegs) * sleeveArcSpan;
+                frontPoints.push(new THREE.Vector3(
+                    Math.cos(angle) * (rx + frontOffset),
+                    0,
+                    Math.sin(angle) * (ry + frontOffset)
+                ));
+            }
+            const frontCurve = new THREE.CatmullRomCurve3(frontPoints, false);
+            const frontGeo = new THREE.ExtrudeGeometry(sleeveShape, {
+                steps: sleeveSegs * 2,
+                bevelEnabled: false,
+                extrudePath: frontCurve,
+            });
+            group.add(new THREE.Mesh(frontGeo, sleeveMat));
 
             // --- Heat-sealed rim around the sleeve ---
             // Create a thin border that sits at the edge of the sleeve
