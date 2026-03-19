@@ -229,22 +229,36 @@
                 ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
 
-            // Holes on left portion — draw all content first, punch holes last
+            // Holes on left narrow portion
             const holeCount = info.holes || 5;
-            // Compensate for texture stretch: canvas ratio vs band ratio
-            const canvasRatio = W / H; // 4
-            const bandLen = parseFloat(document.getElementById('p-length').value) || 5;
-            const bandW = parseFloat(document.getElementById('p-width').value) || 0.8;
-            const bandRatio = bandLen / bandW; // ~6.25
-            const yScale = canvasRatio / bandRatio; // <1, so stretch Y radius up
-            const holeR = 28;
+            const holeR = 24;
             const holes = [];
+            // Holes go from U=0.05 to U=0.30 (the narrow strip section)
             for (let i = 0; i < holeCount; i++) {
-                holes.push({ x: 120 + i * 100, y: H / 2, rx: holeR, ry: holeR / yScale });
+                const hx = W * 0.05 + i * (W * 0.06);
+                holes.push({ x: hx, y: H / 2, rx: holeR, ry: holeR });
             }
 
-            // Info on right portion — vertically centered
-            const tx = 800;
+            // White label background on the right wide section (U=0.5 to U=0.95)
+            const labelStart = W * 0.48;
+            const labelEnd = W * 0.96;
+            const labelPad = H * 0.08;
+            ctx.fillStyle = '#ffffff';
+            const r = 10;
+            ctx.beginPath();
+            ctx.moveTo(labelStart + r, labelPad);
+            ctx.lineTo(labelEnd - r, labelPad);
+            ctx.arcTo(labelEnd, labelPad, labelEnd, labelPad + r, r);
+            ctx.lineTo(labelEnd, H - labelPad - r);
+            ctx.arcTo(labelEnd, H - labelPad, labelEnd - r, H - labelPad, r);
+            ctx.lineTo(labelStart + r, H - labelPad);
+            ctx.arcTo(labelStart, H - labelPad, labelStart, H - labelPad - r, r);
+            ctx.lineTo(labelStart, labelPad + r);
+            ctx.arcTo(labelStart, labelPad, labelStart + r, labelPad, r);
+            ctx.fill();
+
+            // Info text on the label area
+            const tx = labelStart + 30;
             const midY = H / 2;
             let ty = midY - 100;
 
@@ -343,14 +357,57 @@
         const segsX = 120, segsY = 8;
 
         function buildBand(len, w, droopAmt) {
-            const geo = new THREE.PlaneGeometry(len, w, segsX, segsY);
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const x = pos.getX(i);
-                const t = (x / len) + 0.5;
-                const droop = droopAmt * (Math.cosh((t - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-                pos.setZ(i, -droop);
+            // Custom bracelet shape: narrow strip (left) → rounded taper → wider label (right)
+            const stripW = w * 0.35; // narrow strip width
+            const labelW = w; // full width for label section
+            const taperStart = 0.35; // where taper begins (fraction of length)
+            const taperEnd = 0.45; // where taper ends
+            const uSegs = 120;
+            const vSegs = 8;
+
+            const verts = [];
+            const uvs = [];
+            const indices = [];
+
+            for (let i = 0; i <= uSegs; i++) {
+                const u = i / uSegs;
+                const x = (u - 0.5) * len;
+                const droop = droopAmt * (Math.cosh((u - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+
+                // Determine band half-width at this U position
+                let halfW;
+                if (u < taperStart) {
+                    halfW = stripW / 2; // narrow strip
+                } else if (u < taperEnd) {
+                    // Smooth taper (cosine interpolation for rounded feel)
+                    const t = (u - taperStart) / (taperEnd - taperStart);
+                    const smooth = 0.5 - 0.5 * Math.cos(t * Math.PI);
+                    halfW = stripW / 2 + (labelW / 2 - stripW / 2) * smooth;
+                } else {
+                    halfW = labelW / 2; // wide label section
+                }
+
+                for (let j = 0; j <= vSegs; j++) {
+                    const v = j / vSegs;
+                    const y = (v - 0.5) * 2 * halfW;
+                    verts.push(x, y, -droop);
+                    uvs.push(u, v);
+
+                    if (i < uSegs && j < vSegs) {
+                        const a = i * (vSegs + 1) + j;
+                        const b = a + 1;
+                        const c = a + (vSegs + 1);
+                        const d = c + 1;
+                        indices.push(a, c, b);
+                        indices.push(b, c, d);
+                    }
+                }
             }
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+            geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+            geo.setIndex(indices);
             geo.computeVertexNormals();
             return geo;
         }
