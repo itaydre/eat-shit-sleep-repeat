@@ -792,6 +792,14 @@
         <input type="date" id="baby-dob" class="auth-input">
         <label>Time of birth</label>
         <input type="time" id="baby-birth-time" class="auth-input">
+        <label>Birth weight (grams)</label>
+        <input type="number" id="baby-birth-weight" class="auth-input" placeholder="e.g. 3200">
+        <label>Gender</label>
+        <select id="baby-gender" class="auth-input">
+            <option value="">Select...</option>
+            <option value="boy">Boy</option>
+            <option value="girl">Girl</option>
+        </select>
         <label>Invite code (optional — to join a partner's account)</label>
         <input type="text" id="invite-code" class="auth-input" placeholder="Paste invite code">
         <button class="auth-btn" onclick="saveOnboarding()">Let's go!</button>
@@ -862,7 +870,15 @@
             <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Date of birth</label>
             <input type="date" id="edit-baby-dob" class="auth-input" style="margin-bottom:12px;">
             <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Time of birth</label>
-            <input type="time" id="edit-baby-birth-time" class="auth-input" style="margin-bottom:20px;">
+            <input type="time" id="edit-baby-birth-time" class="auth-input" style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Birth weight (grams)</label>
+            <input type="number" id="edit-baby-birth-weight" class="auth-input" placeholder="e.g. 3200" style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Gender</label>
+            <select id="edit-baby-gender" class="auth-input" style="margin-bottom:20px;">
+                <option value="">Select...</option>
+                <option value="boy">Boy</option>
+                <option value="girl">Girl</option>
+            </select>
             <div style="display:flex; gap:8px;">
                 <button onclick="closeProfileEdit()" style="flex:1; background:none; border:1px solid #ddd; border-radius:12px; padding:12px; font-size:0.95rem; color:#999; cursor:pointer; font-family:inherit;">Cancel</button>
                 <button onclick="saveProfileEdit()" style="flex:1; background:#5a4a3a; border:none; border-radius:12px; padding:12px; font-size:0.95rem; color:#fff; cursor:pointer; font-family:inherit;">Save</button>
@@ -1117,6 +1133,8 @@
             const baby_name = document.getElementById('baby-name').value.trim();
             const baby_birthdate = document.getElementById('baby-dob').value;
             const baby_birth_time = document.getElementById('baby-birth-time').value;
+            const baby_birth_weight = document.getElementById('baby-birth-weight').value;
+            const baby_gender = document.getElementById('baby-gender').value;
             const invite_code = document.getElementById('invite-code').value.trim();
             if (!baby_name) return;
             const birthdate = baby_birthdate && baby_birth_time
@@ -1125,7 +1143,7 @@
             const res = await apiFetch('/api/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ baby_name, baby_birthdate: birthdate, invite_code: invite_code || null }),
+                body: JSON.stringify({ baby_name, baby_birthdate: birthdate, baby_birth_weight: baby_birth_weight ? Number(baby_birth_weight) : null, baby_gender: baby_gender || null, invite_code: invite_code || null }),
             });
             profile = await res.json();
             startApp();
@@ -1157,11 +1175,9 @@
             }
         }
 
-        function startApp() {
-            showScreen('app');
-            const titleEl = document.getElementById('app-title');
+        function updateProfileDisplay() {
             if (profile && profile.baby_name) {
-                titleEl.textContent = profile.baby_name + "'s log";
+                document.getElementById('app-title').textContent = profile.baby_name + "'s log";
             }
             if (profile && profile.baby_birthdate) {
                 const birth = new Date(profile.baby_birthdate);
@@ -1182,6 +1198,11 @@
                 }
                 document.getElementById('baby-age').textContent = ageText;
             }
+        }
+
+        function startApp() {
+            showScreen('app');
+            updateProfileDisplay();
             document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
             if (isDevMode) return;
             initServiceWorker().then(() => {
@@ -1305,6 +1326,8 @@
                 document.getElementById('edit-baby-name').value = profile.baby_name || '';
                 document.getElementById('edit-baby-dob').value = bd.includes('T') ? bd.split('T')[0] : bd;
                 document.getElementById('edit-baby-birth-time').value = bd.includes('T') ? bd.split('T')[1].slice(0,5) : '';
+                document.getElementById('edit-baby-birth-weight').value = profile.baby_birth_weight || '';
+                document.getElementById('edit-baby-gender').value = profile.baby_gender || '';
             }
         }
 
@@ -1317,20 +1340,24 @@
             const baby_name = document.getElementById('edit-baby-name').value.trim();
             const baby_dob = document.getElementById('edit-baby-dob').value;
             const baby_time = document.getElementById('edit-baby-birth-time').value;
+            const baby_birth_weight = document.getElementById('edit-baby-birth-weight').value;
+            const baby_gender = document.getElementById('edit-baby-gender').value;
             if (!baby_name) return;
             const birthdate = baby_dob && baby_time ? baby_dob + 'T' + baby_time : baby_dob || null;
             if (!isDevMode) {
                 const res = await apiFetch('/api/profile', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ baby_name, baby_birthdate: birthdate }),
+                    body: JSON.stringify({ baby_name, baby_birthdate: birthdate, baby_birth_weight: baby_birth_weight ? Number(baby_birth_weight) : null, baby_gender: baby_gender || null }),
                 });
                 profile = await res.json();
             } else {
                 profile.baby_name = baby_name;
                 profile.baby_birthdate = birthdate;
+                profile.baby_birth_weight = baby_birth_weight ? Number(baby_birth_weight) : null;
+                profile.baby_gender = baby_gender || null;
             }
-            document.getElementById('app-title').textContent = profile.baby_name + "'s log";
+            updateProfileDisplay();
             closeProfileEdit();
         }
 
