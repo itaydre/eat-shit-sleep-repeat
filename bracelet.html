@@ -12,6 +12,27 @@
             touch-action: none;
         }
         canvas { display: block; width: 100vw; height: 100vh; }
+        #colors {
+            position: fixed;
+            bottom: 60px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+        .color-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .color-btn.active {
+            border-color: #5a4a3a;
+            transform: scale(1.15);
+        }
         #info {
             position: fixed;
             bottom: 24px;
@@ -26,6 +47,13 @@
 </head>
 <body>
     <canvas id="c"></canvas>
+    <div id="colors">
+        <button class="color-btn active" data-color="#f5f0ea" style="background:#f5f0ea;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-color="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
+    </div>
     <div id="info">Drag to rotate</div>
 
     <script type="importmap">
@@ -58,9 +86,8 @@
         renderer.toneMappingExposure = 1.3;
 
         const scene = new THREE.Scene();
-
-        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 2.5, 5);
+        const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2, 6);
 
         const controls = new OrbitControls(camera, canvas);
         controls.enableDamping = true;
@@ -73,170 +100,84 @@
 
         // --- Lighting ---
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-
         const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.4);
         keyLight.position.set(4, 6, 5);
         scene.add(keyLight);
-
         const fillLight = new THREE.DirectionalLight(0xeef0ff, 0.5);
         fillLight.position.set(-4, 3, -3);
         scene.add(fillLight);
 
-        const bottomLight = new THREE.DirectionalLight(0xfff0dd, 0.2);
-        bottomLight.position.set(0, -3, 0);
-        scene.add(bottomLight);
+        // --- Band texture with info + holes ---
+        let currentColor = '#f5f0ea';
 
-        // --- Plastic material ---
-        const plasticMat = new THREE.MeshPhysicalMaterial({
-            color: 0xf5f0ea,
-            roughness: 0.35,
-            metalness: 0.0,
-            clearcoat: 0.5,
-            clearcoatRoughness: 0.15,
-            transmission: 0.08,
-            thickness: 0.3,
-            transparent: true,
-            opacity: 0.88,
-            side: THREE.DoubleSide,
-        });
-
-        const braceletGroup = new THREE.Group();
-        scene.add(braceletGroup);
-
-        // --- Dimensions ---
-        const bandLength = 4.0;
-        const bandWidth = 0.28;
-        const bandThick = 0.012;
-        const tagWidth = 1.2;
-        const tagHeight = 0.7;
-        const holeCount = 8;
-
-        // --- Band strip (long flat part with slight droop) ---
-        // Create as a curved plane using a path
-        const bandSegments = 80;
-        const bandPoints = [];
-        for (let i = 0; i <= bandSegments; i++) {
-            const t = i / bandSegments;
-            const x = (t - 0.5) * bandLength;
-            // Gentle catenary droop
-            const droopAmount = 0.15;
-            const y = droopAmount * (Math.cosh((t - 0.5) * 3) - Math.cosh(0)) / (Math.cosh(1.5) - 1);
-            bandPoints.push(new THREE.Vector3(x, y, 0));
-        }
-        const bandCurve = new THREE.CatmullRomCurve3(bandPoints, false);
-
-        // Cross section: thin rectangle
-        const bandShape = new THREE.Shape();
-        const bw2 = bandWidth / 2;
-        const bt2 = bandThick / 2;
-        bandShape.moveTo(-bw2, -bt2);
-        bandShape.lineTo(bw2, -bt2);
-        bandShape.lineTo(bw2, bt2);
-        bandShape.lineTo(-bw2, bt2);
-        bandShape.lineTo(-bw2, -bt2);
-
-        const bandGeo = new THREE.ExtrudeGeometry(bandShape, {
-            steps: bandSegments,
-            bevelEnabled: false,
-            extrudePath: bandCurve,
-        });
-
-        const band = new THREE.Mesh(bandGeo, plasticMat.clone());
-        braceletGroup.add(band);
-
-        // --- Holes along the band ---
-        const holeMat = new THREE.MeshBasicMaterial({ color: 0xFAF6F1 });
-        for (let i = 0; i < holeCount; i++) {
-            const t = 0.08 + (i / (holeCount - 1)) * 0.38;
-            const pt = bandCurve.getPoint(t);
-            const holeGeo = new THREE.CylinderGeometry(0.025, 0.025, bandThick * 3, 12);
-            const hole = new THREE.Mesh(holeGeo, holeMat);
-            hole.position.copy(pt);
-            hole.rotation.x = Math.PI / 2;
-            braceletGroup.add(hole);
-
-            // Hole rim
-            const rimGeo = new THREE.TorusGeometry(0.025, 0.003, 8, 16);
-            const rimMat = new THREE.MeshPhysicalMaterial({ color: 0xe8e0d8, roughness: 0.3, metalness: 0.05 });
-            const rimTop = new THREE.Mesh(rimGeo, rimMat);
-            rimTop.position.copy(pt);
-            rimTop.position.z = bt2;
-            braceletGroup.add(rimTop);
-        }
-
-        // --- Info tag (rectangular, wider section at right end) ---
-        function createTagTexture(info) {
+        function createBandTexture(info, bgColor) {
             const c = document.createElement('canvas');
-            c.width = 512;
-            c.height = 320;
+            c.width = 2048;
+            c.height = 256;
             const ctx = c.getContext('2d');
 
-            // White background with subtle grain
-            ctx.fillStyle = '#f8f4ef';
-            ctx.fillRect(0, 0, 512, 320);
-            for (let i = 0; i < 2000; i++) {
-                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.02})`;
-                ctx.fillRect(Math.random() * 512, Math.random() * 320, 1, 1);
+            // Background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, 2048, 256);
+
+            // Subtle plastic grain
+            for (let i = 0; i < 5000; i++) {
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.015})`;
+                ctx.fillRect(Math.random() * 2048, Math.random() * 256, 1, 1);
             }
 
-            // Border lines (like printed form)
-            ctx.strokeStyle = '#ccc';
-            ctx.lineWidth = 0.5;
-            ctx.strokeRect(16, 16, 480, 288);
+            // Holes on the left third
+            for (let i = 0; i < 8; i++) {
+                const hx = 80 + i * 70;
+                const hy = 128;
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(hx, hy, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(hx, hy, 18, 0, Math.PI * 2);
+                ctx.stroke();
+            }
 
-            const lx = 30;
-            let ly = 52;
+            // Info text on right portion
+            const tx = 750;
 
-            // Baby name — bold, large
+            // Name
             ctx.fillStyle = '#1a1a1a';
-            ctx.font = 'bold 36px system-ui, sans-serif';
-            ctx.fillText(info.name, lx, ly);
-            ly += 14;
+            ctx.font = 'bold 42px system-ui, sans-serif';
+            ctx.fillText(info.name, tx, 70);
 
-            // Thin line
-            ctx.strokeStyle = '#ddd';
+            // Separator
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(lx, ly);
-            ctx.lineTo(480, ly);
+            ctx.moveTo(tx, 85);
+            ctx.lineTo(tx + 600, 85);
             ctx.stroke();
-            ly += 28;
 
             // Date & time
-            ctx.font = '20px system-ui, sans-serif';
+            ctx.font = '24px system-ui, sans-serif';
             ctx.fillStyle = '#444';
-            ctx.fillText(info.date + '   ' + info.time, lx, ly);
-            ly += 30;
+            ctx.fillText(info.date + '   ' + info.time, tx, 118);
 
             // Weight & gender
-            ctx.fillText('Weight: ' + info.weight, lx, ly);
-            ctx.fillText('Gender: ' + info.gender, lx + 220, ly);
-            ly += 36;
-
-            // Line
-            ctx.strokeStyle = '#ddd';
-            ctx.beginPath();
-            ctx.moveTo(lx, ly - 10);
-            ctx.lineTo(480, ly - 10);
-            ctx.stroke();
+            ctx.fillText('Weight: ' + info.weight + '      Gender: ' + info.gender, tx, 152);
 
             // ID
-            ctx.font = '16px monospace';
+            ctx.font = '18px monospace';
             ctx.fillStyle = '#888';
-            ctx.fillText('ID: ' + info.id, lx, ly + 10);
+            ctx.fillText('ID: ' + info.id, tx, 188);
 
             // Barcode
-            const bx = lx;
-            const by = ly + 24;
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 45; i++) {
                 const w = Math.random() > 0.5 ? 2.5 : 1;
                 ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(bx + i * 5.5, by, w, 28);
+                ctx.fillRect(tx + i * 6, 198, w, 30);
             }
-
-            // Barcode number
-            ctx.font = '11px monospace';
-            ctx.fillStyle = '#888';
-            ctx.fillText(info.id, bx + 80, by + 42);
 
             const tex = new THREE.CanvasTexture(c);
             tex.wrapS = THREE.ClampToEdgeWrapping;
@@ -244,70 +185,89 @@
             return tex;
         }
 
-        const tagTexture = createTagTexture(babyInfo);
+        // --- Band geometry: flat with gentle droop ---
+        const bandLength = 5.0;
+        const bandWidth = 0.5;
+        const bandThick = 0.014;
+        const segments = 80;
 
-        const tagGeo = new THREE.BoxGeometry(tagWidth, tagHeight, bandThick * 1.5);
-        const tagMat = new THREE.MeshPhysicalMaterial({
-            map: tagTexture,
+        const bandPoints = [];
+        for (let i = 0; i <= segments; i++) {
+            const t = i / segments;
+            const x = (t - 0.5) * bandLength;
+            const droop = 0.12 * (Math.cosh((t - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+            bandPoints.push(new THREE.Vector3(x, -droop, 0));
+        }
+        const bandCurve = new THREE.CatmullRomCurve3(bandPoints, false);
+
+        const bandShape = new THREE.Shape();
+        const hw = bandWidth / 2;
+        const ht = bandThick / 2;
+        bandShape.moveTo(-hw, -ht);
+        bandShape.lineTo(hw, -ht);
+        bandShape.lineTo(hw, ht);
+        bandShape.lineTo(-hw, ht);
+        bandShape.lineTo(-hw, -ht);
+
+        const bandGeo = new THREE.ExtrudeGeometry(bandShape, {
+            steps: segments * 2,
+            bevelEnabled: false,
+            extrudePath: bandCurve,
+        });
+
+        let bandTexture = createBandTexture(babyInfo, currentColor);
+
+        const bandMat = new THREE.MeshPhysicalMaterial({
+            map: bandTexture,
             color: 0xffffff,
-            roughness: 0.3,
+            roughness: 0.35,
             metalness: 0.0,
             clearcoat: 0.5,
-            clearcoatRoughness: 0.1,
+            clearcoatRoughness: 0.15,
+            transmission: 0.06,
+            thickness: 0.3,
             transparent: true,
-            opacity: 0.93,
+            opacity: 0.9,
             side: THREE.DoubleSide,
         });
 
-        const tag = new THREE.Mesh(tagGeo, tagMat);
-        // Position at right end of band
-        const tagPoint = bandCurve.getPoint(0.82);
-        tag.position.set(tagPoint.x + tagWidth * 0.35, tagPoint.y, 0);
-        braceletGroup.add(tag);
+        const band = new THREE.Mesh(bandGeo, bandMat);
+        band.rotation.x = 0.15;
+        band.rotation.z = -0.05;
+        scene.add(band);
 
-        // --- Snap/clasp at far right ---
-        const claspBaseGeo = new THREE.BoxGeometry(0.18, 0.22, bandThick * 2.5);
+        // --- Clasp at right end ---
+        const claspGeo = new THREE.BoxGeometry(0.15, 0.25, bandThick * 2);
         const claspMat = new THREE.MeshPhysicalMaterial({
             color: 0xf0ebe4,
             roughness: 0.25,
             metalness: 0.05,
             clearcoat: 0.3,
         });
-        const clasp = new THREE.Mesh(claspBaseGeo, claspMat);
-        clasp.position.set(tag.position.x + tagWidth / 2 + 0.12, tagPoint.y, 0);
-        braceletGroup.add(clasp);
+        const endPt = bandCurve.getPoint(1);
+        const clasp = new THREE.Mesh(claspGeo, claspMat);
+        clasp.position.set(endPt.x + 0.1, endPt.y, 0);
+        clasp.rotation.x = 0.15;
+        clasp.rotation.z = -0.05;
+        scene.add(clasp);
 
         // Snap button
-        const snapGeo = new THREE.CylinderGeometry(0.04, 0.045, 0.015, 16);
-        const snapMat = new THREE.MeshPhysicalMaterial({
-            color: 0xfafafa,
-            roughness: 0.15,
-            metalness: 0.1,
-        });
+        const snapGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.012, 16);
+        const snapMat = new THREE.MeshPhysicalMaterial({ color: 0xfafafa, roughness: 0.15, metalness: 0.1 });
         const snap = new THREE.Mesh(snapGeo, snapMat);
-        snap.position.set(0, 0, bandThick * 1.5);
         snap.rotation.x = Math.PI / 2;
+        snap.position.z = bandThick * 1.5;
         clasp.add(snap);
 
-        // Snap hole in clasp
-        const snapHoleGeo = new THREE.CylinderGeometry(0.02, 0.02, bandThick * 4, 12);
-        const snapHole = new THREE.Mesh(snapHoleGeo, holeMat);
-        snapHole.position.set(0, 0.06, 0);
-        snapHole.rotation.x = Math.PI / 2;
-        clasp.add(snapHole);
-
-        // --- Tip: rounded end on left ---
-        const tipGeo = new THREE.BoxGeometry(0.06, bandWidth, bandThick);
-        const tip = new THREE.Mesh(tipGeo, plasticMat.clone());
-        const tipPoint = bandCurve.getPoint(0);
-        tip.position.copy(tipPoint);
-        tip.position.x -= 0.03;
-        braceletGroup.add(tip);
-
-        // --- Center and tilt ---
-        braceletGroup.rotation.z = -0.08;
-        braceletGroup.rotation.x = 0.15;
-        braceletGroup.position.y = -0.1;
+        // --- Color picker ---
+        window.setColor = function(btn) {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentColor = btn.dataset.color;
+            bandTexture = createBandTexture(babyInfo, currentColor);
+            bandMat.map = bandTexture;
+            bandMat.needsUpdate = true;
+        };
 
         // --- Animation ---
         function animate() {
@@ -317,14 +277,12 @@
         }
         animate();
 
-        // --- Resize ---
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Interaction: stop/resume auto-rotate
         let idleTimer;
         canvas.addEventListener('pointerdown', () => {
             controls.autoRotate = false;
