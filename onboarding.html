@@ -6,14 +6,19 @@
     <title>Onboarding — Eat shit sleep repeat</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
 
         body {
-            font-family: 'DM Sans', system-ui, sans-serif;
-            background: #FAF6F1;
-            color: #3D3229;
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fef9f0;
+            color: #333;
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
@@ -28,57 +33,19 @@
             width: 100%;
             margin: 0 auto;
             padding: 0 24px;
-            padding-top: calc(16px + env(safe-area-inset-top, 0px));
+            padding-top: calc(20px + env(safe-area-inset-top, 0px));
             padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
         }
 
         /* Steps */
-        .step { display: none; flex-direction: column; flex: 1; }
-        .step.active { display: flex; }
-
-        .step-top {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-            min-height: 36px;
-        }
-
-        .btn-back {
-            background: none;
-            border: none;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            cursor: pointer;
-            color: #9A8A7A;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-            background: #F0EBE4;
-        }
-
-        .btn-back:active { opacity: 0.7; }
-
-        /* Progress */
-        .progress {
-            display: flex;
-            gap: 6px;
+        .step {
+            display: none;
+            flex-direction: column;
             flex: 1;
         }
 
-        .progress-dot {
-            flex: 1;
-            height: 3px;
-            border-radius: 2px;
-            background: #E8E0D6;
-            transition: background 0.3s ease;
-        }
-
-        .progress-dot.done {
-            background: #5A4A3A;
+        .step.active {
+            display: flex;
         }
 
         .step-content {
@@ -88,69 +55,66 @@
             justify-content: center;
         }
 
-        /* Section label */
-        .section-label {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #9A8A7A;
-            margin-bottom: 16px;
+        /* Progress */
+        .progress {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 40px;
+        }
+
+        .progress-dot {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: #e0d8ce;
+            transition: background 0.3s ease;
+        }
+
+        .progress-dot.done {
+            background: #5a4a3a;
         }
 
         /* Typography */
-        .step h2 {
-            font-size: 22px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: #3D3229;
-            line-height: 28px;
-            margin-bottom: 6px;
+        .step-emoji {
+            font-size: 3rem;
+            margin-bottom: 16px;
         }
 
-        .step .subtitle {
-            font-size: 14px;
-            font-weight: 400;
-            color: #9A8A7A;
-            line-height: 20px;
+        .step h2 {
+            font-size: 1.5rem;
+            color: #5a4a3a;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: #999;
+            font-size: 0.9rem;
             margin-bottom: 32px;
         }
 
         /* Inputs */
-        .input-group { margin-bottom: 12px; }
-
-        .input-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: #9A8A7A;
-            margin-bottom: 6px;
-            display: block;
-        }
-
         .input {
             width: 100%;
             padding: 14px 16px;
-            border: 1px solid #E8E0D6;
+            border: 1px solid #e0d8ce;
             border-radius: 12px;
-            font-size: 15px;
-            font-weight: 500;
+            font-size: 1rem;
             font-family: inherit;
             background: #fff;
-            color: #3D3229;
+            color: #333;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s;
         }
 
         .input:focus {
-            border-color: #5A4A3A;
-            box-shadow: 0 0 0 3px rgba(90,74,58,0.08);
+            border-color: #5a4a3a;
         }
 
-        .input::placeholder {
-            color: #C4B8AA;
+        .input + .input {
+            margin-top: 12px;
         }
 
-        /* Gender pills */
+        /* Gender buttons */
         .gender-group {
             display: flex;
             gap: 12px;
@@ -158,108 +122,117 @@
 
         .gender-btn {
             flex: 1;
-            padding: 20px 16px;
-            border: 2px solid #E8E0D6;
+            padding: 16px;
+            border: 2px solid #e0d8ce;
             border-radius: 16px;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 1rem;
             background: #fff;
             cursor: pointer;
             font-family: inherit;
             text-align: center;
-            color: #3D3229;
             transition: all 0.2s ease;
         }
 
         .gender-btn .gender-emoji {
-            font-size: 2.2rem;
+            font-size: 2rem;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
-        .gender-btn:active { transform: scale(0.97); }
-
         .gender-btn.active {
-            border-color: #5A4A3A;
-            background: #F5EFE8;
+            border-color: #5a4a3a;
+            background: #f5efe8;
         }
 
         /* Bottom actions */
         .step-actions {
-            padding: 12px 0;
+            padding: 16px 0;
         }
 
         .btn-primary {
             width: 100%;
             padding: 16px;
-            background: #5A4A3A;
-            color: #fff;
+            background: #5a4a3a;
+            color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
+            border-radius: 14px;
+            font-size: 1rem;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: opacity 0.2s;
         }
 
-        .btn-primary:active { opacity: 0.85; transform: scale(0.99); }
-        .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-primary:active {
+            opacity: 0.85;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
         .btn-skip {
             width: 100%;
             padding: 12px;
             background: none;
             border: none;
-            color: #9A8A7A;
-            font-size: 13px;
-            font-weight: 500;
+            color: #999;
+            font-size: 0.85rem;
             font-family: inherit;
             cursor: pointer;
-            margin-top: 4px;
+            margin-top: 8px;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 0;
+            margin-bottom: 8px;
+            align-self: flex-start;
+        }
+
+        /* Invite code */
+        .invite-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e0d8ce;
+        }
+
+        .invite-label {
+            font-size: 0.85rem;
+            color: #999;
+            margin-bottom: 8px;
         }
 
         /* Summary card */
         .summary-card {
             background: #fff;
             border-radius: 16px;
-            padding: 4px 20px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            padding: 20px;
+            margin-bottom: 16px;
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
+            padding: 10px 0;
+            font-size: 0.95rem;
         }
 
         .summary-row + .summary-row {
-            border-top: 1px solid #F0EBE4;
+            border-top: 1px solid #f0ebe4;
         }
 
         .summary-label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #9A8A7A;
+            color: #999;
         }
 
         .summary-value {
-            font-size: 14px;
+            color: #5a4a3a;
             font-weight: 600;
-            color: #3D3229;
-        }
-
-        /* Invite */
-        .invite-section {
-            margin-top: 20px;
-        }
-
-        .invite-label {
-            font-size: 13px;
-            color: #9A8A7A;
-            margin-bottom: 8px;
-            line-height: 18px;
         }
 
         /* Splash */
@@ -269,16 +242,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #FAF6F1;
+            background: #fef9f0;
             z-index: 999;
             transition: opacity 0.3s ease;
         }
 
         .splash-word {
-            font-size: 28px;
-            font-weight: 800;
-            color: #3D3229;
-            letter-spacing: -0.02em;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #5a4a3a;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
             opacity: 0;
             transition: opacity 0.15s ease;
@@ -286,23 +259,20 @@
     </style>
 </head>
 <body>
+    <!-- Splash -->
     <div class="splash" id="splash">
         <div class="splash-word" id="splash-word"></div>
     </div>
 
     <div class="onboarding" id="onboarding" style="display:none;">
-
         <!-- Step 1: Name -->
         <div class="step active" id="step-1">
-            <div class="step-top">
-                <div class="progress" id="progress-1"></div>
-            </div>
+            <div class="progress" id="progress-1"></div>
             <div class="step-content">
+                <div class="step-emoji">👶</div>
                 <h2>What's your baby's name?</h2>
-                <div class="subtitle">We'll use this throughout the app</div>
-                <div class="input-group">
-                    <input type="text" class="input" id="ob-name" placeholder="e.g. Maya" autofocus>
-                </div>
+                <p>We'll use this throughout the app</p>
+                <input type="text" class="input" id="ob-name" placeholder="e.g. Maya" autofocus>
             </div>
             <div class="step-actions">
                 <button class="btn-primary" id="btn-step1" onclick="goStep(2)" disabled>Continue</button>
@@ -311,21 +281,14 @@
 
         <!-- Step 2: Birthday -->
         <div class="step" id="step-2">
-            <div class="step-top">
-                <button class="btn-back" onclick="goStep(1)">&#8249;</button>
-                <div class="progress" id="progress-2"></div>
-            </div>
+            <div class="progress" id="progress-2"></div>
+            <button class="btn-back" onclick="goStep(1)">&#8249;</button>
             <div class="step-content">
+                <div class="step-emoji">🎂</div>
                 <h2>When were they born?</h2>
-                <div class="subtitle">This helps us track their age precisely</div>
-                <div class="input-group">
-                    <label class="input-label">Date</label>
-                    <input type="date" class="input" id="ob-dob">
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Time</label>
-                    <input type="time" class="input" id="ob-time">
-                </div>
+                <p>This helps us track their age precisely</p>
+                <input type="date" class="input" id="ob-dob">
+                <input type="time" class="input" id="ob-time" placeholder="Time of birth">
             </div>
             <div class="step-actions">
                 <button class="btn-primary" onclick="goStep(3)">Continue</button>
@@ -335,15 +298,13 @@
 
         <!-- Step 3: Gender & Weight -->
         <div class="step" id="step-3">
-            <div class="step-top">
-                <button class="btn-back" onclick="goStep(2)">&#8249;</button>
-                <div class="progress" id="progress-3"></div>
-            </div>
+            <div class="progress" id="progress-3"></div>
+            <button class="btn-back" onclick="goStep(2)">&#8249;</button>
             <div class="step-content">
+                <div class="step-emoji">⚖️</div>
                 <h2>A few more details</h2>
-                <div class="subtitle">Optional — helps personalize the experience</div>
-                <div class="section-label">Gender</div>
-                <div class="gender-group" style="margin-bottom:24px;">
+                <p>Optional — helps personalize the experience</p>
+                <div class="gender-group" style="margin-bottom:16px;">
                     <button type="button" class="gender-btn" onclick="pickGender(this, 'boy')">
                         <span class="gender-emoji">👦</span>Boy
                     </button>
@@ -351,10 +312,7 @@
                         <span class="gender-emoji">👧</span>Girl
                     </button>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Birth weight</label>
-                    <input type="number" class="input" id="ob-weight" placeholder="e.g. 3200g">
-                </div>
+                <input type="number" class="input" id="ob-weight" placeholder="Birth weight in grams (e.g. 3200)">
             </div>
             <div class="step-actions">
                 <button class="btn-primary" onclick="goStep(4)">Continue</button>
@@ -364,13 +322,12 @@
 
         <!-- Step 4: Summary + Invite -->
         <div class="step" id="step-4">
-            <div class="step-top">
-                <button class="btn-back" onclick="goStep(3)">&#8249;</button>
-                <div class="progress" id="progress-4"></div>
-            </div>
+            <div class="progress" id="progress-4"></div>
+            <button class="btn-back" onclick="goStep(3)">&#8249;</button>
             <div class="step-content">
+                <div class="step-emoji">🎉</div>
                 <h2>All set!</h2>
-                <div class="subtitle">Here's a summary of your baby's profile</div>
+                <p>Here's what we've got</p>
                 <div class="summary-card" id="summary"></div>
                 <div class="invite-section">
                     <div class="invite-label">Have a partner? Enter their invite code to share data</div>
@@ -378,7 +335,7 @@
                 </div>
             </div>
             <div class="step-actions">
-                <button class="btn-primary" onclick="finish()">Let's go!</button>
+                <button class="btn-primary" onclick="finish()">Let's go! 🍼</button>
             </div>
         </div>
     </div>
@@ -386,6 +343,7 @@
     <script>
         let selectedGender = '';
 
+        // Splash animation
         async function playSplash() {
             const words = [
                 { text: 'EAT', emoji: '🍼' },
@@ -411,6 +369,7 @@
             }, 300);
         }
 
+        // Enable continue only when name is filled
         const nameInput = document.getElementById('ob-name');
         nameInput.addEventListener('input', () => {
             document.getElementById('btn-step1').disabled = !nameInput.value.trim();
@@ -456,10 +415,10 @@
             if (dob) {
                 const d = new Date(dob + (time ? 'T' + time : ''));
                 dobDisplay = d.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
-                if (time) dobDisplay += ', ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if (time) dobDisplay += ' at ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
 
-            document.getElementById('summary').innerHTML = `
+            const html = `
                 <div class="summary-row">
                     <span class="summary-label">Name</span>
                     <span class="summary-value">${name || '—'}</span>
@@ -477,6 +436,7 @@
                     <span class="summary-value">${weight ? weight + 'g' : '—'}</span>
                 </div>
             `;
+            document.getElementById('summary').innerHTML = html;
         }
 
         function finish() {
