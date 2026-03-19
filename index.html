@@ -2022,12 +2022,14 @@
             const el = document.getElementById('splash-word');
             if (!el) return;
             await new Promise(r => setTimeout(r, 200));
+            for (let loop = 0; loop < 2; loop++) {
             for (const word of words) {
                 el.textContent = word.text + ' ' + word.emoji;
                 el.style.opacity = '1';
                 await new Promise(r => setTimeout(r, 400));
                 el.style.opacity = '0';
                 await new Promise(r => setTimeout(r, 120));
+            }
             }
         }
 
