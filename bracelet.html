@@ -386,7 +386,7 @@
             const segs = 50;
             const hw = bandW / 2; // same width as band — no gaps
 
-            // Helper to make a curved strip at a given radial offset
+            // Helper to make a curved strip at a given radial offset with correct UVs
             function makeArcMesh(offset, height, thickness, mat) {
                 const pts = [];
                 for (let i = 0; i <= segs; i++) {
@@ -401,31 +401,52 @@
                 shape.lineTo(-height, thickness);
                 shape.lineTo(-height, -thickness);
                 const geo = new THREE.ExtrudeGeometry(shape, { steps: segs * 2, bevelEnabled: false, extrudePath: curve });
+
+                // Fix UVs: compute based on position along curve (u) and cross-section (v)
+                const posAttr = geo.attributes.position;
+                const uvAttr = geo.attributes.uv;
+                const center = new THREE.Vector3();
+                // Find bounding box for normalization
+                geo.computeBoundingBox();
+                const bb = geo.boundingBox;
+                for (let i = 0; i < posAttr.count; i++) {
+                    const px = posAttr.getX(i);
+                    const py = posAttr.getY(i);
+                    const pz = posAttr.getZ(i);
+                    // U: angle around the oval mapped to 0..1
+                    const angle = Math.atan2(pz, px);
+                    const u = (angle - (Math.PI - arcSpan / 2)) / arcSpan;
+                    // V: height position mapped to 0..1
+                    const v = (py - bb.min.y) / (bb.max.y - bb.min.y);
+                    uvAttr.setXY(i, Math.max(0, Math.min(1, u)), Math.max(0, Math.min(1, v)));
+                }
+                uvAttr.needsUpdate = true;
+
                 return new THREE.Mesh(geo, mat);
             }
 
-            // 1. Label paper — sits flush on band (tiny offset)
+            // 1. Label paper — exactly same height as band, flush on surface
             const labelTex = createLabelTexture(info);
             const labelMat = new THREE.MeshPhysicalMaterial({
                 map: labelTex, color: 0xffffff, roughness: 0.55, clearcoat: 0.1, side: THREE.DoubleSide,
             });
-            group.add(makeArcMesh(0.001, hw * 0.9, 0.0005, labelMat));
+            group.add(makeArcMesh(0.001, hw, 0.0005, labelMat));
 
-            // 2. Clear vinyl sleeve — front face, on top of label
+            // 2. Clear vinyl sleeve — same height as band + small padding
+            const sleevePad = 0.004;
             const sleeveMat = new THREE.MeshPhysicalMaterial({
                 color: 0xffffff, roughness: 0.12, clearcoat: 0.8, clearcoatRoughness: 0.05,
                 transparent: true, opacity: 0.22, transmission: 0.55, thickness: 0.08, ior: 1.4,
                 side: THREE.DoubleSide,
             });
-            // Sleeve slightly taller than label (padding top/bottom)
-            group.add(makeArcMesh(0.002, hw + 0.006, 0.0003, sleeveMat));
+            group.add(makeArcMesh(0.002, hw + sleevePad, 0.0003, sleeveMat));
 
             // 3. Heat-sealed rim — top and bottom edges of sleeve
             const rimMat = new THREE.MeshPhysicalMaterial({
                 color: 0xe5ddd5, roughness: 0.45, clearcoat: 0.2, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
             });
             const rimH = 0.002;
-            const sleeveH = hw + 0.006;
+            const sleeveH = hw + sleevePad;
             // Top rim
             const topPts = [];
             const botPts = [];
@@ -451,16 +472,17 @@
 
         function addHoles(group, rx, ry, bandW, holeCount) {
             if (holeCount <= 0) return;
-            const holeRadius = 0.008;
+            const holeRadius = 0.012;
             const holeMat = new THREE.MeshBasicMaterial({ color: 0xFAF6F1 });
             const rimColor = new THREE.MeshPhysicalMaterial({ color: 0xd0c8c0, roughness: 0.4 });
 
-            // Evenly spaced along the right side of the oval (centered at angle 0)
-            const totalArc = 0.06 * (holeCount - 1); // spacing between holes
+            // Evenly spaced on the right side (opposite the label), centered at angle 0
+            const spacing = 0.08;
+            const totalArc = spacing * (holeCount - 1);
             const startAngle = -totalArc / 2;
 
             for (let i = 0; i < holeCount; i++) {
-                const angle = startAngle + i * 0.06;
+                const angle = startAngle + i * spacing;
                 const cx = Math.cos(angle) * rx;
                 const cz = Math.sin(angle) * ry;
 
