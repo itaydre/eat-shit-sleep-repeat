@@ -989,11 +989,18 @@
                 color: 0xfafafa, roughness: 0.2, metalness: 0.05, clearcoat: 0.5,
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
-            snap.rotation.x = Math.PI / 2;
-            // Compute droop at snap position so it stays on the band surface
-            const snapU = 0.42 + 0.5; // u = (x/len) + 0.5 where x = len*0.42
+            // Compute droop and surface angle at snap position
+            const snapXfrac = 0.42;
+            const snapU = snapXfrac + 0.5;
             const snapDroop = droop * (Math.cosh((snapU - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-            snap.position.set(len * 0.42, 0, -snapDroop + 0.008);
+            // Surface tangent angle: derivative of droop curve
+            const epsilon = 0.001;
+            const snapU2 = snapU + epsilon;
+            const droopNext = droop * (Math.cosh((snapU2 - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+            const slopeZ = -(droopNext - snapDroop) / (epsilon * len);
+            const surfaceAngle = Math.atan2(slopeZ, 1);
+            snap.rotation.x = Math.PI / 2 + surfaceAngle;
+            snap.position.set(len * snapXfrac, 0, -snapDroop + 0.008);
             band.add(snap);
 
             scene.add(band);
