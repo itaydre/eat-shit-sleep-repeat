@@ -155,8 +155,8 @@
             <input type="range" id="p-sleeve-pad" min="0" max="0.02" step="0.001" value="0.004" oninput="updateBracelet()">
         </div>
         <div class="field">
-            <label>Label Corner Radius</label>
-            <input type="range" id="p-label-radius" min="0" max="40" step="1" value="10" oninput="updateBracelet()">
+            <label>Taper Length</label>
+            <input type="range" id="p-taper" min="0.02" max="0.3" step="0.01" value="0.1" oninput="updateGeometry()">
         </div>
     </div>
 
@@ -243,7 +243,7 @@
             const pxPerUnitY = H / stripW; // V maps to strip width in the narrow section
             // To make a circle of radius r in 3D, we need rx = r * pxPerUnitX, ry = r * pxPerUnitY
             // But we want them equal in 3D, so: ry/rx = pxPerUnitY/pxPerUnitX
-            const holeR3D = 0.015; // 3D radius
+            const holeR3D = 0.030; // 3D radius
             const holeRx = holeR3D * pxPerUnitX;
             const holeRy = holeR3D * pxPerUnitY;
             const holes = [];
@@ -373,8 +373,9 @@
             // Custom bracelet shape: narrow strip (left) → rounded taper → wider label (right)
             const stripW = w * 0.35; // narrow strip width
             const labelW = w; // full width for label section
+            const taperLen = parseFloat(document.getElementById('p-taper')?.value || 0.1);
             const taperStart = 0.35; // where taper begins (fraction of length)
-            const taperEnd = 0.45; // where taper ends
+            const taperEnd = taperStart + taperLen; // where taper ends
             const uSegs = 120;
             const vSegs = 8;
 
@@ -553,7 +554,7 @@
             for (let i = 0; i < holeCount; i++) {
                 const hx = holesStart + i * holesSpacing;
                 const hy = H / 2;
-                const holeR = 22;
+                const holeR = 44;
                 // Compensate aspect ratio for circles
                 const bandLen = arcSpan; // approximate
                 const canvasRatio = W / H;
@@ -651,7 +652,7 @@
 
         function addHoles(group, rx, ry, bandW, holeCount) {
             if (holeCount <= 0) return;
-            const holeRadius = 0.012;
+            const holeRadius = 0.024;
             const holeMat = new THREE.MeshBasicMaterial({ color: 0xFAF6F1 });
             const rimColor = new THREE.MeshPhysicalMaterial({ color: 0xd0c8c0, roughness: 0.4 });
 
