@@ -343,7 +343,7 @@
         function buildCurvedBand() {
             const group = new THREE.Group();
             const info = getInfo();
-            const stripWidth = 0.12;
+            const stripWidth = 0.10;
 
             // Closed oval path
             const rx = 0.7; // wider
@@ -363,7 +363,7 @@
             // Flat band cross-section
             const shape = new THREE.Shape();
             const sw = stripWidth / 2;
-            const st = 0.005;
+            const st = 0.002;
             shape.moveTo(-sw, -st);
             shape.lineTo(sw, -st);
             shape.lineTo(sw, st);
@@ -456,15 +456,20 @@
             const labelMat = new THREE.MeshPhysicalMaterial({
                 map: labelTex,
                 color: 0xffffff,
-                roughness: 0.4,
-                clearcoat: 0.2,
+                roughness: 0.65,
+                metalness: 0.0,
+                clearcoat: 0.1,
+                clearcoatRoughness: 0.5,
+                sheen: 0.2,
+                sheenRoughness: 0.8,
+                sheenColor: new THREE.Color(0xf0ece6),
                 side: THREE.DoubleSide,
             });
 
             const label = new THREE.Mesh(labelGeo, labelMat);
-            // Place on outside of oval at front (angle ~PI, the far side facing camera)
-            label.position.set(-rx - 0.001, 0, 0);
-            label.rotation.y = Math.PI / 2;
+            // Place on outside of oval, facing outward
+            label.position.set(-rx - 0.002, 0, 0);
+            label.rotation.y = -Math.PI / 2;
             group.add(label);
 
             // Tilt the whole thing
