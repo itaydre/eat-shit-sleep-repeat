@@ -1186,7 +1186,16 @@
             }
 
             sb.auth.onAuthStateChange((event, sess) => {
-                if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
+                if (event === 'TOKEN_REFRESHED') return;
+                if (event === 'INITIAL_SESSION') {
+                    // On Chrome Android, getSession() can return null before tokens are parsed.
+                    // If we don't have a session yet but INITIAL_SESSION provides one, load the app.
+                    if (!session && sess) {
+                        session = sess;
+                        loadApp();
+                    }
+                    return;
+                }
                 session = sess;
                 if (event === 'SIGNED_IN') {
                     loadApp();
