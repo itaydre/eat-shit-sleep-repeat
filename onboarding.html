@@ -311,6 +311,7 @@
                     </button>
                 </div>
                 <input type="number" class="input" id="ob-weight" placeholder="Birth weight in grams (e.g. 3200)">
+                <input type="text" class="input" id="ob-hospital" placeholder="Hospital name (e.g. Ichilov)">
             </div>
             <div class="step-actions">
                 <button class="btn-primary" onclick="goStep(4)">Continue</button>
@@ -404,6 +405,7 @@
             const dob = document.getElementById('ob-dob').value;
             const time = document.getElementById('ob-time').value;
             const weight = document.getElementById('ob-weight').value;
+            const hospital = document.getElementById('ob-hospital').value.trim();
             const genderLabel = selectedGender === 'boy' ? '👦 Boy' : selectedGender === 'girl' ? '👧 Girl' : '—';
 
             let dobDisplay = '—';
@@ -430,6 +432,10 @@
                     <span class="summary-label">Weight</span>
                     <span class="summary-value">${weight ? weight + 'g' : '—'}</span>
                 </div>
+                <div class="summary-row">
+                    <span class="summary-label">Hospital</span>
+                    <span class="summary-value">${hospital || '—'}</span>
+                </div>
             `;
             document.getElementById('summary').innerHTML = html;
         }
@@ -439,6 +445,7 @@
             const dob = document.getElementById('ob-dob').value;
             const time = document.getElementById('ob-time').value;
             const weight = document.getElementById('ob-weight').value;
+            const hospital = document.getElementById('ob-hospital').value.trim();
             const invite = document.getElementById('ob-invite').value.trim();
 
             console.log('Onboarding complete:', {
@@ -446,6 +453,7 @@
                 baby_birthdate: dob && time ? dob + 'T' + time : dob || null,
                 baby_birth_weight: weight ? Number(weight) : null,
                 baby_gender: selectedGender || null,
+                baby_hospital: hospital || null,
                 invite_code: invite || null,
             });
 
