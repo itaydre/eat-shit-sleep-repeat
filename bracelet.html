@@ -406,6 +406,24 @@
                 ctx.stroke();
             }
 
+            // 3 holes on the right side of the label
+            const rightHoleStart = W * 0.82;
+            for (let i = 0; i < 3; i++) {
+                const hx = rightHoleStart + i * (W * 0.055);
+                const rh = { x: hx, y: H / 2, rx: holeRx, ry: holeRy };
+                ctx.save();
+                ctx.beginPath();
+                ctx.ellipse(rh.x, rh.y, rh.rx, rh.ry, 0, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.clearRect(rh.x - rh.rx - 2, rh.y - rh.ry - 2, rh.rx * 2 + 4, rh.ry * 2 + 4);
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(rh.x, rh.y, rh.rx, rh.ry, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
             return new THREE.CanvasTexture(c);
         }
 
@@ -903,7 +921,7 @@
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
             snap.rotation.x = Math.PI / 2;
-            snap.position.set(len * -0.35, 0, 0.008);
+            snap.position.set(len * 0.42, 0, 0.008);
             band.add(snap);
 
             scene.add(band);
