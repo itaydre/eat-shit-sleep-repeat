@@ -440,40 +440,40 @@
             ctx.lineWidth = 1;
             ctx.stroke();
 
-            // Info text on the label
-            const tx = labelStart + 30;
-            const midY = H / 2;
-            let ty = midY - 100;
+            // Info text on the label — large and high contrast
+            const tx = labelStart + 40;
+            const labelW = labelEnd - labelStart;
+            let ty = labelPadV + 70;
 
             if (info.hospital) {
-                ctx.fillStyle = '#aaa';
-                ctx.font = '20px system-ui, sans-serif';
+                ctx.fillStyle = '#888';
+                ctx.font = '600 28px system-ui, sans-serif';
                 ctx.fillText(info.hospital, tx, ty);
-                ty += 30;
+                ty += 42;
             }
-            ctx.fillStyle = '#1a1a1a';
-            ctx.font = 'bold 48px system-ui, sans-serif';
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 64px system-ui, sans-serif';
             ctx.fillText(info.name, tx, ty);
-            ty += 16;
-            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(labelEnd - 30, ty); ctx.stroke();
-            ty += 36;
-            ctx.font = '28px system-ui, sans-serif';
-            ctx.fillStyle = '#444';
+            ty += 20;
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(labelEnd - 40, ty); ctx.stroke();
+            ty += 48;
+            ctx.font = '600 36px system-ui, sans-serif';
+            ctx.fillStyle = '#222';
             const dateTime = [info.date, info.time].filter(Boolean).join('   ');
             ctx.fillText(dateTime, tx, ty);
-            ty += 36;
+            ty += 48;
             const details = [];
             if (info.weight) details.push('Weight: ' + info.weight);
             if (info.gender) details.push('Gender: ' + info.gender);
             ctx.fillText(details.join('      '), tx, ty);
-            ty += 38;
+            ty += 50;
             // Barcode
-            for (let i = 0; i < 45; i++) {
-                const w = Math.random() > 0.5 ? 3 : 1.5;
-                ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(tx + i * 6, ty, w, 32);
+            for (let i = 0; i < 50; i++) {
+                const w = Math.random() > 0.5 ? 3.5 : 1.5;
+                ctx.fillStyle = '#000';
+                ctx.fillRect(tx + i * 7, ty, w, 40);
             }
 
             // Holes — on the right portion of the texture (U > 0.75)
@@ -523,6 +523,60 @@
                 uvAttr.setXY(i, Math.max(0, Math.min(1, u)), Math.max(0, Math.min(1, v)));
             }
             uvAttr.needsUpdate = true;
+        }
+
+        // Add a clear vinyl sleeve over the label area
+        function addSleeve(group, rx, ry, bandW, arcSpan) {
+            const labelArc = parseFloat(document.getElementById('p-label-arc')?.value || 0.35);
+            const sleevePad = parseFloat(document.getElementById('p-sleeve-pad')?.value || 0.004);
+            const sleeveOpacity = parseFloat(document.getElementById('p-sleeve-opacity')?.value || 0.22);
+
+            // Sleeve covers the label arc, slightly offset outward
+            const sleeveArc = labelArc + 0.04;
+            const sleeveSegs = 60;
+            const offset = 0.006; // outside the band surface
+            const sw = bandW / 2 + sleevePad;
+
+            const sleevePoints = [];
+            // Center the sleeve on the label (which is at the middle of the arc = angle PI area)
+            // The UV mapping puts label at U=0.5, which corresponds to angle=0 in the arc
+            // Actually the arc goes from -arcSpan/2 to +arcSpan/2, and label is at center (angle=0)
+            for (let i = 0; i <= sleeveSegs; i++) {
+                const t = i / sleeveSegs;
+                const angle = -sleeveArc / 2 + t * sleeveArc;
+                sleevePoints.push(new THREE.Vector3(
+                    Math.cos(angle) * (rx + offset),
+                    0,
+                    Math.sin(angle) * (ry + offset)
+                ));
+            }
+            const sleeveCurve = new THREE.CatmullRomCurve3(sleevePoints, false);
+
+            const shape = new THREE.Shape();
+            shape.moveTo(-sw, -0.001);
+            shape.lineTo(sw, -0.001);
+            shape.lineTo(sw, 0.001);
+            shape.lineTo(-sw, 0.001);
+            shape.lineTo(-sw, -0.001);
+
+            const sleeveGeo = new THREE.ExtrudeGeometry(shape, {
+                steps: sleeveSegs * 2, bevelEnabled: false, extrudePath: sleeveCurve,
+            });
+
+            const sleeveMat = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                roughness: 0.1,
+                clearcoat: 0.9,
+                clearcoatRoughness: 0.05,
+                transparent: true,
+                opacity: sleeveOpacity,
+                transmission: 0.5,
+                thickness: 0.05,
+                ior: 1.4,
+                side: THREE.DoubleSide,
+            });
+
+            group.add(new THREE.Mesh(sleeveGeo, sleeveMat));
         }
 
         function addHoles(group, rx, ry, bandW, holeCount) {
@@ -615,6 +669,7 @@
 
             const endPt = ovalCurve.getPoint(0.5);
             addSnap(group, endPt.x, endPt.z);
+            addSleeve(group, rx, ry, bandW, arcSpan);
 
             group.rotation.x = -0.25;
             return group;
@@ -658,6 +713,7 @@
 
             const endPt = ovalCurve.getPoint(0.5);
             addSnap(group, endPt.x, endPt.z);
+            addSleeve(group, rx, ry, bandW, arcSpan);
 
             return group;
         }
