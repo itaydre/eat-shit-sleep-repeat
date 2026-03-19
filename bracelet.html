@@ -157,6 +157,14 @@
             <label>Taper Length</label>
             <input type="range" id="p-taper" min="0.02" max="0.3" step="0.01" value="0.1" oninput="updateGeometry()">
         </div>
+        <div class="field">
+            <label>Sleeve Shadow</label>
+            <input type="range" id="p-shadow" min="0" max="0.3" step="0.01" value="0.12" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Shadow Spread</label>
+            <input type="range" id="p-shadow-spread" min="10" max="60" step="1" value="30" oninput="updateBracelet()">
+        </div>
     </div>
 
     <div id="info">Drag to rotate</div>
@@ -270,32 +278,34 @@
             ctx.fill();
 
             // Inner shadow — clip to label shape, draw shadows from edges
+            const shadowAlpha = parseFloat(document.getElementById('p-shadow')?.value || 0.12);
+            const shadowSpread = parseFloat(document.getElementById('p-shadow-spread')?.value || 30);
             ctx.save();
-            ctx.clip(); // clip to the rounded rect path
+            ctx.clip();
             // Top inner shadow
-            const topGrad = ctx.createLinearGradient(0, labelPad, 0, labelPad + 30);
-            topGrad.addColorStop(0, 'rgba(0,0,0,0.12)');
+            const topGrad = ctx.createLinearGradient(0, labelPad, 0, labelPad + shadowSpread);
+            topGrad.addColorStop(0, `rgba(0,0,0,${shadowAlpha})`);
             topGrad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = topGrad;
-            ctx.fillRect(labelStart, labelPad, labelEnd - labelStart, 30);
+            ctx.fillRect(labelStart, labelPad, labelEnd - labelStart, shadowSpread);
             // Bottom inner shadow
-            const botGrad = ctx.createLinearGradient(0, H - labelPad - 30, 0, H - labelPad);
+            const botGrad = ctx.createLinearGradient(0, H - labelPad - shadowSpread, 0, H - labelPad);
             botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-            botGrad.addColorStop(1, 'rgba(0,0,0,0.08)');
+            botGrad.addColorStop(1, `rgba(0,0,0,${shadowAlpha * 0.65})`);
             ctx.fillStyle = botGrad;
-            ctx.fillRect(labelStart, H - labelPad - 30, labelEnd - labelStart, 30);
+            ctx.fillRect(labelStart, H - labelPad - shadowSpread, labelEnd - labelStart, shadowSpread);
             // Left inner shadow
-            const leftGrad = ctx.createLinearGradient(labelStart, 0, labelStart + 25, 0);
-            leftGrad.addColorStop(0, 'rgba(0,0,0,0.1)');
+            const leftGrad = ctx.createLinearGradient(labelStart, 0, labelStart + shadowSpread * 0.8, 0);
+            leftGrad.addColorStop(0, `rgba(0,0,0,${shadowAlpha * 0.85})`);
             leftGrad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = leftGrad;
-            ctx.fillRect(labelStart, labelPad, 25, H - labelPad * 2);
+            ctx.fillRect(labelStart, labelPad, shadowSpread * 0.8, H - labelPad * 2);
             // Right inner shadow
-            const rightGrad = ctx.createLinearGradient(labelEnd - 25, 0, labelEnd, 0);
+            const rightGrad = ctx.createLinearGradient(labelEnd - shadowSpread * 0.8, 0, labelEnd, 0);
             rightGrad.addColorStop(0, 'rgba(0,0,0,0)');
-            rightGrad.addColorStop(1, 'rgba(0,0,0,0.06)');
+            rightGrad.addColorStop(1, `rgba(0,0,0,${shadowAlpha * 0.5})`);
             ctx.fillStyle = rightGrad;
-            ctx.fillRect(labelEnd - 25, labelPad, 25, H - labelPad * 2);
+            ctx.fillRect(labelEnd - shadowSpread * 0.8, labelPad, shadowSpread * 0.8, H - labelPad * 2);
             ctx.restore();
 
             // Subtle border around label pocket
