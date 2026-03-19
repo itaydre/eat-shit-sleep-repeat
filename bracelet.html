@@ -260,22 +260,43 @@
                 holes.push({ x: hx, y: H / 2, rx: holeRx, ry: holeRy });
             }
 
-            // Embossed serial number on narrow strip — rotated 90° like stamped text
-            const serialNum = String(Math.floor(Math.random() * 900000) + 100000);
-            const stampX = W * 0.34; // just before the taper
+            // Embossed dot-matrix text on narrow strip — rotated 90°
+            // Multiple lines like real hospital bracelet stamps
+            const stampLines = [
+                String(Math.floor(Math.random() * 90000) + 10000),
+                'T' + String(Math.floor(Math.random() * 900) + 100),
+                String(Math.floor(Math.random() * 9000000) + 1000000),
+            ];
+            const stampX = W * 0.22;
             const stampY = H / 2;
             ctx.save();
             ctx.translate(stampX, stampY);
             ctx.rotate(-Math.PI / 2);
-            ctx.font = 'bold 22px monospace';
-            ctx.fillStyle = 'rgba(0,0,0,0.25)';
-            // Dotted/embossed look — draw each character with slight texture
-            const stampText = serialNum;
-            for (let ci = 0; ci < stampText.length; ci++) {
-                const ch = stampText[ci];
-                const cx = ci * 18 - (stampText.length * 18) / 2;
-                ctx.fillText(ch, cx, 0);
-            }
+
+            // Draw each line as dot-matrix characters
+            stampLines.forEach((line, lineIdx) => {
+                const lineX = lineIdx * 28 - (stampLines.length * 28) / 2;
+                for (let ci = 0; ci < line.length; ci++) {
+                    const ch = line[ci];
+                    const cy = ci * 22 - (line.length * 22) / 2;
+                    // Dot-matrix: draw character as a grid of small dots
+                    ctx.font = 'bold 26px monospace';
+                    ctx.fillStyle = 'rgba(60,50,40,0.35)';
+                    // Draw the character faintly
+                    ctx.fillText(ch, cy, lineX);
+                    // Overlay dots for embossed feel
+                    for (let dx = -6; dx <= 6; dx += 4) {
+                        for (let dy = -10; dy <= 4; dy += 4) {
+                            if (Math.random() > 0.55) {
+                                ctx.fillStyle = `rgba(50,40,30,${0.15 + Math.random() * 0.2})`;
+                                ctx.beginPath();
+                                ctx.arc(cy + 8 + dx, lineX - 4 + dy, 1.2, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        }
+                    }
+                }
+            });
             ctx.restore();
 
             // White label background on the right wide section (U=0.5 to U=0.95)
