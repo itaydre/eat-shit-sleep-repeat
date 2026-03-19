@@ -13,7 +13,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 40px 20px 80px;
+            padding: 20px 20px 20px;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
         .phone-wrapper {
@@ -52,6 +52,7 @@
             align-items: flex-end;
             justify-content: space-between;
             padding: 0 28px 6px;
+            margin-bottom: -1px;
         }
         .status-bar .time {
             font-size: 14px;
@@ -213,9 +214,9 @@
         // Scale phone to fit viewport
         function fitPhone() {
             const wrapper = document.getElementById('phone-wrapper');
-            const vh = window.innerHeight - 140; // padding for label + url bar
-            const phoneH = 852 + 24 + 10; // phone + border + shadow
-            const scale = Math.min(1, vh / phoneH);
+            const vh = window.innerHeight - 40;
+            const phoneH = 852 + 24 + 10;
+            const scale = Math.min(1.15, vh / phoneH);
             wrapper.style.transform = `scale(${scale})`;
         }
         fitPhone();
