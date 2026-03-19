@@ -272,7 +272,14 @@
             margin-right: auto;
             background: #faf6f0;
             pointer-events: auto;
-            transform-origin: bottom center;
+            transition: gap 0.3s ease;
+        }
+
+        .buttons.compact {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 6px;
+            padding: 8px 14px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
         }
 
         .btn {
@@ -288,6 +295,13 @@
             box-shadow: none;
             flex: 1;
             min-width: 0;
+            transition: padding 0.3s ease, gap 0.3s ease, border-radius 0.3s ease;
+        }
+
+        .buttons.compact .btn {
+            padding: 10px 0;
+            gap: 2px;
+            border-radius: 12px;
         }
 
         .btn:active {
@@ -296,6 +310,15 @@
 
         .btn .emoji {
             font-size: 1.8rem;
+            transition: font-size 0.3s ease;
+        }
+
+        .buttons.compact .btn .emoji {
+            font-size: 1.3rem;
+        }
+
+        .buttons.compact .btn span:not(.emoji) {
+            font-size: 0.7rem;
         }
 
         .btn-sleep {
@@ -615,10 +638,10 @@
         .entry .edit-duration-btn {
             background: none;
             border: none;
-            font-size: 0.75rem;
+            font-size: 1.1rem;
             color: #aaa;
             cursor: pointer;
-            padding: 2px 4px;
+            padding: 6px 8px;
             margin-left: auto;
             flex-shrink: 0;
         }
@@ -883,10 +906,10 @@
             <button class="back-btn" id="back-btn" onclick="openSettings()">&#8592;</button>
             <div class="top-bar-left">
                 <button class="top-link" onclick="switchTab('history')" title="History">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </button>
                 <button class="top-link" onclick="switchTab('stats')" title="Stats">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 </button>
             </div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
@@ -984,10 +1007,12 @@
                 </div>
 
                 <div class="history">
-                    <div style="position:relative; display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px;">
-                        <button id="day-prev" onclick="navigateDay(-1)" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999; padding:4px 8px;">&#8249;</button>
-                        <h2 id="day-label" style="margin:0; flex:none;">Today</h2>
-                        <button id="day-next" onclick="navigateDay(1)" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999; padding:4px 8px; visibility:hidden;">&#8250;</button>
+                    <div style="position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:4px; min-width:220px;">
+                            <button id="day-prev" onclick="navigateDay(-1)" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; flex-shrink:0;">&#8249;</button>
+                            <h2 id="day-label" style="margin:0; text-align:center; min-width:160px;">Today</h2>
+                            <button id="day-next" onclick="navigateDay(1)" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; flex-shrink:0; visibility:hidden;">&#8250;</button>
+                        </div>
                         <button class="add-btn" onclick="openAddModal()" style="position:absolute; right:0;">+</button>
                     </div>
                     <div id="today-summary" class="day-summary" style="justify-content:center; margin-bottom:12px; font-size:0.75rem;"></div>
@@ -1021,11 +1046,11 @@
                 <span class="nav-label">Today</span>
             </button>
             <button class="nav-tab" onclick="switchTab('history')">
-                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span class="nav-label">History</span>
             </button>
             <button class="nav-tab" onclick="switchTab('stats')">
-                <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 <span class="nav-label">Stats</span>
             </button>
         </nav>
@@ -1254,10 +1279,10 @@
 
         function updateProfileDisplay() {
             if (profile && profile.baby_name) {
-                const genderEmoji = profile.baby_gender === 'boy' ? '👦 ' : profile.baby_gender === 'girl' ? '👧 ' : '';
-                document.getElementById('app-title').textContent = genderEmoji + profile.baby_name + "'s log";
+                document.getElementById('app-title').textContent = profile.baby_name + "'s log";
             }
             if (profile && profile.baby_birthdate) {
+                const genderEmoji = profile.baby_gender === 'boy' ? '👦 ' : profile.baby_gender === 'girl' ? '👧 ' : '';
                 const birth = new Date(profile.baby_birthdate);
                 const totalHours = (Date.now() - birth.getTime()) / 3600000;
                 const days = Math.floor(totalHours / 24);
@@ -1274,7 +1299,7 @@
                     const remainingDaysInMonth = days % 30;
                     ageText = months + '.' + remainingDaysInMonth + (months === 1 ? ' month' : ' months') + ' old';
                 }
-                document.getElementById('baby-age').textContent = ageText;
+                document.getElementById('baby-age').textContent = genderEmoji + ageText;
             }
         }
 
@@ -2234,13 +2259,15 @@
             }
         }
 
-        // Shrink buttons progressively on scroll
+        // Collapse buttons to single row on scroll
         window.addEventListener('scroll', () => {
             const buttons = document.querySelector('#action-buttons .buttons');
             if (!buttons) return;
-            const t = Math.min(window.scrollY / 120, 1); // 0 to 1 over 120px scroll
-            const scale = 1 - t * 0.25; // scale from 1.0 to 0.75
-            buttons.style.transform = `scale(${scale})`;
+            if (window.scrollY > 60) {
+                buttons.classList.add('compact');
+            } else {
+                buttons.classList.remove('compact');
+            }
         }, { passive: true });
 
         // Boot
