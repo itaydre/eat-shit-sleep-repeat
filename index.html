@@ -192,6 +192,7 @@
             display: none;
             max-width: 500px;
             margin: 0 auto;
+            padding-top: 16px;
         }
 
         .settings-page.active {
@@ -247,6 +248,11 @@
         .buttons-fade {
             height: 40px;
             background: linear-gradient(to bottom, transparent, #faf6f0);
+            transition: height 0.3s ease;
+        }
+
+        .buttons-wrapper.compact .buttons-fade {
+            height: 20px;
         }
 
         .buttons {
@@ -260,6 +266,14 @@
             margin-right: auto;
             background: #faf6f0;
             pointer-events: auto;
+            transition: gap 0.3s ease, padding 0.3s ease;
+        }
+
+        .buttons.compact {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 10px 14px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
 
         .btn {
@@ -272,10 +286,22 @@
             flex-direction: column;
             align-items: center;
             gap: 6px;
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: all 0.3s ease;
             box-shadow: none;
             flex: 1;
             min-width: 0;
+        }
+
+        .buttons.compact .btn {
+            padding: 10px 0;
+            border-radius: 12px;
+        }
+
+        .buttons.compact .btn span:not(.emoji) {
+            font-size: 0;
+            height: 0;
+            opacity: 0;
+            overflow: hidden;
         }
 
         .btn:active {
@@ -627,7 +653,7 @@
         }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; padding-bottom: 180px; }
+        .tab-content.active { display: block; padding-top: 16px; padding-bottom: 180px; }
 
         /* --- Bottom Nav Bar --- */
         .bottom-nav {
@@ -2097,6 +2123,19 @@
             }
             }
         }
+
+        // Compact buttons on scroll
+        let isCompact = false;
+        window.addEventListener('scroll', () => {
+            const shouldCompact = window.scrollY > 60;
+            if (shouldCompact !== isCompact) {
+                isCompact = shouldCompact;
+                const wrapper = document.getElementById('action-buttons');
+                const buttons = wrapper?.querySelector('.buttons');
+                if (wrapper) wrapper.classList.toggle('compact', isCompact);
+                if (buttons) buttons.classList.toggle('compact', isCompact);
+            }
+        }, { passive: true });
 
         // Boot
         window._splashDone = playSplash();
