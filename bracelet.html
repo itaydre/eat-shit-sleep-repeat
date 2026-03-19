@@ -421,6 +421,100 @@
             });
             const label = new THREE.Mesh(labelGeo, labelMat);
             group.add(label);
+
+            // --- Clear plastic sleeve over the label ---
+            const sleeveOffset = labelOffset + 0.003; // sits just above the label
+            const sleeveArcSpan = labelArcSpan + 0.04; // slightly wider than label
+            const sleeveW = bandW / 2 + 0.004; // slightly taller
+            const sleeveSegs = 40;
+
+            const sleevePoints = [];
+            for (let i = 0; i <= sleeveSegs; i++) {
+                const angle = Math.PI - sleeveArcSpan / 2 + (i / sleeveSegs) * sleeveArcSpan;
+                sleevePoints.push(new THREE.Vector3(
+                    Math.cos(angle) * (rx + sleeveOffset),
+                    0,
+                    Math.sin(angle) * (ry + sleeveOffset)
+                ));
+            }
+            const sleeveCurve = new THREE.CatmullRomCurve3(sleevePoints, false);
+            const sleeveShape = new THREE.Shape();
+            sleeveShape.moveTo(-sleeveW, -0.0005);
+            sleeveShape.lineTo(sleeveW, -0.0005);
+            sleeveShape.lineTo(sleeveW, 0.0005);
+            sleeveShape.lineTo(-sleeveW, 0.0005);
+            sleeveShape.lineTo(-sleeveW, -0.0005);
+
+            const sleeveGeo = new THREE.ExtrudeGeometry(sleeveShape, {
+                steps: sleeveSegs * 2,
+                bevelEnabled: false,
+                extrudePath: sleeveCurve,
+            });
+
+            // Clear cloudy vinyl material
+            const sleeveMat = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                roughness: 0.15,
+                metalness: 0.0,
+                clearcoat: 0.8,
+                clearcoatRoughness: 0.05,
+                transparent: true,
+                opacity: 0.25,
+                transmission: 0.6,
+                thickness: 0.1,
+                ior: 1.4,
+                side: THREE.DoubleSide,
+            });
+
+            const sleeve = new THREE.Mesh(sleeveGeo, sleeveMat);
+            group.add(sleeve);
+
+            // --- Heat-sealed rim around the sleeve ---
+            // Create a thin border that sits at the edge of the sleeve
+            const rimOffset = sleeveOffset + 0.001;
+            const rimArcSpan = sleeveArcSpan + 0.01;
+            const rimPoints = [];
+            for (let i = 0; i <= sleeveSegs; i++) {
+                const angle = Math.PI - rimArcSpan / 2 + (i / sleeveSegs) * rimArcSpan;
+                rimPoints.push(new THREE.Vector3(
+                    Math.cos(angle) * (rx + rimOffset),
+                    0,
+                    Math.sin(angle) * (ry + rimOffset)
+                ));
+            }
+            const rimCurve = new THREE.CatmullRomCurve3(rimPoints, false);
+
+            // Top rim
+            const rimShape = new THREE.Shape();
+            rimShape.moveTo(-0.002, -0.001);
+            rimShape.lineTo(0.002, -0.001);
+            rimShape.lineTo(0.002, 0.001);
+            rimShape.lineTo(-0.002, 0.001);
+            rimShape.lineTo(-0.002, -0.001);
+
+            // Top edge
+            const topRimPoints = rimPoints.map(p => new THREE.Vector3(p.x, sleeveW, p.z));
+            const topRimCurve = new THREE.CatmullRomCurve3(topRimPoints, false);
+            const topRimGeo = new THREE.ExtrudeGeometry(rimShape, {
+                steps: sleeveSegs, bevelEnabled: false, extrudePath: topRimCurve,
+            });
+            const rimMat = new THREE.MeshPhysicalMaterial({
+                color: 0xeae4dd,
+                roughness: 0.5,
+                clearcoat: 0.2,
+                transparent: true,
+                opacity: 0.5,
+                side: THREE.DoubleSide,
+            });
+            group.add(new THREE.Mesh(topRimGeo, rimMat));
+
+            // Bottom edge
+            const botRimPoints = rimPoints.map(p => new THREE.Vector3(p.x, -sleeveW, p.z));
+            const botRimCurve = new THREE.CatmullRomCurve3(botRimPoints, false);
+            const botRimGeo = new THREE.ExtrudeGeometry(rimShape, {
+                steps: sleeveSegs, bevelEnabled: false, extrudePath: botRimCurve,
+            });
+            group.add(new THREE.Mesh(botRimGeo, rimMat));
         }
 
         function addHoles(group, rx, ry, bandW, holeCount) {
