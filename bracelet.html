@@ -231,12 +231,21 @@
 
             // Holes on left narrow portion
             const holeCount = info.holes || 5;
-            const holeR = 24;
+            const bandLen = parseFloat(document.getElementById('p-length').value) || 5;
+            const bandFullW = parseFloat(document.getElementById('p-width').value) || 0.8;
+            const stripW = bandFullW * 0.35;
+            // Canvas pixels per 3D unit in each axis for the narrow strip
+            const pxPerUnitX = W / bandLen;
+            const pxPerUnitY = H / stripW; // V maps to strip width in the narrow section
+            // To make a circle of radius r in 3D, we need rx = r * pxPerUnitX, ry = r * pxPerUnitY
+            // But we want them equal in 3D, so: ry/rx = pxPerUnitY/pxPerUnitX
+            const holeR3D = 0.015; // 3D radius
+            const holeRx = holeR3D * pxPerUnitX;
+            const holeRy = holeR3D * pxPerUnitY;
             const holes = [];
-            // Holes go from U=0.05 to U=0.30 (the narrow strip section)
             for (let i = 0; i < holeCount; i++) {
-                const hx = W * 0.05 + i * (W * 0.06);
-                holes.push({ x: hx, y: H / 2, rx: holeR, ry: holeR });
+                const hx = W * 0.05 + i * (W * 0.055);
+                holes.push({ x: hx, y: H / 2, rx: holeRx, ry: holeRy });
             }
 
             // White label background on the right wide section (U=0.5 to U=0.95)
