@@ -859,7 +859,7 @@
 <body>
     <!-- Splash Screen -->
     <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:#fef9f0; z-index:999;">
-        <div id="splash-word" style="font-size:2rem; font-weight:700; color:#5a4a3a; letter-spacing:0.05em; text-transform:uppercase; opacity:0; transition: opacity 0.15s ease;"></div>
+        <div id="splash-word" style="font-size:5rem; color:#5a4a3a; opacity:0; transition: transform 0.3s ease, opacity 0.2s ease; transform: scale(1);"></div>
     </div>
 
     <!-- Auth Screen -->
@@ -1008,7 +1008,7 @@
 
                 <div class="history">
                     <div style="position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
-                        <div style="display:flex; align-items:center; gap:4px; min-width:220px;">
+                        <div style="display:flex; align-items:center; gap:4px; width:100%; padding-right:40px;">
                             <button id="day-prev" onclick="navigateDay(-1)" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; flex-shrink:0; width:36px;">&#8249;</button>
                             <h2 id="day-label" style="margin:0; text-align:center; flex:1;">Today</h2>
                             <button id="day-next" onclick="navigateDay(1)" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; flex-shrink:0; width:36px; visibility:hidden;">&#8250;</button>
@@ -2239,22 +2239,19 @@
 
         // Splash animation
         async function playSplash() {
-            const words = [
-                { text: 'EAT', emoji: '🍼' },
-                { text: 'SHIT', emoji: '💩' },
-                { text: 'SLEEP', emoji: '😴' },
-                { text: 'REPEAT', emoji: '🔁' },
-            ];
+            const emojis = ['🍼', '💩', '😴', '🔁'];
             const el = document.getElementById('splash-word');
             if (!el) return;
             await new Promise(r => setTimeout(r, 200));
             for (let loop = 0; loop < 2; loop++) {
-            for (const word of words) {
-                el.textContent = word.text + ' ' + word.emoji;
+            for (const emoji of emojis) {
+                el.textContent = emoji;
                 el.style.opacity = '1';
-                await new Promise(r => setTimeout(r, 400));
+                el.style.transform = 'scale(1)';
+                await new Promise(r => setTimeout(r, 350));
+                el.style.transform = 'scale(0.2)';
                 el.style.opacity = '0';
-                await new Promise(r => setTimeout(r, 120));
+                await new Promise(r => setTimeout(r, 250));
             }
             }
         }

@@ -248,13 +248,11 @@
         }
 
         .splash-word {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 5rem;
             color: #5a4a3a;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
             opacity: 0;
-            transition: opacity 0.15s ease;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            transform: scale(1);
         }
     </style>
 </head>
@@ -345,21 +343,18 @@
 
         // Splash animation
         async function playSplash() {
-            const words = [
-                { text: 'EAT', emoji: '🍼' },
-                { text: 'SHIT', emoji: '💩' },
-                { text: 'SLEEP', emoji: '😴' },
-                { text: 'REPEAT', emoji: '🔁' },
-            ];
+            const emojis = ['🍼', '💩', '😴', '🔁'];
             const el = document.getElementById('splash-word');
             await new Promise(r => setTimeout(r, 200));
             for (let loop = 0; loop < 2; loop++) {
-                for (const word of words) {
-                    el.textContent = word.text + ' ' + word.emoji;
+                for (const emoji of emojis) {
+                    el.textContent = emoji;
                     el.style.opacity = '1';
-                    await new Promise(r => setTimeout(r, 400));
+                    el.style.transform = 'scale(1)';
+                    await new Promise(r => setTimeout(r, 350));
+                    el.style.transform = 'scale(0.2)';
                     el.style.opacity = '0';
-                    await new Promise(r => setTimeout(r, 120));
+                    await new Promise(r => setTimeout(r, 250));
                 }
             }
             document.getElementById('splash').style.opacity = '0';
