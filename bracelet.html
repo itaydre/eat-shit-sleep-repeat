@@ -29,11 +29,11 @@
 <body>
     <canvas id="c"></canvas>
     <div id="colors">
-        <button class="color-btn active" data-color="0.92,0.93,0.96" data-bg="#e0e2ec" style="background:#dce0ee;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="0.85,0.92,0.97" data-bg="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="0.97,0.87,0.87" data-bg="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="0.87,0.97,0.87" data-bg="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="0.94,0.90,0.97" data-bg="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
+        <button class="color-btn active" data-bg="#dce0ee" style="background:#dce0ee;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-bg="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-bg="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-bg="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
+        <button class="color-btn" data-bg="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
     </div>
     <div id="info">Drag to rotate</div>
 
@@ -61,8 +61,8 @@
         renderer.toneMappingExposure = 1.2;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 1.8, 4.5);
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0.8, 2.2);
 
         const controls = new OrbitControls(camera, canvas);
         controls.enableDamping = true;
@@ -70,7 +70,7 @@
         controls.enableZoom = true;
         controls.enablePan = false;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.2;
+        controls.autoRotateSpeed = 1.5;
         controls.target.set(0, 0, 0);
 
         // Lighting
@@ -81,70 +81,70 @@
         const fill = new THREE.DirectionalLight(0xe8eeff, 0.4);
         fill.position.set(-3, 2, -2);
         scene.add(fill);
-        const rim = new THREE.DirectionalLight(0xffffff, 0.3);
-        rim.position.set(0, -2, 3);
-        scene.add(rim);
 
-        // --- Band texture ---
+        // --- Texture: wraps around the torus ring (U = around loop, V = around tube cross-section) ---
         function createBandTexture(info, bgColor) {
             const c = document.createElement('canvas');
-            const W = 2048, H = 256;
+            // U goes around the bracelet loop. V goes around the tube cross-section.
+            // We want a flat band look, so the "outside face" is V ~ 0.25 (outer edge of torus)
+            // We paint everything on a 2048x512 canvas
+            const W = 2048, H = 512;
             c.width = W; c.height = H;
             const ctx = c.getContext('2d');
 
-            // Translucent plastic background
+            // Background — the band color
             ctx.fillStyle = bgColor || '#dce0ee';
             ctx.fillRect(0, 0, W, H);
 
-            // Subtle grain
-            for (let i = 0; i < 3000; i++) {
-                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`;
+            // Grain
+            for (let i = 0; i < 4000; i++) {
+                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.03})`;
                 ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
-            for (let i = 0; i < 1500; i++) {
+            for (let i = 0; i < 2000; i++) {
                 ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.02})`;
                 ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
             }
 
-            // --- Holes section (left ~30% of band, u = 0.0 to 0.3) ---
-            const holesStart = W * 0.05;
+            // The "visible" area on the outside of the torus is roughly V center (H/2 area)
+            // U wraps around the loop. Let's put holes at U 0.05-0.25 and label at U 0.4-0.8
+            const midV = H / 2;
+
+            // --- Holes (U: 5%-25%) ---
             for (let i = 0; i < 7; i++) {
-                const hx = holesStart + i * 65;
-                const hy = H / 2;
+                const hx = W * 0.05 + i * (W * 0.03);
+                const hy = midV;
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(hx, hy, 16, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 22, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
-                // Rim shadow
-                ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                ctx.strokeStyle = 'rgba(0,0,0,0.06)';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
-                ctx.arc(hx, hy, 16, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 22, 0, Math.PI * 2);
                 ctx.stroke();
             }
 
-            // --- Snap button area (around u ~0.32) ---
-            const snapX = W * 0.32;
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            // --- Snap dot (U: ~0.28) ---
+            const snapX = W * 0.28;
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
             ctx.beginPath();
-            ctx.arc(snapX, H / 2, 14, 0, Math.PI * 2);
+            ctx.arc(snapX, midV, 16, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
             ctx.beginPath();
-            ctx.arc(snapX, H / 2, 14, 0, Math.PI * 2);
+            ctx.arc(snapX, midV, 16, 0, Math.PI * 2);
             ctx.stroke();
 
-            // --- Label/sticker section (u ~0.5 to 0.9) - yellowish sticker ---
-            const labelX = W * 0.42;
-            const labelW = W * 0.45;
-            const labelY = H * 0.12;
-            const labelH = H * 0.76;
-            const r = 8;
+            // --- Label sticker (U: 45%-85%) ---
+            const labelX = W * 0.45;
+            const labelW = W * 0.38;
+            const labelH = H * 0.55;
+            const labelY = midV - labelH / 2;
+            const r = 6;
 
-            // Sticker background
             ctx.fillStyle = '#f0e6c8';
             ctx.beginPath();
             ctx.moveTo(labelX + r, labelY);
@@ -157,112 +157,68 @@
             ctx.lineTo(labelX, labelY + r);
             ctx.arcTo(labelX, labelY, labelX + r, labelY, r);
             ctx.fill();
-
-            // Sticker border
-            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.04)';
             ctx.lineWidth = 1;
             ctx.stroke();
 
-            // Form lines on sticker
-            const lx = labelX + 16;
-            const lw = labelW - 32;
-            ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+            // Form lines
+            const lx = labelX + 14;
+            const lw = labelW - 28;
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
             ctx.lineWidth = 0.5;
             for (let i = 1; i <= 4; i++) {
-                const ly = labelY + labelH * (i / 5);
                 ctx.beginPath();
-                ctx.moveTo(lx, ly);
-                ctx.lineTo(lx + lw, ly);
+                ctx.moveTo(lx, labelY + labelH * (i / 5));
+                ctx.lineTo(lx + lw, labelY + labelH * (i / 5));
                 ctx.stroke();
             }
 
-            // Text on sticker
+            // Text
             const tx = lx + 4;
-            let ty = labelY + 36;
+            let ty = labelY + 32;
 
             ctx.fillStyle = '#2a2016';
-            ctx.font = 'bold 28px system-ui, sans-serif';
+            ctx.font = 'bold 26px system-ui, sans-serif';
             ctx.fillText(info.name, tx, ty);
-            ty += 34;
+            ty += 30;
 
-            ctx.font = '18px system-ui, sans-serif';
+            ctx.font = '16px system-ui, sans-serif';
             ctx.fillStyle = '#4a3a2a';
             ctx.fillText(info.date + '  ' + info.time, tx, ty);
-            ty += 26;
+            ty += 22;
+            ctx.fillText('Weight: ' + info.weight + '  Gender: ' + info.gender, tx, ty);
+            ty += 24;
 
-            ctx.fillText('Weight: ' + info.weight + '   Gender: ' + info.gender, tx, ty);
-            ty += 28;
-
-            // ID
-            ctx.font = '14px monospace';
+            ctx.font = '13px monospace';
             ctx.fillStyle = '#6a5a4a';
             ctx.fillText('ID: ' + info.id, tx, ty);
             ty += 6;
 
             // Barcode
-            const by = ty + 4;
-            for (let i = 0; i < 40; i++) {
+            for (let i = 0; i < 35; i++) {
                 const w = Math.random() > 0.5 ? 2.5 : 1;
-                ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(tx + i * 5, by, w, 22);
+                ctx.fillStyle = '#2a2016';
+                ctx.fillRect(tx + i * 5, ty + 4, w, 18);
             }
 
-            const tex = new THREE.CanvasTexture(c);
-            return tex;
+            return new THREE.CanvasTexture(c);
         }
 
-        // --- Oval loop geometry using TubeGeometry ---
-        // Elliptical path
-        class EllipseCurve3D extends THREE.Curve {
-            constructor(rx, ry) {
-                super();
-                this.rx = rx;
-                this.ry = ry;
-            }
-            getPoint(t) {
-                const angle = t * Math.PI * 2;
-                return new THREE.Vector3(
-                    Math.cos(angle) * this.rx,
-                    0,
-                    Math.sin(angle) * this.ry
-                );
-            }
+        // --- Bracelet: Torus squashed into an oval ---
+        // TorusGeometry(radius, tube, radialSegments, tubularSegments)
+        // radius = distance from center to tube center
+        // tube = radius of the tube cross-section
+        const torusGeo = new THREE.TorusGeometry(0.55, 0.04, 4, 200);
+
+        // Squash into oval by scaling X (wider) and Z (narrower)
+        const pos = torusGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            pos.setX(i, pos.getX(i) * 1.4); // wider
+            pos.setZ(i, pos.getZ(i) * 0.75); // narrower
+            // Flatten the tube cross-section to make it band-like (not round)
+            pos.setY(i, pos.getY(i) * 0.3);
         }
-
-        const ovalPath = new EllipseCurve3D(1.2, 0.7);
-        const bandThick = 0.008;
-        const bandHeight = 0.06;
-
-        // Custom flat cross-section via TubeGeometry with custom frames
-        // Instead, use ExtrudeGeometry along the oval path
-        const bandShape = new THREE.Shape();
-        const bh = bandHeight / 2;
-        const bt = bandThick / 2;
-        bandShape.moveTo(-bh, -bt);
-        bandShape.lineTo(bh, -bt);
-        bandShape.lineTo(bh, bt);
-        bandShape.lineTo(-bh, bt);
-        bandShape.lineTo(-bh, -bt);
-
-        const bandGeo = new THREE.ExtrudeGeometry(bandShape, {
-            steps: 200,
-            bevelEnabled: false,
-            extrudePath: ovalPath,
-        });
-
-        // Fix UVs to map texture along the loop
-        const uvAttr = bandGeo.attributes.uv;
-        const posAttr = bandGeo.attributes.position;
-        for (let i = 0; i < posAttr.count; i++) {
-            const x = posAttr.getX(i);
-            const z = posAttr.getZ(i);
-            const angle = Math.atan2(z, x);
-            const u = ((angle / (Math.PI * 2)) + 1) % 1;
-            const y = posAttr.getY(i);
-            const v = (y + bh) / (2 * bh);
-            uvAttr.setXY(i, u, v);
-        }
-        uvAttr.needsUpdate = true;
+        torusGeo.computeVertexNormals();
 
         let currentBg = '#dce0ee';
         let bandTexture = createBandTexture(babyInfo, currentBg);
@@ -276,12 +232,13 @@
             clearcoatRoughness: 0.1,
             transparent: true,
             alphaTest: 0.3,
-            transmission: 0.12,
-            thickness: 0.2,
+            transmission: 0.1,
+            thickness: 0.15,
             side: THREE.DoubleSide,
         });
 
-        const band = new THREE.Mesh(bandGeo, bandMat);
+        const band = new THREE.Mesh(torusGeo, bandMat);
+        band.rotation.x = 0.3; // Tilt slightly
         scene.add(band);
 
         // --- Color picker ---
