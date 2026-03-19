@@ -154,6 +154,10 @@
             <label>Sleeve Padding</label>
             <input type="range" id="p-sleeve-pad" min="0" max="0.02" step="0.001" value="0.004" oninput="updateBracelet()">
         </div>
+        <div class="field">
+            <label>Label Corner Radius</label>
+            <input type="range" id="p-label-radius" min="0" max="40" step="1" value="10" oninput="updateBracelet()">
+        </div>
     </div>
 
     <div id="info">Drag to rotate</div>
@@ -253,7 +257,7 @@
             const labelEnd = W * 0.96;
             const labelPad = H * 0.08;
             ctx.fillStyle = '#ffffff';
-            const r = 10;
+            const r = parseFloat(document.getElementById('p-label-radius')?.value || 10);
             ctx.beginPath();
             ctx.moveTo(labelStart + r, labelPad);
             ctx.lineTo(labelEnd - r, labelPad);
