@@ -41,6 +41,22 @@ module.exports = async function handler(req, res) {
         return res.status(200).json(data);
     }
 
+    if (req.method === 'PATCH') {
+        const { id, duration } = req.body;
+        if (!id || duration === undefined) return res.status(400).json({ error: 'Missing id or duration' });
+
+        const { data, error } = await supabase
+            .from('baby_logs')
+            .update({ duration })
+            .eq('id', id)
+            .eq('household_id', householdId)
+            .select()
+            .single();
+
+        if (error) return res.status(500).json({ error: error.message });
+        return res.status(200).json(data);
+    }
+
     if (req.method === 'DELETE') {
         const { id } = req.body;
         if (!id) return res.status(400).json({ error: 'Missing id' });

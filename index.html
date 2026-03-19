@@ -327,7 +327,11 @@
             font-size: 1.2rem;
             cursor: pointer;
             color: #8a7a6a;
-            padding: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             line-height: 1;
             border-radius: 10px;
         }
@@ -1240,7 +1244,7 @@
                     subscribeToPush();
                 }
             });
-            migrateLocalStorage().then(() => fetchEntries()).then(() => updateFeedTimer());
+            migrateLocalStorage().then(() => fetchEntries()).then(() => { updateFeedTimer(); resumeFeedSession(); });
             if (!window._intervalsStarted) {
                 setInterval(() => {
                     if (session) fetchEntries().then(() => updateFeedTimer());
@@ -1373,11 +1377,10 @@
         function openSettings() {
             settingsOpen = !settingsOpen;
             document.getElementById('settings-page').classList.toggle('active', settingsOpen);
+            document.getElementById('profile-edit-page').classList.remove('active');
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
-            const ftw = document.getElementById('feed-timer-wrapper');
-            if (settingsOpen) ftw.style.display = 'none';
-            document.getElementById('profile-edit-page').classList.remove('active');
+            if (!settingsOpen) updateFeedTimer();
         }
 
         function selectGender(btn, inputId) {
@@ -1843,15 +1846,42 @@
             clearInterval(feedSessionInterval);
             feedSessionInterval = null;
             const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
-            // Update the entry with duration and remove pending flag
             const entry = entries.find(e => e.type === feedSessionType && e.timestamp === feedSessionStart);
             if (entry) {
                 entry.duration = duration;
                 delete entry.pending;
+                if (!isDevMode && entry.id) {
+                    apiFetch('/api/logs', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: entry.id, duration }),
+                    }).catch(e => console.warn('Failed to save duration:', e));
+                }
             }
             render();
             feedSessionType = null;
             feedSessionStart = null;
+        }
+
+        function resumeFeedSession() {
+            if (feedSessionInterval) return; // already active
+            const lastFeed = entries.find(e =>
+                (e.type === 'feed_l' || e.type === 'feed_r') && !e.duration
+            );
+            if (!lastFeed) return;
+            // Only resume if within last 2 hours
+            if (Date.now() - lastFeed.timestamp > 2 * 60 * 60 * 1000) return;
+            feedSessionType = lastFeed.type;
+            feedSessionStart = lastFeed.timestamp;
+            lastFeed.pending = true;
+            render();
+            feedSessionInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
+                const m = Math.floor(elapsed / 60);
+                const s = elapsed % 60;
+                const el = document.getElementById('feed-stopwatch');
+                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+            }, 1000);
         }
 
         // --- Feed Interval Setting ---
