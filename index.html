@@ -1413,12 +1413,19 @@
             if (!baby_name) return;
             const birthdate = baby_dob && baby_time ? baby_dob + 'T' + baby_time : baby_dob || null;
             if (!isDevMode) {
-                const res = await apiFetch('/api/profile', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ baby_name, baby_birthdate: birthdate, baby_birth_weight: baby_birth_weight ? Number(baby_birth_weight) : null, baby_gender: baby_gender || null }),
-                });
-                profile = await res.json();
+                try {
+                    const res = await apiFetch('/api/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ baby_name, baby_birthdate: birthdate, baby_birth_weight: baby_birth_weight ? Number(baby_birth_weight) : null, baby_gender: baby_gender || null }),
+                    });
+                    if (!res.ok) throw new Error('Save failed');
+                    profile = await res.json();
+                } catch (e) {
+                    console.error('Profile save error:', e);
+                    alert('Failed to save profile. Please try again.');
+                    return;
+                }
             } else {
                 profile.baby_name = baby_name;
                 profile.baby_birthdate = birthdate;
