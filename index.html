@@ -925,11 +925,11 @@
                 </div>
 
                 <div class="history">
-                    <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px;">
+                    <div style="position:relative; display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px;">
                         <button id="day-prev" onclick="navigateDay(-1)" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999; padding:4px 8px;">&#8249;</button>
                         <h2 id="day-label" style="margin:0; flex:none;">Today</h2>
                         <button id="day-next" onclick="navigateDay(1)" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999; padding:4px 8px; visibility:hidden;">&#8250;</button>
-                        <button class="add-btn" onclick="openAddModal()" style="position:absolute; right:20px;">+</button>
+                        <button class="add-btn" onclick="openAddModal()" style="position:absolute; right:0;">+</button>
                     </div>
                     <div id="today-summary" class="day-summary" style="justify-content:center; margin-bottom:12px; font-size:0.75rem;"></div>
                     <div id="today-entries"></div>
