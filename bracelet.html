@@ -822,21 +822,16 @@
             band = new THREE.Mesh(geo, bandMat);
             band.rotation.x = -0.3;
 
-            // Clasp
-            const claspGeo = new THREE.BoxGeometry(0.15, w * 0.5, 0.02);
-            const claspMat = new THREE.MeshPhysicalMaterial({
-                color: 0xf0ebe4, roughness: 0.25, metalness: 0.05, clearcoat: 0.3,
+            // Snap button — white circle disc
+            const snapRadius = w * 0.12;
+            const snapGeo = new THREE.CylinderGeometry(snapRadius, snapRadius, 0.01, 32);
+            const snapMat = new THREE.MeshPhysicalMaterial({
+                color: 0xfafafa, roughness: 0.2, metalness: 0.05, clearcoat: 0.5,
             });
-            const clasp = new THREE.Mesh(claspGeo, claspMat);
-            clasp.position.set(len / 2 + 0.1, 0, -droop * 0.5);
-            band.add(clasp);
-
-            const snapGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.012, 16);
-            const snapMat = new THREE.MeshPhysicalMaterial({ color: 0xfafafa, roughness: 0.15, metalness: 0.1 });
             const snap = new THREE.Mesh(snapGeo, snapMat);
             snap.rotation.x = Math.PI / 2;
-            snap.position.y = 0.015;
-            clasp.add(snap);
+            snap.position.set(len * -0.35, 0, 0.008);
+            band.add(snap);
 
             scene.add(band);
         }
