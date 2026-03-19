@@ -261,6 +261,24 @@
                 holes.push({ x: hx, y: H / 2, rx: holeRx, ry: holeRy });
             }
 
+            // Embossed serial number on narrow strip — rotated 90° like stamped text
+            const serialNum = String(Math.floor(Math.random() * 900000) + 100000);
+            const stampX = W * 0.34; // just before the taper
+            const stampY = H / 2;
+            ctx.save();
+            ctx.translate(stampX, stampY);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = 'bold 22px monospace';
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            // Dotted/embossed look — draw each character with slight texture
+            const stampText = serialNum;
+            for (let ci = 0; ci < stampText.length; ci++) {
+                const ch = stampText[ci];
+                const cx = ci * 18 - (stampText.length * 18) / 2;
+                ctx.fillText(ch, cx, 0);
+            }
+            ctx.restore();
+
             // White label background on the right wide section (U=0.5 to U=0.95)
             const labelStart = W * 0.48;
             const labelEnd = W * 0.96;
