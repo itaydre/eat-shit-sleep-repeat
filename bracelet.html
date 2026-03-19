@@ -106,19 +106,21 @@
             }
 
             // Holes on left portion
-            for (let i = 0; i < 8; i++) {
-                const hx = 100 + i * 72;
+            for (let i = 0; i < 5; i++) {
+                const hx = 120 + i * 100;
                 const hy = H / 2;
+                // Punch hole
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(hx, hy, 36, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 28, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
-                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                // Hole rim
+                ctx.strokeStyle = 'rgba(0,0,0,0.12)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(hx, hy, 36, 0, Math.PI * 2);
+                ctx.arc(hx, hy, 28, 0, Math.PI * 2);
                 ctx.stroke();
             }
 
