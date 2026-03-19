@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone 17 Preview</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .iphone {
+            position: relative;
+            width: 430px;
+            height: 932px;
+            background: #0a0a0a;
+            border-radius: 58px;
+            padding: 14px;
+            box-shadow:
+                0 0 0 2px #2a2a2a,
+                0 0 0 4px #1a1a1a,
+                0 20px 60px rgba(0,0,0,0.5),
+                inset 0 0 0 2px #333;
+        }
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 46px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+        }
+        /* Dynamic Island */
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 126px;
+            height: 37px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 10;
+        }
+        /* Side buttons */
+        .btn-power {
+            position: absolute;
+            right: -3px;
+            top: 220px;
+            width: 4px;
+            height: 96px;
+            background: #2a2a2a;
+            border-radius: 0 2px 2px 0;
+        }
+        .btn-vol-up {
+            position: absolute;
+            left: -3px;
+            top: 180px;
+            width: 4px;
+            height: 46px;
+            background: #2a2a2a;
+            border-radius: 2px 0 0 2px;
+        }
+        .btn-vol-down {
+            position: absolute;
+            left: -3px;
+            top: 236px;
+            width: 4px;
+            height: 46px;
+            background: #2a2a2a;
+            border-radius: 2px 0 0 2px;
+        }
+        .btn-action {
+            position: absolute;
+            left: -3px;
+            top: 140px;
+            width: 4px;
+            height: 26px;
+            background: #2a2a2a;
+            border-radius: 2px 0 0 2px;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 46px;
+        }
+        .url-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #2a2a2a;
+            padding: 8px 16px;
+            border-radius: 12px;
+        }
+        .url-bar input {
+            background: #3a3a3a;
+            border: none;
+            color: #ccc;
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            width: 400px;
+            font-family: inherit;
+        }
+        .url-bar button {
+            background: #5a4a3a;
+            border: none;
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .url-bar button:hover { background: #6b5a4a; }
+        .label {
+            color: #555;
+            font-size: 12px;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <span class="label">iPhone 17 Pro Max — 430 × 932</span>
+    <div class="iphone">
+        <div class="btn-power"></div>
+        <div class="btn-action"></div>
+        <div class="btn-vol-up"></div>
+        <div class="btn-vol-down"></div>
+        <div class="iphone-screen">
+            <div class="dynamic-island"></div>
+            <iframe id="preview" src="index.html"></iframe>
+        </div>
+    </div>
+    <div class="url-bar">
+        <input type="text" id="url-input" value="index.html" placeholder="URL or local file..." />
+        <button onclick="loadURL()">Load</button>
+        <button onclick="document.getElementById('preview').contentWindow.location.reload()">Reload</button>
+    </div>
+    <script>
+        function loadURL() {
+            const url = document.getElementById('url-input').value;
+            document.getElementById('preview').src = url;
+        }
+        document.getElementById('url-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') loadURL();
+        });
+    </script>
+</body>
+</html>
