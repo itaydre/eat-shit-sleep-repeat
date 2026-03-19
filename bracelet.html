@@ -565,12 +565,12 @@
                 ty += 30;
             }
 
-            // Barcode — thermal style (slightly uneven)
+            // Barcode — uniform height, thermal style
+            const barcodeH = 36;
             for (let i = 0; i < 45; i++) {
                 const bw = Math.random() > 0.4 ? 3 : 1.2;
-                const bh = 30 + Math.random() * 4;
                 ctx.fillStyle = `rgba(50,45,40,${0.7 + Math.random() * 0.25})`;
-                ctx.fillRect(tx + i * 6, ty, bw, bh);
+                ctx.fillRect(tx + i * 6, ty, bw, barcodeH);
             }
             // Barcode number underneath
             ctx.font = '12px monospace';
