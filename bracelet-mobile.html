@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baby Bracelet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #FAF6F1; overflow: hidden; touch-action: none; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+
+    <script type="importmap">
+    { "imports": { "three": "https://esm.sh/three@0.171.0", "three/addons/": "https://esm.sh/three@0.171.0/examples/jsm/" } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Baby info from URL params or defaults
+        const params = new URLSearchParams(location.search);
+        const babyInfo = {
+            name: params.get('name') || 'Baby Dreyfus',
+            date: params.get('date') || 'March 14, 2026',
+            time: params.get('time') || '10:30 AM',
+            weight: params.get('weight') || '3,200g',
+            gender: params.get('gender') || 'Boy',
+            hospital: params.get('hospital') || '',
+            holes: 5,
+        };
+        const bandColor = params.get('color') || '#7EB8E0';
+
+        const canvas = document.getElementById('c');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.3;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1.5, 5);
+
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.8;
+        controls.target.set(0, 0, 0);
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const key = new THREE.DirectionalLight(0xfff8ee, 1.4);
+        key.position.set(4, 6, 5);
+        scene.add(key);
+        const fill = new THREE.DirectionalLight(0xeef0ff, 0.5);
+        fill.position.set(-4, 3, -3);
+        scene.add(fill);
+
+        // --- Texture ---
+        function createBandTexture(info, bgColor) {
+            const c = document.createElement('canvas');
+            const W = 2048, H = 512;
+            c.width = W; c.height = H;
+            const ctx = c.getContext('2d');
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, W, H);
+
+            // Grain
+            for (let i = 0; i < 5000; i++) {
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.015})`;
+                ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+            }
+
+            // Holes
+            const bandLen = 5, bandFullW = 0.8, stripW = bandFullW * 0.35;
+            const pxPerUnitX = W / bandLen;
+            const pxPerUnitY = H / stripW;
+            const holeR3D = 0.030;
+            const holeRx = holeR3D * pxPerUnitX;
+            const holeRy = holeR3D * pxPerUnitY;
+            const holes = [];
+            for (let i = 0; i < info.holes; i++) {
+                holes.push({ x: W * 0.05 + i * (W * 0.055), y: H / 2, rx: holeRx, ry: holeRy });
+            }
+
+            // Dot-matrix stamp
+            const dotFont = {
+                '0':[[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]],'1':[[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
+                '2':[[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]],'3':[[1,1,1],[0,0,1],[1,1,1],[0,0,1],[1,1,1]],
+                '4':[[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]],'5':[[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]],
+                '6':[[1,1,1],[1,0,0],[1,1,1],[1,0,1],[1,1,1]],'7':[[1,1,1],[0,0,1],[0,0,1],[0,1,0],[0,1,0]],
+                '8':[[1,1,1],[1,0,1],[1,1,1],[1,0,1],[1,1,1]],'9':[[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]],
+                'T':[[1,1,1],[0,1,0],[0,1,0],[0,1,0],[0,1,0]],
+            };
+            const dotSize = 2.8, dotGap = 6, charW = 3 * dotGap, charH = 5 * dotGap, charGapX = 8;
+            const stampLines = [
+                String(Math.floor(Math.random() * 90000) + 10000),
+                'T' + String(Math.floor(Math.random() * 900) + 100),
+                String(Math.floor(Math.random() * 90000) + 10000),
+            ];
+            ctx.save();
+            ctx.translate(W * 0.44, H / 2);
+            ctx.rotate(-Math.PI / 2);
+            stampLines.forEach((line, lineIdx) => {
+                const lineOffsetX = lineIdx * (charH + 16) - (stampLines.length * (charH + 16)) / 2;
+                const totalW = line.length * (charW + charGapX);
+                for (let ci = 0; ci < line.length; ci++) {
+                    const grid = dotFont[line[ci]];
+                    if (!grid) continue;
+                    const cx = ci * (charW + charGapX) - totalW / 2;
+                    for (let row = 0; row < grid.length; row++) {
+                        for (let col = 0; col < grid[row].length; col++) {
+                            if (grid[row][col]) {
+                                ctx.fillStyle = `rgba(30,25,18,${0.6 + Math.random() * 0.15})`;
+                                ctx.beginPath();
+                                ctx.arc(cx + col * dotGap, lineOffsetX + row * dotGap, dotSize + Math.random() * 0.5, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        }
+                    }
+                }
+            });
+            ctx.restore();
+
+            // Label
+            const labelStart = W * 0.48, labelEnd = W * 0.78, labelPad = H * 0.08, r = 4;
+            const lb = 244;
+            ctx.fillStyle = `rgb(${lb},${lb-4},${lb-12})`;
+            ctx.beginPath();
+            ctx.moveTo(labelStart + r, labelPad);
+            ctx.lineTo(labelEnd - r, labelPad);
+            ctx.arcTo(labelEnd, labelPad, labelEnd, labelPad + r, r);
+            ctx.lineTo(labelEnd, H - labelPad - r);
+            ctx.arcTo(labelEnd, H - labelPad, labelEnd - r, H - labelPad, r);
+            ctx.lineTo(labelStart + r, H - labelPad);
+            ctx.arcTo(labelStart, H - labelPad, labelStart, H - labelPad - r, r);
+            ctx.lineTo(labelStart, labelPad + r);
+            ctx.arcTo(labelStart, labelPad, labelStart + r, labelPad, r);
+            ctx.fill();
+
+            // Paper grain
+            ctx.save(); ctx.clip();
+            for (let i = 0; i < 6000; i++) {
+                const gx = labelStart + Math.random() * (labelEnd - labelStart);
+                const gy = labelPad + Math.random() * (H - labelPad * 2);
+                ctx.fillStyle = Math.random() < 0.5 ? `rgba(0,0,0,${Math.random()*0.03})` : `rgba(255,255,255,${Math.random()*0.04})`;
+                ctx.fillRect(gx, gy, 1 + Math.random(), 1);
+            }
+            // Edge fades
+            const ef = 20, ew = 0.15;
+            const tG = ctx.createLinearGradient(0,labelPad,0,labelPad+ef); tG.addColorStop(0,`rgba(180,170,155,${ew})`); tG.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=tG; ctx.fillRect(labelStart,labelPad,labelEnd-labelStart,ef);
+            const bG = ctx.createLinearGradient(0,H-labelPad-ef,0,H-labelPad); bG.addColorStop(0,'rgba(0,0,0,0)'); bG.addColorStop(1,`rgba(180,170,155,${ew*0.8})`);
+            ctx.fillStyle=bG; ctx.fillRect(labelStart,H-labelPad-ef,labelEnd-labelStart,ef);
+            // Shadows
+            const sa = 0.12, ss = 30;
+            const ts = ctx.createLinearGradient(0,labelPad,0,labelPad+ss); ts.addColorStop(0,`rgba(0,0,0,${sa})`); ts.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=ts; ctx.fillRect(labelStart,labelPad,labelEnd-labelStart,ss);
+            const bs = ctx.createLinearGradient(0,H-labelPad-ss,0,H-labelPad); bs.addColorStop(0,'rgba(0,0,0,0)'); bs.addColorStop(1,`rgba(0,0,0,${sa*0.6})`);
+            ctx.fillStyle=bs; ctx.fillRect(labelStart,H-labelPad-ss,labelEnd-labelStart,ss);
+            ctx.restore();
+
+            // Border
+            ctx.strokeStyle = 'rgba(0,0,0,0.04)'; ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(labelStart+r,labelPad); ctx.lineTo(labelEnd-r,labelPad);
+            ctx.arcTo(labelEnd,labelPad,labelEnd,labelPad+r,r); ctx.lineTo(labelEnd,H-labelPad-r);
+            ctx.arcTo(labelEnd,H-labelPad,labelEnd-r,H-labelPad,r); ctx.lineTo(labelStart+r,H-labelPad);
+            ctx.arcTo(labelStart,H-labelPad,labelStart,H-labelPad-r,r); ctx.lineTo(labelStart,labelPad+r);
+            ctx.arcTo(labelStart,labelPad,labelStart+r,labelPad,r); ctx.stroke();
+
+            // Text
+            ctx.save();
+            ctx.beginPath(); ctx.rect(labelStart,labelPad,labelEnd-labelStart,H-labelPad*2); ctx.clip();
+            const tx = labelStart + 28, midY = H / 2;
+            let ty = midY - 95;
+            const pc = '#3a3530', pl = '#6a6258';
+
+            ctx.fillStyle = pc; ctx.font = 'bold 46px system-ui, sans-serif';
+            ctx.fillText(info.name, tx, ty); ty += 14;
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(labelEnd-28,ty); ctx.stroke(); ty += 32;
+            ctx.font = '500 26px system-ui, sans-serif';
+            ctx.fillStyle = pl; ctx.fillText('DOB:', tx, ty);
+            ctx.fillStyle = pc; ctx.fillText([info.date, info.time].filter(Boolean).join('  '), tx + 60, ty); ty += 34;
+            ctx.fillStyle = pl; ctx.font = '500 22px system-ui, sans-serif';
+            if (info.weight) { ctx.fillText('WT:', tx, ty); ctx.fillStyle = pc; ctx.fillText(info.weight, tx+42, ty); ctx.fillStyle = pl; }
+            if (info.gender) { ctx.fillText('SEX:', tx+180, ty); ctx.fillStyle = pc; ctx.fillText(info.gender.charAt(0).toUpperCase(), tx+232, ty); }
+            ty += 30;
+            if (info.hospital) { ctx.fillStyle = pl; ctx.font = '500 22px system-ui, sans-serif'; ctx.fillText('HOSP:', tx, ty); ctx.fillStyle = pc; ctx.fillText(info.hospital, tx+70, ty); ty += 30; }
+
+            // Barcode
+            for (let i = 0; i < 45; i++) { ctx.fillStyle = `rgba(50,45,40,${0.7+Math.random()*0.25})`; ctx.fillRect(tx+i*6, ty, Math.random()>0.4?3:1.2, 36); }
+            ctx.font = '12px monospace'; ctx.fillStyle = pl;
+            ctx.fillText(String(Math.floor(Math.random()*9000000000)+1000000000), tx, ty+51);
+            ctx.restore();
+
+            // Punch holes
+            for (const h of holes) {
+                ctx.save(); ctx.beginPath(); ctx.ellipse(h.x,h.y,h.rx,h.ry,0,0,Math.PI*2); ctx.clip();
+                ctx.clearRect(h.x-h.rx-2,h.y-h.ry-2,h.rx*2+4,h.ry*2+4); ctx.restore();
+                ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=2;
+                ctx.beginPath(); ctx.ellipse(h.x,h.y,h.rx,h.ry,0,0,Math.PI*2); ctx.stroke();
+            }
+            // Right holes
+            const rpy = H / bandFullW;
+            const rry = holeR3D * rpy;
+            for (let i = 0; i < 3; i++) {
+                const hx = W*0.82+i*(W*0.055), rh={x:hx,y:H/2,rx:holeRx,ry:rry};
+                ctx.save(); ctx.beginPath(); ctx.ellipse(rh.x,rh.y,rh.rx,rh.ry,0,0,Math.PI*2); ctx.clip();
+                ctx.clearRect(rh.x-rh.rx-2,rh.y-rh.ry-2,rh.rx*2+4,rh.ry*2+4); ctx.restore();
+                ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=2;
+                ctx.beginPath(); ctx.ellipse(rh.x,rh.y,rh.rx,rh.ry,0,0,Math.PI*2); ctx.stroke();
+            }
+
+            return new THREE.CanvasTexture(c);
+        }
+
+        // --- Band geometry ---
+        const len = 5, w = 0.8, droop = 3;
+
+        function buildBand() {
+            const stripW = w * 0.35, labelW = w, taperStart = 0.35, taperEnd = 0.45;
+            const uSegs = 120, vSegs = 8;
+            const verts = [], uvs = [], indices = [];
+            for (let i = 0; i <= uSegs; i++) {
+                const u = i / uSegs;
+                const x = (u - 0.5) * len;
+                const d = droop * (Math.cosh((u - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+                let halfW;
+                if (u < taperStart) halfW = stripW / 2;
+                else if (u < taperEnd) { const t = (u-taperStart)/(taperEnd-taperStart); halfW = stripW/2 + (labelW/2-stripW/2)*(0.5-0.5*Math.cos(t*Math.PI)); }
+                else halfW = labelW / 2;
+                for (let j = 0; j <= vSegs; j++) {
+                    const v = j / vSegs;
+                    verts.push(x, (v-0.5)*2*halfW, -d);
+                    uvs.push(u, v);
+                    if (i < uSegs && j < vSegs) {
+                        const a = i*(vSegs+1)+j, b=a+1, c=a+(vSegs+1), d2=c+1;
+                        indices.push(a,c,b); indices.push(b,c,d2);
+                    }
+                }
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+            geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+            geo.setIndex(indices);
+            geo.computeVertexNormals();
+            return geo;
+        }
+
+        const bandGeo = buildBand();
+        const bandTex = createBandTexture(babyInfo, bandColor);
+        const bandMat = new THREE.MeshPhysicalMaterial({
+            map: bandTex, color: 0xffffff, roughness: 0.7, clearcoat: 0.15, clearcoatRoughness: 0.6,
+            sheen: 0.4, sheenRoughness: 0.8, sheenColor: new THREE.Color(0xe8e0d8),
+            transparent: true, alphaTest: 0.5, side: THREE.DoubleSide,
+        });
+
+        const band = new THREE.Mesh(bandGeo, bandMat);
+        band.rotation.x = -0.3;
+
+        // Snap button
+        const snapRadius = w * 0.12;
+        const snapGeo = new THREE.CylinderGeometry(snapRadius, snapRadius, 0.01, 32);
+        const snapMat = new THREE.MeshPhysicalMaterial({ color: 0xfafafa, roughness: 0.2, metalness: 0.05, clearcoat: 0.5 });
+        const snap = new THREE.Mesh(snapGeo, snapMat);
+        const snapU = 0.97;
+        const droopAt = (u) => droop * (Math.cosh((u - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+        const snapZ = -droopAt(snapU);
+        const eps = 0.001;
+        const tangent = new THREE.Vector3(eps * len, 0, -(droopAt(snapU + eps) - droopAt(snapU)));
+        tangent.normalize();
+        const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+        snap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        snap.position.set(len * 0.47, 0, snapZ + 0.006);
+        band.add(snap);
+
+        // Scale for mobile
+        const isMobile = window.innerWidth < 600;
+        if (isMobile) band.scale.setScalar(0.55);
+
+        scene.add(band);
+
+        // Animate
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        let idleTimer;
+        canvas.addEventListener('pointerdown', () => { controls.autoRotate = false; clearTimeout(idleTimer); });
+        canvas.addEventListener('pointerup', () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { controls.autoRotate = true; }, 3000); });
+    </script>
+</body>
+</html>
