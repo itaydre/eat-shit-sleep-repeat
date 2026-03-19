@@ -152,6 +152,10 @@
             <input type="range" id="p-sleeve-opacity" min="0" max="0.6" step="0.02" value="0.22" oninput="showVal(this,'v-sleeve-opacity'); updateBracelet()">
         </div>
         <div class="field">
+            <label>Sleeve Gloss <span class="val" id="v-sleeve-gloss">0.9</span></label>
+            <input type="range" id="p-sleeve-gloss" min="0" max="1" step="0.05" value="0.9" oninput="showVal(this,'v-sleeve-gloss'); updateBracelet()">
+        </div>
+        <div class="field">
             <label>Sleeve Padding <span class="val" id="v-sleeve-pad">0.004</span></label>
             <input type="range" id="p-sleeve-pad" min="0" max="0.02" step="0.001" value="0.004" oninput="showVal(this,'v-sleeve-pad'); updateBracelet()">
         </div>
@@ -261,41 +265,20 @@
             }
 
             // Embossed dot-matrix text on narrow strip — rotated 90°
-            // Multiple lines like real hospital bracelet stamps
             const stampLines = [
                 String(Math.floor(Math.random() * 90000) + 10000),
                 'T' + String(Math.floor(Math.random() * 900) + 100),
-                String(Math.floor(Math.random() * 9000000) + 1000000),
             ];
-            const stampX = W * 0.22;
+            const stampX = W * 0.25;
             const stampY = H / 2;
             ctx.save();
             ctx.translate(stampX, stampY);
             ctx.rotate(-Math.PI / 2);
-
-            // Draw each line as dot-matrix characters
             stampLines.forEach((line, lineIdx) => {
-                const lineX = lineIdx * 28 - (stampLines.length * 28) / 2;
-                for (let ci = 0; ci < line.length; ci++) {
-                    const ch = line[ci];
-                    const cy = ci * 22 - (line.length * 22) / 2;
-                    // Dot-matrix: draw character as a grid of small dots
-                    ctx.font = 'bold 26px monospace';
-                    ctx.fillStyle = 'rgba(60,50,40,0.35)';
-                    // Draw the character faintly
-                    ctx.fillText(ch, cy, lineX);
-                    // Overlay dots for embossed feel
-                    for (let dx = -6; dx <= 6; dx += 4) {
-                        for (let dy = -10; dy <= 4; dy += 4) {
-                            if (Math.random() > 0.55) {
-                                ctx.fillStyle = `rgba(50,40,30,${0.15 + Math.random() * 0.2})`;
-                                ctx.beginPath();
-                                ctx.arc(cy + 8 + dx, lineX - 4 + dy, 1.2, 0, Math.PI * 2);
-                                ctx.fill();
-                            }
-                        }
-                    }
-                }
+                const lx = lineIdx * 50 - (stampLines.length * 50) / 2;
+                ctx.font = 'bold 40px monospace';
+                ctx.fillStyle = 'rgba(50,40,30,0.3)';
+                ctx.fillText(line, -line.length * 12, lx + 14);
             });
             ctx.restore();
 
@@ -810,11 +793,12 @@
                 steps: sleeveSegs * 2, bevelEnabled: false, extrudePath: sleeveCurve,
             });
 
+            const sleeveGloss = parseFloat(document.getElementById('p-sleeve-gloss')?.value || 0.9);
             const sleeveMat = new THREE.MeshPhysicalMaterial({
                 color: 0xffffff,
-                roughness: 0.1,
-                clearcoat: 0.9,
-                clearcoatRoughness: 0.05,
+                roughness: 1 - sleeveGloss,
+                clearcoat: sleeveGloss,
+                clearcoatRoughness: (1 - sleeveGloss) * 0.3,
                 transparent: true,
                 opacity: sleeveOpacity,
                 transmission: 0.5,
@@ -1006,7 +990,10 @@
             });
             const snap = new THREE.Mesh(snapGeo, snapMat);
             snap.rotation.x = Math.PI / 2;
-            snap.position.set(len * 0.42, 0, 0.008);
+            // Compute droop at snap position so it stays on the band surface
+            const snapU = 0.42 + 0.5; // u = (x/len) + 0.5 where x = len*0.42
+            const snapDroop = droop * (Math.cosh((snapU - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+            snap.position.set(len * 0.42, 0, -snapDroop + 0.008);
             band.add(snap);
 
             scene.add(band);
