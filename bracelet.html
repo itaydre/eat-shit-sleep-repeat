@@ -6,39 +6,138 @@
     <title>Baby Bracelet</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #FAF6F1; overflow: hidden; touch-action: none; }
+        body { background: #FAF6F1; overflow: hidden; touch-action: none; font-family: system-ui, sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; }
-        #colors {
+
+        #panel {
             position: fixed;
-            bottom: 60px;
-            left: 0; right: 0;
+            top: 0; right: 0; bottom: 0;
+            width: 280px;
+            background: #fff;
+            box-shadow: -2px 0 16px rgba(0,0,0,0.08);
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 10;
             display: flex;
-            justify-content: center;
-            gap: 12px;
+            flex-direction: column;
+            gap: 14px;
+        }
+        #panel h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #3D3229;
+            margin: 0;
+        }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9A8A7A;
+        }
+        .field input, .field select {
+            padding: 8px 10px;
+            border: 1px solid #e0d8ce;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #3D3229;
+            outline: none;
+        }
+        .field input:focus, .field select:focus {
+            border-color: #5a4a3a;
+        }
+        .color-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .color-btn {
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 32px; height: 32px; border-radius: 50%;
             border: 3px solid transparent; cursor: pointer;
             transition: border-color 0.2s, transform 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
-        .color-btn.active { border-color: #5a4a3a; transform: scale(1.15); }
+        .color-btn.active { border-color: #5a4a3a; transform: scale(1.1); }
+        .divider { height: 1px; background: #f0ebe4; }
         #info {
-            position: fixed; bottom: 24px; left: 0; right: 0;
+            position: fixed; bottom: 24px; left: 0; right: 280px;
             text-align: center; font-size: 13px; color: #9A8A7A;
-            pointer-events: none; font-family: system-ui, sans-serif;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
     <canvas id="c"></canvas>
-    <div id="colors">
-        <button class="color-btn active" data-color="#f5f0ea" style="background:#f5f0ea;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
-        <button class="color-btn" data-color="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
+
+    <div id="panel">
+        <h3>Baby Bracelet</h3>
+        <div class="divider"></div>
+
+        <div class="field">
+            <label>Name</label>
+            <input type="text" id="p-name" value="Baby Dreyfus" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Date of Birth</label>
+            <input type="date" id="p-date" value="2026-03-14" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Time of Birth</label>
+            <input type="time" id="p-time" value="10:30" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Weight</label>
+            <input type="text" id="p-weight" value="3,200g" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Gender</label>
+            <select id="p-gender" onchange="updateBracelet()">
+                <option value="Boy" selected>Boy</option>
+                <option value="Girl">Girl</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>ID</label>
+            <input type="text" id="p-id" value="24502293-1" oninput="updateBracelet()">
+        </div>
+        <div class="field">
+            <label>Hospital</label>
+            <input type="text" id="p-hospital" value="" placeholder="e.g. Ichilov" oninput="updateBracelet()">
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+            <label>Band Color</label>
+            <div class="color-row">
+                <button class="color-btn active" data-color="#f5f0ea" style="background:#f5f0ea;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#d4e6f1" style="background:#d4e6f1;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#f5d5d5" style="background:#f5d5d5;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#d5f5d5" style="background:#d5f5d5;" onclick="setColor(this)"></button>
+                <button class="color-btn" data-color="#f0e4f5" style="background:#f0e4f5;" onclick="setColor(this)"></button>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Band Length</label>
+            <input type="range" id="p-length" min="3" max="7" step="0.1" value="5" oninput="updateGeometry()">
+        </div>
+        <div class="field">
+            <label>Band Width</label>
+            <input type="range" id="p-width" min="0.3" max="1.5" step="0.05" value="0.8" oninput="updateGeometry()">
+        </div>
+        <div class="field">
+            <label>Droop</label>
+            <input type="range" id="p-droop" min="0" max="0.4" step="0.01" value="0.1" oninput="updateGeometry()">
+        </div>
+        <div class="field">
+            <label>Holes</label>
+            <input type="range" id="p-holes" min="0" max="10" step="1" value="5" oninput="updateBracelet()">
+        </div>
     </div>
+
     <div id="info">Drag to rotate</div>
 
     <script type="importmap">
@@ -48,14 +147,22 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        const babyInfo = {
-            name: 'Baby Dreyfus',
-            date: 'March 14, 2026',
-            time: '10:30 AM',
-            weight: '3,200g',
-            gender: 'Boy',
-            id: '13672332'
-        };
+        function getInfo() {
+            const d = document.getElementById('p-date').value;
+            const dateStr = d ? new Date(d + 'T00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+            const t = document.getElementById('p-time').value;
+            const timeStr = t ? new Date('2000-01-01T' + t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+            return {
+                name: document.getElementById('p-name').value || '',
+                date: dateStr,
+                time: timeStr,
+                weight: document.getElementById('p-weight').value || '',
+                gender: document.getElementById('p-gender').value || '',
+                id: document.getElementById('p-id').value || '',
+                hospital: document.getElementById('p-hospital').value || '',
+                holes: parseInt(document.getElementById('p-holes').value) || 5,
+            };
+        }
 
         const canvas = document.getElementById('c');
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -106,17 +213,16 @@
             }
 
             // Holes on left portion
-            for (let i = 0; i < 5; i++) {
+            const holeCount = info.holes || 5;
+            for (let i = 0; i < holeCount; i++) {
                 const hx = 120 + i * 100;
                 const hy = H / 2;
-                // Punch hole
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
                 ctx.arc(hx, hy, 28, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
-                // Hole rim
                 ctx.strokeStyle = 'rgba(0,0,0,0.12)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -127,58 +233,65 @@
             // Info on right portion — vertically centered
             const tx = 800;
             const midY = H / 2;
+            let ty = midY - 100;
 
+            // Hospital (if set)
+            if (info.hospital) {
+                ctx.fillStyle = '#999';
+                ctx.font = '20px system-ui, sans-serif';
+                ctx.fillText(info.hospital, tx, ty);
+                ty += 30;
+            }
+
+            // Name
             ctx.fillStyle = '#1a1a1a';
             ctx.font = 'bold 52px system-ui, sans-serif';
-            ctx.fillText(info.name, tx, midY - 80);
+            ctx.fillText(info.name, tx, ty);
+            ty += 16;
 
             ctx.strokeStyle = 'rgba(0,0,0,0.08)';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(tx, midY - 60);
-            ctx.lineTo(tx + 650, midY - 60);
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(tx + 650, ty);
             ctx.stroke();
+            ty += 36;
 
+            // Date & time
             ctx.font = '30px system-ui, sans-serif';
             ctx.fillStyle = '#444';
-            ctx.fillText(info.date + '   ' + info.time, tx, midY - 20);
-            ctx.fillText('Weight: ' + info.weight + '      Gender: ' + info.gender, tx, midY + 20);
+            const dateTime = [info.date, info.time].filter(Boolean).join('   ');
+            ctx.fillText(dateTime, tx, ty);
+            ty += 40;
 
-            ctx.font = '22px monospace';
-            ctx.fillStyle = '#888';
-            ctx.fillText('ID: ' + info.id, tx, midY + 60);
+            // Weight & gender
+            const details = [];
+            if (info.weight) details.push('Weight: ' + info.weight);
+            if (info.gender) details.push('Gender: ' + info.gender);
+            ctx.fillText(details.join('      '), tx, ty);
+            ty += 42;
 
-            // Barcode
-            for (let i = 0; i < 50; i++) {
-                const w = Math.random() > 0.5 ? 3 : 1.5;
-                ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(tx + i * 6.5, midY + 75, w, 36);
+            // ID
+            if (info.id) {
+                ctx.font = '22px monospace';
+                ctx.fillStyle = '#888';
+                ctx.fillText('ID: ' + info.id, tx, ty);
+                ty += 24;
+
+                // Barcode
+                for (let i = 0; i < 50; i++) {
+                    const w = Math.random() > 0.5 ? 3 : 1.5;
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(tx + i * 6.5, ty, w, 36);
+                }
             }
 
             const tex = new THREE.CanvasTexture(c);
             return tex;
         }
 
-        // --- Band: PlaneGeometry with vertex displacement for droop ---
-        const bandLen = 5.0;
-        const bandW = 0.8;
-        const segsX = 120;
-        const segsY = 8;
-
-        const planeGeo = new THREE.PlaneGeometry(bandLen, bandW, segsX, segsY);
-        const pos = planeGeo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-            const x = pos.getX(i);
-            const t = (x / bandLen) + 0.5; // 0..1
-            const droop = 0.1 * (Math.cosh((t - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
-            pos.setZ(i, -droop);
-        }
-        planeGeo.computeVertexNormals();
-
-        let bandTexture = createBandTexture(babyInfo, currentColor);
-
+        // --- Band ---
         const bandMat = new THREE.MeshPhysicalMaterial({
-            map: bandTexture,
             color: 0xffffff,
             roughness: 0.35,
             metalness: 0.0,
@@ -189,35 +302,68 @@
             side: THREE.DoubleSide,
         });
 
-        const band = new THREE.Mesh(planeGeo, bandMat);
-        band.rotation.x = -0.3;
-        scene.add(band);
+        let band = null;
+        const segsX = 120, segsY = 8;
 
-        // Clasp at right end
-        const claspGeo = new THREE.BoxGeometry(0.15, 0.4, 0.02);
-        const claspMat = new THREE.MeshPhysicalMaterial({
-            color: 0xf0ebe4, roughness: 0.25, metalness: 0.05, clearcoat: 0.3,
-        });
-        const clasp = new THREE.Mesh(claspGeo, claspMat);
-        clasp.position.set(bandLen / 2 + 0.1, 0, -0.1);
-        band.add(clasp);
+        function buildBand(len, w, droopAmt) {
+            const geo = new THREE.PlaneGeometry(len, w, segsX, segsY);
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const t = (x / len) + 0.5;
+                const droop = droopAmt * (Math.cosh((t - 0.5) * 2.5) - 1) / (Math.cosh(1.25) - 1);
+                pos.setZ(i, -droop);
+            }
+            geo.computeVertexNormals();
+            return geo;
+        }
 
-        const snapGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.012, 16);
-        const snapMat = new THREE.MeshPhysicalMaterial({ color: 0xfafafa, roughness: 0.15, metalness: 0.1 });
-        const snap = new THREE.Mesh(snapGeo, snapMat);
-        snap.rotation.x = Math.PI / 2;
-        snap.position.y = 0.015;
-        clasp.add(snap);
+        function refreshBracelet() {
+            if (band) scene.remove(band);
 
-        // --- Color picker ---
+            const len = parseFloat(document.getElementById('p-length').value);
+            const w = parseFloat(document.getElementById('p-width').value);
+            const droop = parseFloat(document.getElementById('p-droop').value);
+            const info = getInfo();
+
+            const geo = buildBand(len, w, droop);
+            bandMat.map = createBandTexture(info, currentColor);
+            bandMat.map.needsUpdate = true;
+
+            band = new THREE.Mesh(geo, bandMat);
+            band.rotation.x = -0.3;
+
+            // Clasp
+            const claspGeo = new THREE.BoxGeometry(0.15, w * 0.5, 0.02);
+            const claspMat = new THREE.MeshPhysicalMaterial({
+                color: 0xf0ebe4, roughness: 0.25, metalness: 0.05, clearcoat: 0.3,
+            });
+            const clasp = new THREE.Mesh(claspGeo, claspMat);
+            clasp.position.set(len / 2 + 0.1, 0, -droop * 0.5);
+            band.add(clasp);
+
+            const snapGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.012, 16);
+            const snapMat = new THREE.MeshPhysicalMaterial({ color: 0xfafafa, roughness: 0.15, metalness: 0.1 });
+            const snap = new THREE.Mesh(snapGeo, snapMat);
+            snap.rotation.x = Math.PI / 2;
+            snap.position.y = 0.015;
+            clasp.add(snap);
+
+            scene.add(band);
+        }
+
+        refreshBracelet();
+
+        // --- Controls ---
         window.setColor = function(btn) {
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentColor = btn.dataset.color;
-            bandTexture = createBandTexture(babyInfo, currentColor);
-            bandMat.map = bandTexture;
-            bandMat.map.needsUpdate = true;
+            refreshBracelet();
         };
+
+        window.updateBracelet = function() { refreshBracelet(); };
+        window.updateGeometry = function() { refreshBracelet(); };
 
         // --- Animate ---
         function animate() {
