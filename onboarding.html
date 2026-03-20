@@ -476,11 +476,12 @@
         }
 
         // --- 3D Bracelet ---
-        let braceletInited = false;
+        let braceletScene = null;
 
         async function initBracelet() {
-            if (braceletInited) return;
-            braceletInited = true;
+            // Clear previous bracelet if any
+            const container = document.getElementById('bracelet-container');
+            container.innerHTML = '';
 
             const { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight, DirectionalLight,
                     BufferGeometry, Float32BufferAttribute, Mesh, MeshPhysicalMaterial,
