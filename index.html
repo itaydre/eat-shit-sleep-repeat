@@ -377,11 +377,9 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
+            bottom: 0; left: 0; right: 0;
+            z-index: 60;
+            flex-direction: column;
         }
 
         .modal-overlay.open {
@@ -390,10 +388,10 @@
 
         .modal {
             background: white;
-            border-radius: 16px;
-            padding: 24px;
-            width: 300px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            width: 100%;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            border-radius: 16px 16px 0 0;
         }
 
         .modal h3 {
@@ -1107,12 +1105,12 @@
                 </button>
             </div>
             <div class="time-chips">
-                <button type="button" class="time-chip active" onclick="setTimePreset(5)">5m ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(15)">15m ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(30)">30m ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(60)">1h ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(120)">2h ago</button>
-                <button type="button" class="time-chip time-chip-other" onclick="toggleCustomTime()">Other</button>
+                <button type="button" class="time-chip active" onclick="setTimePreset(5,this)">5m ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(15,this)">15m ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(30,this)">30m ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(60,this)">1h ago</button>
+                <button type="button" class="time-chip" onclick="setTimePreset(120,this)">2h ago</button>
+                <button type="button" class="time-chip time-chip-other" onclick="toggleCustomTime(this)">Other</button>
             </div>
             <input type="datetime-local" id="add-datetime" style="display:none">
             <div class="modal-buttons">
@@ -1381,23 +1379,25 @@
             const dtInput = document.getElementById('add-datetime');
             dtInput.max = toLocalISOString(new Date());
             document.getElementById('add-modal').classList.add('open');
+            document.getElementById('action-buttons').style.display = 'none';
         }
 
         function closeAddModal() {
             document.getElementById('add-modal').classList.remove('open');
+            document.getElementById('action-buttons').style.display = '';
         }
 
-        function setTimePreset(minutes) {
+        function setTimePreset(minutes, el) {
             selectedPresetMinutes = minutes;
             document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (el) el.classList.add('active');
             document.getElementById('add-datetime').style.display = 'none';
         }
 
-        function toggleCustomTime() {
+        function toggleCustomTime(el) {
             selectedPresetMinutes = null;
             document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (el) el.classList.add('active');
             const dtInput = document.getElementById('add-datetime');
             dtInput.value = toLocalISOString(new Date());
             dtInput.style.display = 'block';
