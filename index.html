@@ -1017,12 +1017,14 @@
 
                 <div class="history">
                     <div style="position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
-                        <div style="display:flex; align-items:center; gap:4px; width:100%; padding-right:40px;">
+                        <div style="position:absolute; left:0; right:0; display:flex; align-items:center; justify-content:center; gap:4px;">
                             <button id="day-prev" onclick="navigateDay(-1)" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; flex-shrink:0; width:36px;">&#8249;</button>
-                            <h2 id="day-label" style="margin:0; text-align:center; flex:1;">Today</h2>
+                            <h2 id="day-label" style="margin:0; text-align:center; min-width:120px;">Today</h2>
                             <button id="day-next" onclick="navigateDay(1)" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; flex-shrink:0; width:36px; visibility:hidden;">&#8250;</button>
                         </div>
-                        <button class="add-btn" onclick="openAddModal()" style="position:absolute; right:0;">+</button>
+                        <div style="width:100%; display:flex; justify-content:flex-end; min-height:36px;">
+                            <button class="add-btn" onclick="openAddModal()">+</button>
+                        </div>
                     </div>
                     <div id="today-summary" class="day-summary" style="justify-content:center; margin-bottom:12px; font-size:0.75rem;"></div>
                     <div id="today-entries"></div>
