@@ -1794,7 +1794,7 @@
                         let trailingHtml = '';
                         if (entry.pending) {
                             trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" style="margin-left:auto;">&#9632;</button>`;
-                        } else if (isFeed && entry.duration) {
+                        } else if (isFeed) {
                             trailingHtml = `<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button>`;
                         }
                         const timeText = entry.pending ? `<span class="feed-stopwatch" id="feed-stopwatch">0:00</span>` : formatTime(entry.timestamp);
