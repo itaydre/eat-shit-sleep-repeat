@@ -890,7 +890,7 @@
             // Sleeve covers the label arc, slightly offset outward
             const sleeveArc = labelArc + 0.04;
             const sleeveSegs = 60;
-            const offset = 0.006; // outside the band surface
+            const offset = 0.003; // tight-fitting polypropylene sleeve
             const sw = bandW / 2 + sleevePad;
 
             const sleevePoints = [];
@@ -919,17 +919,22 @@
                 steps: sleeveSegs * 2, bevelEnabled: false, extrudePath: sleeveCurve,
             });
 
+            // Clear polypropylene sleeve — high clarity, crisp, barely visible
             const sleeveMat = new THREE.MeshPhysicalMaterial({
                 color: 0xffffff,
-                roughness: 0.3,
-                clearcoat: 0.4,
-                clearcoatRoughness: 0.2,
+                roughness: 0.05,          // very smooth surface
+                metalness: 0.0,
+                clearcoat: 1.0,           // strong surface reflection
+                clearcoatRoughness: 0.02, // mirror-sharp clearcoat
                 transparent: true,
                 opacity: sleeveOpacity,
-                transmission: 0.5,
-                thickness: 0.05,
-                ior: 1.4,
+                transmission: 0.85,       // high clarity — see-through
+                thickness: 0.02,          // very thin film
+                ior: 1.49,               // polypropylene IOR
+                specularIntensity: 0.5,
+                specularColor: new THREE.Color(0xffffff),
                 side: THREE.DoubleSide,
+                envMapIntensity: 0.3,
             });
 
             group.add(new THREE.Mesh(sleeveGeo, sleeveMat));
