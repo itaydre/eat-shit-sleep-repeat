@@ -643,8 +643,6 @@
             });
 
             const band = new Mesh(geo, mat);
-            band.rotation.x = -0.3;
-            band.scale.setScalar(0.55);
 
             // Snap button
             const snapR=bw*0.12;
@@ -659,10 +657,53 @@
             snap.position.set(len*0.47,0,sZ+0.006);
             band.add(snap);
 
+            // --- Entrance animation ---
+            // Start: above screen, tiny, spinning
+            const targetScale = 0.5;
+            const targetRotX = -0.3;
+            const targetY = 0;
+            band.position.y = 6;          // start way above
+            band.rotation.x = -0.3;
+            band.rotation.y = Math.PI * 4; // 2 full spins
+            band.scale.setScalar(0.1);     // start tiny
+
             scene.add(band);
+
+            const animStart = performance.now();
+            const animDuration = 2000; // 2 seconds
+            let animDone = false;
+
+            // Easing: cubic ease-out
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
             function animate(){
                 requestAnimationFrame(animate);
+
+                if (!animDone) {
+                    const elapsed = performance.now() - animStart;
+                    const t = Math.min(elapsed / animDuration, 1);
+                    const e = easeOutCubic(t);
+
+                    // Position: drop from above
+                    band.position.y = 6 * (1 - e) + targetY * e;
+
+                    // Scale: grow from tiny to target
+                    const s = 0.1 + (targetScale - 0.1) * e;
+                    band.scale.setScalar(s);
+
+                    // Rotation: spin and settle
+                    band.rotation.y = Math.PI * 4 * (1 - e);
+
+                    if (t >= 1) {
+                        animDone = true;
+                        band.position.y = targetY;
+                        band.scale.setScalar(targetScale);
+                        band.rotation.y = 0;
+                        controls.autoRotate = true;
+                        controls.autoRotateSpeed = 1.2;
+                    }
+                }
+
                 controls.update();
                 renderer.render(scene,camera);
             }
