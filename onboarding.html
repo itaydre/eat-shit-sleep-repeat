@@ -334,7 +334,20 @@
                 </div>
             </div>
             <div class="step-actions">
-                <button class="btn-primary" onclick="finish()">Let's go! 🍼</button>
+                <button class="btn-primary" onclick="goStep(5)">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Bracelet -->
+        <div class="step" id="step-5">
+            <div class="progress" id="progress-5"></div>
+            <button class="btn-back" onclick="goStep(4)">&#8249;</button>
+            <div class="step-content" style="padding:0; position:relative;">
+                <div id="bracelet-container" style="width:100%; height:100%; min-height:400px;"></div>
+                <p style="text-align:center; color:#9A8A7A; font-size:0.8rem; margin-top:8px;">Your baby's bracelet — drag to rotate</p>
+            </div>
+            <div class="step-actions">
+                <button class="btn-primary" onclick="enterApp()">Enter the app 🍼</button>
             </div>
         </div>
     </div>
@@ -377,7 +390,7 @@
             btn.classList.add('active');
         }
 
-        const totalSteps = 4;
+        const totalSteps = 5;
 
         function updateProgress(step) {
             for (let s = 1; s <= totalSteps; s++) {
@@ -396,6 +409,7 @@
             document.getElementById('step-' + n).classList.add('active');
             updateProgress(n);
             if (n === 4) renderSummary();
+            if (n === 5) initBracelet();
         }
 
         updateProgress(1);
@@ -440,12 +454,12 @@
             document.getElementById('summary').innerHTML = html;
         }
 
-        function finish() {
+        function enterApp() {
             const name = document.getElementById('ob-name').value.trim();
             const dob = document.getElementById('ob-dob').value;
             const time = document.getElementById('ob-time').value;
             const weight = document.getElementById('ob-weight').value;
-            const hospital = document.getElementById('ob-hospital').value.trim();
+            const hospital = document.getElementById('ob-hospital')?.value.trim() || '';
             const invite = document.getElementById('ob-invite').value.trim();
 
             console.log('Onboarding complete:', {
@@ -457,7 +471,211 @@
                 invite_code: invite || null,
             });
 
-            alert('Profile created! (standalone demo — check console for data)');
+            // In real app, would save profile and redirect
+            window.location.href = '/';
+        }
+
+        // --- 3D Bracelet ---
+        let braceletInited = false;
+
+        async function initBracelet() {
+            if (braceletInited) return;
+            braceletInited = true;
+
+            const { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight, DirectionalLight,
+                    BufferGeometry, Float32BufferAttribute, Mesh, MeshPhysicalMaterial,
+                    CylinderGeometry, Vector3, Color, ACESFilmicToneMapping, DoubleSide, CanvasTexture
+            } = await import('https://esm.sh/three@0.171.0');
+            const { OrbitControls } = await import('https://esm.sh/three@0.171.0/examples/jsm/controls/OrbitControls.js');
+
+            const container = document.getElementById('bracelet-container');
+            const w = container.clientWidth;
+            const h = Math.max(container.clientHeight, 350);
+
+            const renderer = new WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(w, h);
+            renderer.toneMapping = ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.3;
+            container.appendChild(renderer.domElement);
+            renderer.domElement.style.touchAction = 'none';
+
+            const scene = new Scene();
+            const camera = new PerspectiveCamera(30, w / h, 0.1, 100);
+            camera.position.set(0, 1.5, 5);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.2;
+
+            scene.add(new AmbientLight(0xffffff, 0.7));
+            const key = new DirectionalLight(0xfff8ee, 1.4);
+            key.position.set(4, 6, 5);
+            scene.add(key);
+            const fill = new DirectionalLight(0xeef0ff, 0.5);
+            fill.position.set(-4, 3, -3);
+            scene.add(fill);
+
+            // Get baby info from form
+            const name = document.getElementById('ob-name').value.trim() || 'Baby';
+            const dob = document.getElementById('ob-dob').value;
+            const timeVal = document.getElementById('ob-time').value;
+            const weight = document.getElementById('ob-weight').value;
+            const gender = selectedGender || '';
+            const hospital = document.getElementById('ob-hospital')?.value.trim() || '';
+
+            let dateStr = '';
+            if (dob) {
+                const d = new Date(dob + (timeVal ? 'T' + timeVal : ''));
+                dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            }
+            let timeStr = '';
+            if (timeVal) {
+                timeStr = new Date('2000-01-01T' + timeVal).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            const bandColor = gender === 'girl' ? '#F08080' : gender === 'boy' ? '#7EB8E0' : '#7ED67E';
+
+            // --- Texture ---
+            function createTex() {
+                const c = document.createElement('canvas');
+                const W = 2048, H = 512;
+                c.width = W; c.height = H;
+                const ctx = c.getContext('2d');
+
+                ctx.fillStyle = bandColor;
+                ctx.fillRect(0, 0, W, H);
+                for (let i = 0; i < 4000; i++) {
+                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.015})`;
+                    ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+                }
+
+                // Holes
+                const bandLen = 5, bandFullW = 0.8, stripW = bandFullW * 0.35;
+                const pxX = W / bandLen, pxY = H / stripW;
+                const hr = 0.03;
+                for (let i = 0; i < 5; i++) {
+                    const hx = W * 0.05 + i * (W * 0.055);
+                    const rx = hr * pxX, ry = hr * pxY;
+                    ctx.save(); ctx.beginPath(); ctx.ellipse(hx, H/2, rx, ry, 0, 0, Math.PI*2); ctx.clip();
+                    ctx.clearRect(hx-rx-2, H/2-ry-2, rx*2+4, ry*2+4); ctx.restore();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.ellipse(hx, H/2, rx, ry, 0, 0, Math.PI*2); ctx.stroke();
+                }
+
+                // Right holes
+                const rpy = H / bandFullW, rry = hr * rpy;
+                for (let i = 0; i < 3; i++) {
+                    const hx = W*0.82+i*(W*0.055), rx = hr*pxX;
+                    ctx.save(); ctx.beginPath(); ctx.ellipse(hx,H/2,rx,rry,0,0,Math.PI*2); ctx.clip();
+                    ctx.clearRect(hx-rx-2,H/2-rry-2,rx*2+4,rry*2+4); ctx.restore();
+                    ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=2;
+                    ctx.beginPath(); ctx.ellipse(hx,H/2,rx,rry,0,0,Math.PI*2); ctx.stroke();
+                }
+
+                // Label
+                const ls = W*0.48, le = W*0.78, lp = H*0.08, r = 4;
+                ctx.fillStyle = 'rgb(244,240,232)';
+                ctx.beginPath();
+                ctx.moveTo(ls+r,lp); ctx.lineTo(le-r,lp); ctx.arcTo(le,lp,le,lp+r,r);
+                ctx.lineTo(le,H-lp-r); ctx.arcTo(le,H-lp,le-r,H-lp,r);
+                ctx.lineTo(ls+r,H-lp); ctx.arcTo(ls,H-lp,ls,H-lp-r,r);
+                ctx.lineTo(ls,lp+r); ctx.arcTo(ls,lp,ls+r,lp,r); ctx.fill();
+
+                // Grain + shadow
+                ctx.save(); ctx.clip();
+                for (let i = 0; i < 5000; i++) {
+                    ctx.fillStyle = Math.random()<0.5 ? `rgba(0,0,0,${Math.random()*0.03})` : `rgba(255,255,255,${Math.random()*0.04})`;
+                    ctx.fillRect(ls+Math.random()*(le-ls), lp+Math.random()*(H-lp*2), 1+Math.random(), 1);
+                }
+                const sg = ctx.createLinearGradient(0,lp,0,lp+25);
+                sg.addColorStop(0,'rgba(0,0,0,0.12)'); sg.addColorStop(1,'rgba(0,0,0,0)');
+                ctx.fillStyle=sg; ctx.fillRect(ls,lp,le-ls,25);
+                ctx.restore();
+
+                // Text
+                ctx.save(); ctx.beginPath(); ctx.rect(ls,lp,le-ls,H-lp*2); ctx.clip();
+                const tx = ls+28; let ty = H/2-95;
+                ctx.fillStyle='#3a3530'; ctx.font='bold 46px system-ui,sans-serif';
+                ctx.fillText(name, tx, ty); ty += 46;
+                ctx.font='500 26px system-ui,sans-serif'; ctx.fillStyle='#6a6258';
+                if (dateStr) { ctx.fillText('DOB: ' + dateStr + (timeStr ? '  ' + timeStr : ''), tx, ty); ty += 34; }
+                ctx.font='500 22px system-ui,sans-serif';
+                if (weight) { ctx.fillStyle='#6a6258'; ctx.fillText('WT:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(weight + 'g', tx+42, ty); }
+                if (gender) { ctx.fillStyle='#6a6258'; ctx.fillText('SEX:', tx+180, ty); ctx.fillStyle='#3a3530'; ctx.fillText(gender.charAt(0).toUpperCase(), tx+232, ty); }
+                ty += 30;
+                if (hospital) { ctx.fillStyle='#6a6258'; ctx.fillText('HOSP:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(hospital, tx+70, ty); ty += 30; }
+                for (let i=0;i<45;i++) { ctx.fillStyle=`rgba(50,45,40,${0.7+Math.random()*0.25})`; ctx.fillRect(tx+i*6,ty,Math.random()>0.4?3:1.2,36); }
+                ctx.restore();
+
+                return new CanvasTexture(c);
+            }
+
+            // Band geometry
+            const len=5, bw=0.8, drp=3, stripW2=bw*0.35, labelW2=bw;
+            const uS=120, vS=8, verts=[], uvs=[], idx=[];
+            for(let i=0;i<=uS;i++){
+                const u=i/uS, x=(u-0.5)*len;
+                const d=drp*(Math.cosh((u-0.5)*2.5)-1)/(Math.cosh(1.25)-1);
+                let hw; const ts=0.35, te=0.45;
+                if(u<ts)hw=stripW2/2;
+                else if(u<te){const t=(u-ts)/(te-ts);hw=stripW2/2+(labelW2/2-stripW2/2)*(0.5-0.5*Math.cos(t*Math.PI));}
+                else hw=labelW2/2;
+                for(let j=0;j<=vS;j++){
+                    const v=j/vS;
+                    verts.push(x,(v-0.5)*2*hw,-d); uvs.push(u,v);
+                    if(i<uS&&j<vS){const a=i*(vS+1)+j,b=a+1,c=a+(vS+1),d2=c+1;idx.push(a,c,b);idx.push(b,c,d2);}
+                }
+            }
+            const geo=new BufferGeometry();
+            geo.setAttribute('position',new Float32BufferAttribute(verts,3));
+            geo.setAttribute('uv',new Float32BufferAttribute(uvs,2));
+            geo.setIndex(idx); geo.computeVertexNormals();
+
+            const mat = new MeshPhysicalMaterial({
+                map:createTex(), color:0xffffff, roughness:0.7, clearcoat:0.15,
+                clearcoatRoughness:0.6, sheen:0.4, sheenRoughness:0.8,
+                sheenColor:new Color(0xe8e0d8), transparent:true, alphaTest:0.5, side:DoubleSide,
+            });
+
+            const band = new Mesh(geo, mat);
+            band.rotation.x = -0.3;
+            band.scale.setScalar(0.55);
+
+            // Snap button
+            const snapR=bw*0.12;
+            const snapGeo=new CylinderGeometry(snapR,snapR,0.01,32);
+            const snapMat=new MeshPhysicalMaterial({color:0xfafafa,roughness:0.2,metalness:0.05,clearcoat:0.5});
+            const snap=new Mesh(snapGeo,snapMat);
+            const sU=0.97, droopAt=u=>drp*(Math.cosh((u-0.5)*2.5)-1)/(Math.cosh(1.25)-1);
+            const sZ=-droopAt(sU), eps=0.001;
+            const tan=new Vector3(eps*len,0,-(droopAt(sU+eps)-droopAt(sU))).normalize();
+            const norm=new Vector3(-tan.z,0,tan.x).normalize();
+            snap.quaternion.setFromUnitVectors(new Vector3(0,1,0),norm);
+            snap.position.set(len*0.47,0,sZ+0.006);
+            band.add(snap);
+
+            scene.add(band);
+
+            function animate(){
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene,camera);
+            }
+            animate();
+
+            // Handle resize
+            const ro = new ResizeObserver(() => {
+                const nw = container.clientWidth, nh = Math.max(container.clientHeight, 350);
+                camera.aspect = nw / nh;
+                camera.updateProjectionMatrix();
+                renderer.setSize(nw, nh);
+            });
+            ro.observe(container);
         }
 
         playSplash();
