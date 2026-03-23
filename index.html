@@ -866,8 +866,9 @@
 </head>
 <body>
     <!-- Splash Screen -->
-    <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:#fef9f0; z-index:999;">
+    <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fef9f0; z-index:999;">
         <div id="splash-word" style="font-size:6rem; color:#5a4a3a; opacity:0; transition: transform 0.3s ease, opacity 0.2s ease; transform: scale(1);"></div>
+        <div id="splash-spinner" style="display:none; margin-top:24px;"><div class="spinner"></div></div>
     </div>
 
     <!-- Auth Screen -->
@@ -1166,6 +1167,13 @@
             ];
         }
 
+        // Show spinner on loading screen after splash emojis finish
+        window._splashDone.then(() => {
+            const sp = document.getElementById('splash-spinner');
+            const ls = document.getElementById('loading-screen');
+            if (sp && ls && ls.style.display !== 'none') sp.style.display = 'block';
+        });
+
         async function initSupabase() {
             if (isDevMode) {
                 await window._splashDone;
@@ -1176,10 +1184,8 @@
                 updateFeedTimer();
                 return;
             }
-            const [res] = await Promise.all([
-                fetch('/api/config'),
-                window._splashDone,
-            ]);
+            // Start fetching config immediately — don't wait for splash
+            const res = await fetch('/api/config');
             const { supabaseUrl, supabaseAnonKey } = await res.json();
             sb = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -1189,6 +1195,7 @@
             if (session) {
                 await loadApp();
             } else {
+                await window._splashDone;
                 showScreen('auth');
             }
 
@@ -1281,11 +1288,15 @@
             if (appLoading) return;
             appLoading = true;
             try {
-                // Fetch profile and logs in parallel
+                // Fetch profile and logs in parallel (don't wait for splash)
                 const [profileRes, logsRes] = await Promise.all([
                     apiFetch('/api/profile'),
                     apiFetch('/api/logs'),
                 ]);
+
+                // Wait for splash to finish before switching screens
+                await window._splashDone;
+
                 if (profileRes.status === 401) {
                     showScreen('auth');
                     return;
@@ -1308,6 +1319,7 @@
                 startApp(true);
             } catch (e) {
                 console.warn('Failed to load profile:', e);
+                await window._splashDone;
                 showScreen('onboarding');
             } finally {
                 appLoading = false;
