@@ -340,13 +340,12 @@
 
         <!-- Step 5: Bracelet -->
         <div class="step" id="step-5">
-            <div class="progress" id="progress-5"></div>
             <button class="btn-back" onclick="goStep(4)">&#8249;</button>
             <div class="step-content" style="padding:0; position:relative;">
                 <div id="bracelet-container" style="width:100%; height:100%; min-height:400px;"></div>
             </div>
             <div class="step-actions">
-                <button class="btn-primary" onclick="enterApp()">Enter the app 🍼</button>
+                <button class="btn-primary" onclick="enterApp()">Let's go 🍼</button>
             </div>
         </div>
     </div>
@@ -358,17 +357,15 @@
         async function playSplash() {
             const emojis = ['🍼', '💩', '😴', '🔁'];
             const el = document.getElementById('splash-word');
-            await new Promise(r => setTimeout(r, 200));
-            for (let loop = 0; loop < 2; loop++) {
-                for (const emoji of emojis) {
-                    el.textContent = emoji;
-                    el.style.opacity = '1';
-                    el.style.transform = 'scale(1)';
-                    await new Promise(r => setTimeout(r, 350));
-                    el.style.transform = 'scale(0.2)';
-                    el.style.opacity = '0';
-                    await new Promise(r => setTimeout(r, 250));
-                }
+            await new Promise(r => setTimeout(r, 100));
+            for (const emoji of emojis) {
+                el.textContent = emoji;
+                el.style.opacity = '1';
+                el.style.transform = 'scale(1)';
+                await new Promise(r => setTimeout(r, 250));
+                el.style.transform = 'scale(0.2)';
+                el.style.opacity = '0';
+                await new Promise(r => setTimeout(r, 150));
             }
             document.getElementById('splash').style.opacity = '0';
             setTimeout(() => {
@@ -394,6 +391,7 @@
         function updateProgress(step) {
             for (let s = 1; s <= totalSteps; s++) {
                 const bar = document.getElementById('progress-' + s);
+                if (!bar) continue;
                 bar.innerHTML = '';
                 for (let i = 1; i <= totalSteps; i++) {
                     const dot = document.createElement('div');
@@ -501,7 +499,7 @@
 
             const scene = new Scene();
             const camera = new PerspectiveCamera(30, w / h, 0.1, 100);
-            camera.position.set(0.5, 1.0, 3.5);
+            camera.position.set(0.3, 0.8, 5.5);
 
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -537,6 +535,32 @@
                 timeStr = new Date('2000-01-01T' + timeVal).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             }
 
+            function getZodiac(dateStr) {
+                if (!dateStr) return null;
+                const d = new Date(dateStr);
+                const m = d.getMonth() + 1, day = d.getDate();
+                const signs = [
+                    { name: 'Capricorn',   emoji: '♑', end: [1, 19] },
+                    { name: 'Aquarius',    emoji: '♒', end: [2, 18] },
+                    { name: 'Pisces',      emoji: '♓', end: [3, 20] },
+                    { name: 'Aries',       emoji: '♈', end: [4, 19] },
+                    { name: 'Taurus',      emoji: '♉', end: [5, 20] },
+                    { name: 'Gemini',      emoji: '♊', end: [6, 20] },
+                    { name: 'Cancer',      emoji: '♋', end: [7, 22] },
+                    { name: 'Leo',         emoji: '♌', end: [8, 22] },
+                    { name: 'Virgo',       emoji: '♍', end: [9, 22] },
+                    { name: 'Libra',       emoji: '♎', end: [10, 22] },
+                    { name: 'Scorpio',     emoji: '♏', end: [11, 21] },
+                    { name: 'Sagittarius', emoji: '♐', end: [12, 21] },
+                    { name: 'Capricorn',   emoji: '♑', end: [12, 31] },
+                ];
+                for (const s of signs) {
+                    if (m < s.end[0] || (m === s.end[0] && day <= s.end[1])) return s;
+                }
+                return signs[0];
+            }
+
+            const zodiac = getZodiac(dob);
             const bandColor = gender === 'girl' ? '#F08080' : gender === 'boy' ? '#7EB8E0' : '#7ED67E';
 
             // --- Texture ---
@@ -608,6 +632,7 @@
                 if (gender) { ctx.fillStyle='#6a6258'; ctx.fillText('SEX:', tx+180, ty); ctx.fillStyle='#3a3530'; ctx.fillText(gender.charAt(0).toUpperCase(), tx+232, ty); }
                 ty += 30;
                 if (hospital) { ctx.fillStyle='#6a6258'; ctx.fillText('HOSP:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(hospital, tx+70, ty); ty += 30; }
+                if (zodiac) { ctx.font='500 22px system-ui,sans-serif'; ctx.fillStyle='#6a6258'; ctx.fillText(zodiac.emoji + ' ' + zodiac.name, tx, ty); ty += 30; }
                 for (let i=0;i<45;i++) { ctx.fillStyle=`rgba(50,45,40,${0.7+Math.random()*0.25})`; ctx.fillRect(tx+i*6,ty,Math.random()>0.4?3:1.2,36); }
                 ctx.restore();
 
@@ -658,7 +683,7 @@
 
             // --- Entrance animation ---
             // Start: above screen, tiny, spinning
-            const targetScale = 0.75;
+            const targetScale = 0.6;
             const targetRotX = -0.3;
             const targetY = 0;
             band.position.y = 6;          // start way above
@@ -719,6 +744,13 @@
         }
 
         playSplash();
+    </script>
+    <script>
+    if (location.hostname.includes('-dev')) {
+        var s = document.createElement('script');
+        s.src = 'lib/dev-helper.js';
+        document.body.appendChild(s);
+    }
     </script>
 </body>
 </html>
