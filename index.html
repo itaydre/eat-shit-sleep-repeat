@@ -1281,23 +1281,31 @@
             if (appLoading) return;
             appLoading = true;
             try {
-                const res = await apiFetch('/api/profile');
-                if (res.status === 401) {
+                // Fetch profile and logs in parallel
+                const [profileRes, logsRes] = await Promise.all([
+                    apiFetch('/api/profile'),
+                    apiFetch('/api/logs'),
+                ]);
+                if (profileRes.status === 401) {
                     showScreen('auth');
                     return;
                 }
-                if (!res.ok) {
+                if (!profileRes.ok) {
                     showScreen('onboarding');
                     return;
                 }
-                profile = await res.json();
+                profile = await profileRes.json();
 
                 if (!profile || !profile.onboarding_done) {
                     showScreen('onboarding');
                     return;
                 }
 
-                startApp();
+                // Use already-fetched logs instead of fetching again in startApp
+                if (logsRes.ok) {
+                    entries = await logsRes.json();
+                }
+                startApp(true);
             } catch (e) {
                 console.warn('Failed to load profile:', e);
                 showScreen('onboarding');
@@ -1332,7 +1340,7 @@
             }
         }
 
-        function startApp() {
+        function startApp(logsAlreadyLoaded) {
             showScreen('app');
             updateProfileDisplay();
             document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
@@ -1347,7 +1355,17 @@
                     subscribeToPush();
                 }
             });
-            migrateLocalStorage().then(() => fetchEntries()).then(() => { updateFeedTimer(); resumeFeedSession(); });
+            if (logsAlreadyLoaded) {
+                render();
+                updateFeedTimer();
+                resumeFeedSession();
+                // Still migrate in background, re-fetch if needed
+                migrateLocalStorage().then(() => {
+                    if (!localStorage.getItem('baby_log_migrated')) fetchEntries();
+                });
+            } else {
+                migrateLocalStorage().then(() => fetchEntries()).then(() => { updateFeedTimer(); resumeFeedSession(); });
+            }
             if (!window._intervalsStarted) {
                 setInterval(() => {
                     if (session) fetchEntries().then(() => updateFeedTimer());
