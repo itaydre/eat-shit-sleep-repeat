@@ -1184,10 +1184,11 @@
                 updateFeedTimer();
                 return;
             }
-            // Start fetching config immediately — don't wait for splash
-            const res = await fetch('/api/config');
-            const { supabaseUrl, supabaseAnonKey } = await res.json();
-            sb = createClient(supabaseUrl, supabaseAnonKey);
+            // Public credentials inlined to skip /api/config round trip
+            sb = createClient(
+                'https://djdbsmwyfoujhxlmmmpr.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZGJzbXd5Zm91amh4bG1tbXByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NzE3MTgsImV4cCI6MjA4OTE0NzcxOH0.JUs6ZjM056YupDBF-Hyl17HI8vw4AmlU-4D-U7wPWqM'
+            );
 
             const { data: { session: existing } } = await sb.auth.getSession();
             session = existing;
