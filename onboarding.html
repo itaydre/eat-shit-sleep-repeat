@@ -321,17 +321,6 @@
             top: -16px;
         }
 
-        .time-circle-separator {
-            font-family: 'Varela Round', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            line-height: 1;
-            margin: -2px 0;
-            position: relative;
-            z-index: 2;
-        }
-
         .drum-label {
             font-family: 'Varela Round', sans-serif;
             font-size: 0.55rem;
@@ -421,7 +410,7 @@
                     <div class="drum-row" id="drum-hours">
                         <div class="drum-track" id="track-hours"></div>
                     </div>
-                    <div class="time-circle-separator">:</div>
+                    <div style="height:8px;"></div>
                     <div class="drum-label">MINUTE</div>
                     <div class="drum-row" id="drum-minutes">
                         <div class="drum-track" id="track-minutes"></div>
@@ -481,8 +470,8 @@
 
         // --- Circular Arc Time Picker ---
         function initTimeWheel() {
-            const SPACING = 60; // horizontal px between items
-            const CURVE_RADIUS = 280; // radius of the virtual arc
+            const SPACING = 50; // horizontal px between items
+            const VISIBLE_RANGE = 3; // items visible each side of center
 
             function setupDrum(rowEl, trackEl, values, initialIdx, onChange) {
                 let currentIdx = initialIdx;
@@ -509,7 +498,7 @@
                         if (wrappedOffset > values.length / 2) wrappedOffset -= values.length;
                         if (wrappedOffset < -values.length / 2) wrappedOffset += values.length;
 
-                        const isVisible = Math.abs(wrappedOffset) <= 2;
+                        const isVisible = Math.abs(wrappedOffset) <= VISIBLE_RANGE;
                         const isActive = wrappedOffset === 0;
 
                         el.style.display = isVisible ? '' : 'none';
@@ -517,9 +506,9 @@
 
                         // Position along an arc: x = horizontal offset, y = curve up following ellipse
                         const x = wrappedOffset * SPACING;
-                        const y = Math.abs(wrappedOffset) > 0 ? -(Math.sqrt(Math.abs(wrappedOffset)) * 12) : 0;
+                        const y = -(wrappedOffset * wrappedOffset) * 3;
                         // Tilt to match the arc tangent angle
-                        const tilt = wrappedOffset * -12;
+                        const tilt = wrappedOffset * -8;
                         el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
                         el.style.opacity = isActive ? 1 : Math.max(0.15, 1 - Math.abs(wrappedOffset) * 0.35);
                     });
@@ -573,7 +562,7 @@
             }
 
             const hourValues = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-            const minValues = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+            const minValues = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
             let hoursWheel, minutesWheel;
 
