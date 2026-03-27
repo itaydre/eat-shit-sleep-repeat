@@ -335,6 +335,27 @@
             margin-bottom: 0;
         }
 
+        /* Bracelet Color Picker */
+        .color-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .color-dot.active {
+            border-color: #1a1a1a;
+            transform: scale(1.1);
+        }
+
+        .color-dot-custom {
+            position: relative;
+        }
+
         /* Splash */
         .splash {
             position: fixed;
@@ -462,7 +483,17 @@
                 <div class="progress" id="progress-5"></div>
             </div>
             <div class="step-content" style="justify-content:flex-start; padding-top:20px;">
-                <div id="bracelet-container" style="width:100%; height:280px; margin-bottom:16px;"></div>
+                <div id="bracelet-container" style="width:100%; height:280px; margin-bottom:8px;"></div>
+                <div id="bracelet-colors" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px;">
+                    <button class="color-dot active" data-color="#F08080" style="background:#F08080;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#7EB8E0" style="background:#7EB8E0;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#7ED67E" style="background:#7ED67E;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#F5D76E" style="background:#F5D76E;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#C8A2E8" style="background:#C8A2E8;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#FF9F68" style="background:#FF9F68;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot color-dot-custom" data-color="custom" onclick="pickBraceletColor(this)" style="background:conic-gradient(#F08080, #F5D76E, #7ED67E, #7EB8E0, #C8A2E8, #F08080);"></button>
+                </div>
+                <input type="color" id="custom-color-input" style="display:none;" onchange="applyCustomColor(this.value)">
                 <div class="summary-card" id="summary"></div>
             </div>
             <div class="step-actions">
@@ -676,7 +707,17 @@
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
             document.getElementById('step-' + n).classList.add('active');
             if (n >= 2) updateProgress(n);
-            if (n === 5) { renderSummary(); initBracelet(); }
+            if (n === 5) {
+                renderSummary();
+                // Set initial color dot based on gender
+                if (!chosenBraceletColor) {
+                    const defaultColor = selectedGender === 'girl' ? '#F08080' : selectedGender === 'boy' ? '#7EB8E0' : '#7ED67E';
+                    document.querySelectorAll('.color-dot').forEach(d => {
+                        d.classList.toggle('active', d.dataset.color === defaultColor);
+                    });
+                }
+                initBracelet();
+            }
         }
 
         updateProgress(2);
@@ -742,6 +783,27 @@
 
         // --- 3D Bracelet ---
         let braceletScene = null;
+        let chosenBraceletColor = null;
+
+        function pickBraceletColor(btn) {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            btn.classList.add('active');
+            if (btn.dataset.color === 'custom') {
+                document.getElementById('custom-color-input').click();
+                return;
+            }
+            chosenBraceletColor = btn.dataset.color;
+            initBracelet();
+        }
+
+        function applyCustomColor(hex) {
+            chosenBraceletColor = hex;
+            const customBtn = document.querySelector('.color-dot-custom');
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            customBtn.classList.add('active');
+            customBtn.style.background = hex;
+            initBracelet();
+        }
 
         async function initBracelet() {
             // Clear previous bracelet if any
@@ -829,7 +891,7 @@
             }
 
             const zodiac = getZodiac(dob);
-            const bandColor = gender === 'girl' ? '#F08080' : gender === 'boy' ? '#7EB8E0' : '#7ED67E';
+            const bandColor = chosenBraceletColor || (gender === 'girl' ? '#F08080' : gender === 'boy' ? '#7EB8E0' : '#7ED67E');
 
             // --- Texture ---
             function createTex() {
