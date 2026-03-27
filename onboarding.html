@@ -59,20 +59,27 @@
         /* Progress */
         .progress {
             display: flex;
-            gap: 6px;
+            gap: 16px;
             margin-bottom: 40px;
+            justify-content: center;
         }
 
         .progress-dot {
-            flex: 1;
-            height: 3px;
-            border-radius: 2px;
-            background: #f0f0ee;
-            transition: background 0.3s ease;
+            font-size: 1.2rem;
+            opacity: 0.25;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            filter: grayscale(1);
         }
 
         .progress-dot.done {
-            background: #1a1a1a;
+            opacity: 1;
+            filter: grayscale(0);
+        }
+
+        .progress-dot.current {
+            opacity: 1;
+            filter: grayscale(0);
+            transform: scale(1.15);
         }
 
         /* Typography */
@@ -239,6 +246,91 @@
             font-weight: 600;
         }
 
+        /* Time Wheel Picker */
+        .time-wheel-label {
+            font-size: 0.8rem;
+            color: #b5b5b5;
+            text-align: center;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .time-wheel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 8px 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wheel-col {
+            position: relative;
+            height: 160px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%);
+        }
+
+        .wheel-col.hours { width: 64px; }
+        .wheel-col.minutes { width: 64px; }
+
+        .wheel-track {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .wheel-item {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Varela Round', sans-serif;
+            font-size: 1.3rem;
+            color: #d0d0ce;
+            transition: color 0.15s ease, font-size 0.15s ease, font-weight 0.15s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: grab;
+        }
+
+        .wheel-item.active {
+            color: #1a1a1a;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .wheel-separator {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            padding: 0 2px;
+            align-self: center;
+        }
+
+        .wheel-highlight {
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            right: 12px;
+            height: 42px;
+            transform: translateY(-50%);
+            background: #f5f5f3;
+            border-radius: 10px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wheel-col, .wheel-separator {
+            position: relative;
+            z-index: 1;
+        }
+
         /* Splash */
         .splash {
             position: fixed;
@@ -308,7 +400,18 @@
                 <div class="step-emoji">🎂</div>
                 <h2>When were they born?</h2>
                 <input type="date" class="input" id="ob-dob">
-                <input type="time" class="input" id="ob-time" placeholder="Time of birth">
+                <div class="time-wheel-label">Time of birth</div>
+                <div class="time-wheel">
+                    <div class="wheel-highlight"></div>
+                    <div class="wheel-col hours" id="wheel-hours">
+                        <div class="wheel-track" id="track-hours"></div>
+                    </div>
+                    <div class="wheel-separator">:</div>
+                    <div class="wheel-col minutes" id="wheel-minutes">
+                        <div class="wheel-track" id="track-minutes"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="ob-time">
             </div>
             <div class="step-actions">
                 <button class="btn-primary" onclick="goStep(4)">Continue</button>
@@ -356,6 +459,126 @@
 
     <script>
         let selectedGender = '';
+
+        // --- Time Wheel Picker ---
+        function initTimeWheel() {
+            const ITEM_H = 40;
+            const hoursTrack = document.getElementById('track-hours');
+            const minutesTrack = document.getElementById('track-minutes');
+            let selectedHour = 12;
+            let selectedMinute = 0;
+
+            // Build items
+            for (let h = 0; h < 24; h++) {
+                const el = document.createElement('div');
+                el.className = 'wheel-item' + (h === selectedHour ? ' active' : '');
+                el.textContent = String(h).padStart(2, '0');
+                el.dataset.value = h;
+                hoursTrack.appendChild(el);
+            }
+            for (let m = 0; m < 60; m += 5) {
+                const el = document.createElement('div');
+                el.className = 'wheel-item' + (m === selectedMinute ? ' active' : '');
+                el.textContent = String(m).padStart(2, '0');
+                el.dataset.value = m;
+                minutesTrack.appendChild(el);
+            }
+
+            function setupWheel(col, track, count, initialIdx) {
+                // Offset so selected item is centered (2 items above)
+                const PAD = 2;
+                let currentIdx = initialIdx;
+
+                function setPosition(idx, animate) {
+                    currentIdx = Math.max(0, Math.min(count - 1, idx));
+                    const offset = -(currentIdx * ITEM_H) + (PAD * ITEM_H);
+                    track.style.transition = animate ? 'transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none';
+                    track.style.transform = `translateY(${offset}px)`;
+                    // Update active
+                    track.querySelectorAll('.wheel-item').forEach((el, i) => {
+                        el.classList.toggle('active', i === currentIdx);
+                    });
+                    return currentIdx;
+                }
+
+                setPosition(initialIdx, false);
+
+                // Touch handling
+                let startY = 0, startIdx = 0, isDragging = false;
+
+                col.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    startIdx = currentIdx;
+                    isDragging = true;
+                    track.style.transition = 'none';
+                }, { passive: true });
+
+                col.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    const dy = e.touches[0].clientY - startY;
+                    const delta = Math.round(-dy / ITEM_H);
+                    setPosition(startIdx + delta, false);
+                }, { passive: true });
+
+                col.addEventListener('touchend', () => {
+                    isDragging = false;
+                    setPosition(currentIdx, true);
+                    updateHiddenTime();
+                });
+
+                // Mouse fallback
+                col.addEventListener('mousedown', (e) => {
+                    startY = e.clientY;
+                    startIdx = currentIdx;
+                    isDragging = true;
+                    track.style.transition = 'none';
+                    e.preventDefault();
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    const dy = e.clientY - startY;
+                    const delta = Math.round(-dy / ITEM_H);
+                    setPosition(startIdx + delta, false);
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    setPosition(currentIdx, true);
+                    updateHiddenTime();
+                });
+
+                // Click on item to select
+                track.querySelectorAll('.wheel-item').forEach((el, i) => {
+                    el.addEventListener('click', () => {
+                        setPosition(i, true);
+                        updateHiddenTime();
+                    });
+                });
+
+                return { getIndex: () => currentIdx };
+            }
+
+            const hoursWheel = setupWheel(
+                document.getElementById('wheel-hours'),
+                hoursTrack, 24, selectedHour
+            );
+            const minutesWheel = setupWheel(
+                document.getElementById('wheel-minutes'),
+                minutesTrack, 12, selectedMinute / 5
+            );
+
+            function updateHiddenTime() {
+                const h = String(hoursWheel.getIndex()).padStart(2, '0');
+                const m = String(minutesWheel.getIndex() * 5).padStart(2, '0');
+                document.getElementById('ob-time').value = h + ':' + m;
+            }
+            updateHiddenTime();
+        }
+
+        // Init wheel when DOM ready
+        document.addEventListener('DOMContentLoaded', initTimeWheel);
 
         // Splash animation
         async function playSplash() {
@@ -417,16 +640,21 @@
         // Steps 2-5 have progress (step 1 is the invite gate, no progress bar)
         const totalOnboardingSteps = 4; // steps 2-5
 
+        const progressEmojis = ['👶', '🎂', '⚖️', '✨'];
+
         function updateProgress(step) {
-            // step 2=1st dot, step 3=2nd, step 4=3rd, step 5=4th
-            const progressStep = step - 1;
+            // step 2=1st emoji, step 3=2nd, step 4=3rd, step 5=4th
+            const progressStep = step - 1; // 1-based index into emojis
             for (let s = 2; s <= 5; s++) {
                 const bar = document.getElementById('progress-' + s);
                 if (!bar) continue;
                 bar.innerHTML = '';
                 for (let i = 1; i <= totalOnboardingSteps; i++) {
                     const dot = document.createElement('div');
-                    dot.className = 'progress-dot' + (i <= progressStep ? ' done' : '');
+                    const isDone = i < progressStep;
+                    const isCurrent = i === progressStep;
+                    dot.className = 'progress-dot' + (isDone ? ' done' : '') + (isCurrent ? ' current' : '');
+                    dot.textContent = progressEmojis[i - 1];
                     bar.appendChild(dot);
                 }
             }
