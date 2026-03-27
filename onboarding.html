@@ -505,7 +505,7 @@
                         el.classList.toggle('active', isActive);
 
                         const x = wrappedOffset * 50;
-                        const y = wrappedOffset * -10;
+                        const y = Math.abs(wrappedOffset) * -10;
                         const tilt = wrappedOffset * -8;
                         el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
                         el.style.opacity = 1;
