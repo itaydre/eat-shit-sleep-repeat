@@ -42,12 +42,17 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-        const { id, duration } = req.body;
-        if (!id || duration === undefined) return res.status(400).json({ error: 'Missing id or duration' });
+        const { id, duration, type } = req.body;
+        if (!id) return res.status(400).json({ error: 'Missing id' });
+
+        const updates = {};
+        if (duration !== undefined) updates.duration = duration;
+        if (type) updates.type = type;
+        if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Nothing to update' });
 
         const { data, error } = await supabase
             .from('baby_logs')
-            .update({ duration })
+            .update(updates)
             .eq('id', id)
             .eq('household_id', householdId)
             .select()

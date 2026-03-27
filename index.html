@@ -324,14 +324,18 @@
             margin-right: auto;
             background: transparent;
             pointer-events: auto;
-            transition: gap 0.3s ease;
+            transition: gap 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
         .buttons.compact {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 8px;
             padding: 8px 16px;
             padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .buttons.compact .btn-pump {
+            grid-column: auto;
         }
 
         .btn {
@@ -349,7 +353,7 @@
             flex: 1;
             min-width: 0;
             -webkit-tap-highlight-color: transparent;
-            transition: padding 0.3s ease, gap 0.3s ease, border-radius 0.3s ease;
+            transition: padding 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), gap 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), border-radius 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
         .buttons.compact .btn {
@@ -365,7 +369,7 @@
         .btn .emoji {
             font-size: 1.8rem;
             line-height: 1;
-            transition: font-size 0.3s ease;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
         .buttons.compact .btn .emoji {
@@ -389,6 +393,93 @@
         .btn-feed {
             background: #DEFADE;
             color: #2E8A2E;
+        }
+
+        .btn-pump {
+            background: #F3EEFF;
+            color: #6B4FA0;
+        }
+
+        /* --- Storage Picker Modal --- */
+        .storage-modal {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 70;
+            flex-direction: column;
+        }
+
+        .storage-modal.open {
+            display: flex;
+        }
+
+        .storage-modal .storage-backdrop {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .storage-modal .storage-sheet {
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            padding: 24px 20px calc(20px + env(safe-area-inset-bottom));
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .storage-modal h3 {
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+
+        .storage-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .storage-option {
+            flex: 1;
+            border: none;
+            border-radius: 14px;
+            padding: 18px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .storage-option .storage-emoji {
+            font-size: 1.8rem;
+        }
+
+        .storage-option.fridge {
+            background: #E3EEFF;
+            color: #3B6BC4;
+        }
+
+        .storage-option.freezer {
+            background: #E8F4FD;
+            color: #2980B9;
+        }
+
+        .storage-skip {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 12px;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            color: #b5b5b5;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 8px;
         }
 
         .history {
@@ -575,6 +666,7 @@
         .entry .emoji.emoji-pee { background: #E3EEFF; }
         .entry .emoji.emoji-poop { background: #FFEDCF; }
         .entry .emoji.emoji-feed { background: #DEFADE; }
+        .entry .emoji.emoji-pump { background: #F3EEFF; }
 
         .entry .details {
             flex: 1;
@@ -1208,7 +1300,7 @@
                 </a>
             </div>
             <div style="background:#fff; border-radius:14px; overflow:hidden;">
-                <button class="settings-item" onclick="logout()" style="margin-bottom:0; border-radius:0; color:#b5b5b5; justify-content:center;">
+                <button class="settings-item" onclick="logout()" style="margin-bottom:0; border-radius:0; color:#E74C3C; justify-content:center;">
                     <span>Sign out</span>
                 </button>
             </div>
@@ -1346,6 +1438,10 @@
                     <span class="emoji">&#127868;</span>
                     <span>Feed R</span>
                 </button>
+                <button class="btn btn-pump" onclick="startPumpSession()" style="grid-column: 1 / -1;">
+                    <span class="emoji">🤱</span>
+                    <span>Pump</span>
+                </button>
             </div>
             <button onclick="openAddModal()" style="display:flex; align-items:center; justify-content:center; width:100%; max-width:500px; margin:0 auto; padding:10px; margin-top:6px; background:transparent; border:none; font-size:0.75rem; font-weight:500; color:#b5b5b5; cursor:pointer; font-family:inherit; gap:4px; pointer-events:auto;">
                 + Add past entry
@@ -1370,6 +1466,9 @@
                 <button type="button" class="activity-btn" onclick="setActivity('feed_r')" data-type="feed_r">
                     <span class="emoji">&#127868;</span><span>Feed R</span>
                 </button>
+                <button type="button" class="activity-btn" onclick="setActivity('pump')" data-type="pump">
+                    <span class="emoji">🤱</span><span>Pump</span>
+                </button>
             </div>
             <div class="time-chips">
                 <button type="button" class="time-chip active" onclick="setTimePreset(5,this)">5m ago</button>
@@ -1384,6 +1483,25 @@
                 <button class="cancel" onclick="closeAddModal()">Cancel</button>
                 <button class="save" onclick="saveRetroEntry()">Save</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Storage Picker Modal -->
+    <div class="storage-modal" id="storage-modal">
+        <div class="storage-backdrop" onclick="skipStorage()"></div>
+        <div class="storage-sheet">
+            <h3>Where are you storing the milk?</h3>
+            <div class="storage-options">
+                <button class="storage-option fridge" onclick="chooseStorage('fridge')">
+                    <span class="storage-emoji">🧊</span>
+                    <span>Fridge</span>
+                </button>
+                <button class="storage-option freezer" onclick="chooseStorage('freezer')">
+                    <span class="storage-emoji">❄️</span>
+                    <span>Freezer</span>
+                </button>
+            </div>
+            <button class="storage-skip" onclick="skipStorage()">Skip</button>
         </div>
     </div>
 
@@ -1627,7 +1745,7 @@
                     render();
                     updateFeedTimer();
                     updateVitdBanner();
-                    resumeFeedSession();
+                    resumeFeedSession(); resumePumpSession();
                 }
             } catch(e) { console.error('Pre-render error:', e); }
             showScreen('app');
@@ -1892,11 +2010,15 @@
             feed:   { emoji: '\u{1F37C}', label: 'Feed' },
             feed_l: { emoji: '\u{1F37C}', label: 'Feed L', flip: true },
             feed_r: { emoji: '\u{1F37C}', label: 'Feed R' },
+            pump:          { emoji: '\u{1F931}', label: 'Pump' },
+            pump_fridge:   { emoji: '\u{1F931}', label: 'Pump', badge: '🧊' },
+            pump_freezer:  { emoji: '\u{1F931}', label: 'Pump', badge: '❄️' },
         };
 
         function emojiClass(type) {
             if (type === 'pee') return 'emoji-pee';
             if (type === 'poop') return 'emoji-poop';
+            if (type.startsWith('pump')) return 'emoji-pump';
             return 'emoji-feed';
         }
 
@@ -2077,6 +2199,8 @@
                     if (counts.poop) parts.push(`<span>\u{1F4A9} ${counts.poop}</span>`);
                     if (counts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${counts.feed_l}</span>`);
                     if (counts.feed_r) parts.push(`<span>\u{1F37C} ${counts.feed_r}</span>`);
+                    const pumpTotalH = (counts.pump || 0) + (counts.pump_fridge || 0) + (counts.pump_freezer || 0);
+                    if (pumpTotalH) parts.push(`<span>\u{1F931} ${pumpTotalH}</span>`);
                     const summaryHtml = parts.length ? `<div class="day-summary">${parts.join('')}</div>` : '';
                     html += `<div class="day-header"><div class="day-label">${dayLabel}</div>${summaryHtml}</div>`;
                 }
@@ -2084,10 +2208,12 @@
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                 const flipStyle = act.flip ? ' style="transform:scaleX(-1)"' : '';
                 const isFeedH = entry.type === 'feed_l' || entry.type === 'feed_r';
+                const isPumpH = entry.type.startsWith('pump');
                 const durMinsH = entry.duration ? Math.floor(entry.duration / 60) : 0;
                 let histTrailing = '';
-                if (isFeedH && durMinsH > 0) {
-                    histTrailing = `<div class="duration-badge"><span class="dur-value">${durMinsH}m</span></div>`;
+                if ((isFeedH || isPumpH) && durMinsH > 0) {
+                    const storageBadgeH = act.badge ? `<span class="dur-value">${act.badge}</span>` : '';
+                    histTrailing = `<div class="duration-badge">${storageBadgeH}<span class="dur-value">${durMinsH}m</span></div>`;
                 }
                 html += `
                     <div class="entry-wrapper">
@@ -2126,6 +2252,8 @@
                 if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
                 if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${todayCounts.feed_l}</span>`);
                 if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F37C} ${todayCounts.feed_r}</span>`);
+                const pumpTotal = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
+                if (pumpTotal) summaryParts.push(`<span>\u{1F931} ${pumpTotal}</span>`);
                 todaySummaryEl.innerHTML = summaryParts.join('');
 
                 if (todayEntries.length === 0) {
@@ -2138,15 +2266,26 @@
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                         const tFlip = act.flip ? ' style="transform:scaleX(-1)"' : '';
                         const isFeed = entry.type === 'feed_l' || entry.type === 'feed_r';
+                        const isPump = entry.type.startsWith('pump');
                         let trailingHtml = '';
-                        if (entry.pending) {
+                        if (entry.pending && isPump) {
+                            trailingHtml = `<button class="stop-btn" onclick="stopPumpSession()" style="margin-left:auto;">&#9632;</button>`;
+                        } else if (entry.pending) {
                             trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" style="margin-left:auto;">&#9632;</button>`;
-                        } else if (isFeed) {
+                        } else if (isFeed || isPump) {
                             const durMins = entry.duration ? Math.floor(entry.duration / 60) : 0;
                             const durBadge = durMins > 0 ? `<span class="dur-value">${durMins}m</span>` : '';
-                            trailingHtml = `<div class="duration-badge">${durBadge}<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button></div>`;
+                            const storageBadge = act.badge ? `<span class="dur-value">${act.badge}</span>` : '';
+                            trailingHtml = `<div class="duration-badge">${storageBadge}${durBadge}<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button></div>`;
                         }
-                        const timeText = entry.pending ? `<span class="feed-stopwatch" id="feed-stopwatch">0:00</span>` : formatTime(entry.timestamp);
+                        let timeText;
+                        if (entry.pending && isPump) {
+                            timeText = `<span class="feed-stopwatch" id="pump-stopwatch">0:00</span>`;
+                        } else if (entry.pending) {
+                            timeText = `<span class="feed-stopwatch" id="feed-stopwatch">0:00</span>`;
+                        } else {
+                            timeText = formatTime(entry.timestamp);
+                        }
                         todayHtml += `
                             <div class="entry-wrapper">
                                 <div class="entry-delete-bg">Delete</div>
@@ -2362,6 +2501,89 @@
                 const m = Math.floor(elapsed / 60);
                 const s = elapsed % 60;
                 const el = document.getElementById('feed-stopwatch');
+                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+            }, 1000);
+        }
+
+        // --- Pump Session ---
+        let pumpSessionStart = null;
+        let pumpSessionInterval = null;
+        let pumpPendingEntry = null;
+
+        async function startPumpSession() {
+            if (pumpSessionInterval) { stopPumpSession(); return; } // toggle off
+            if (feedSessionInterval) stopFeedSession(); // stop any active feed
+            pumpSessionStart = Date.now();
+            await log('pump', pumpSessionStart);
+            const pendingEntry = entries.find(e => e.timestamp === pumpSessionStart && e.type === 'pump');
+            if (pendingEntry) pendingEntry.pending = true;
+            render();
+            pumpSessionInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
+                const m = Math.floor(elapsed / 60);
+                const s = elapsed % 60;
+                const el = document.getElementById('pump-stopwatch');
+                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+            }, 1000);
+        }
+
+        function stopPumpSession() {
+            clearInterval(pumpSessionInterval);
+            pumpSessionInterval = null;
+            const duration = Math.floor((Date.now() - pumpSessionStart) / 1000);
+            const entry = entries.find(e => e.type === 'pump' && e.timestamp === pumpSessionStart);
+            if (entry) {
+                entry.duration = duration;
+                delete entry.pending;
+                pumpPendingEntry = entry;
+                if (!isDevMode && entry.id) {
+                    apiFetch('/api/logs', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: entry.id, duration }),
+                    }).catch(e => console.warn('Failed to save pump duration:', e));
+                }
+            }
+            pumpSessionStart = null;
+            render();
+            // Show storage picker
+            document.getElementById('storage-modal').classList.add('open');
+        }
+
+        function chooseStorage(location) {
+            document.getElementById('storage-modal').classList.remove('open');
+            if (!pumpPendingEntry) return;
+            const newType = 'pump_' + location;
+            pumpPendingEntry.type = newType;
+            if (!isDevMode && pumpPendingEntry.id) {
+                apiFetch('/api/logs', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: pumpPendingEntry.id, type: newType }),
+                }).catch(e => console.warn('Failed to update pump storage:', e));
+            }
+            pumpPendingEntry = null;
+            render();
+        }
+
+        function skipStorage() {
+            document.getElementById('storage-modal').classList.remove('open');
+            pumpPendingEntry = null;
+        }
+
+        function resumePumpSession() {
+            if (pumpSessionInterval) return;
+            const lastPump = entries.find(e => e.type === 'pump' && !e.duration);
+            if (!lastPump) return;
+            if (Date.now() - lastPump.timestamp > 2 * 60 * 60 * 1000) return;
+            pumpSessionStart = lastPump.timestamp;
+            lastPump.pending = true;
+            render();
+            pumpSessionInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
+                const m = Math.floor(elapsed / 60);
+                const s = elapsed % 60;
+                const el = document.getElementById('pump-stopwatch');
                 if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
             }, 1000);
         }
@@ -2678,7 +2900,8 @@
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
             openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay,
             editDuration, saveDuration, refreshData,
-            confirmVitaminD, dismissVitaminD, toggleVitaminD
+            confirmVitaminD, dismissVitaminD, toggleVitaminD,
+            startPumpSession, stopPumpSession, chooseStorage, skipStorage
         });
 
         // Splash animation
