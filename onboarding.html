@@ -274,8 +274,8 @@
                 <h2>Welcome!</h2>
                 <p>Were you invited by a partner?</p>
                 <div id="invite-choice" style="display:flex; flex-direction:column; gap:10px;">
-                    <button class="btn-primary" onclick="showInviteInput()">Yes, I have a code</button>
-                    <button class="btn-skip" onclick="goStep(2)" style="margin-top:0;">No, start fresh</button>
+                    <button class="btn-primary" onclick="goStep(2)">Start fresh</button>
+                    <button onclick="showInviteInput()" style="width:100%; padding:16px; background:#fff; border:1px solid #f0f0ee; border-radius:14px; font-size:1rem; color:#1a1a1a; cursor:pointer; font-family:inherit;">I have an invite code</button>
                 </div>
                 <div id="invite-input" style="display:none; margin-top:8px;">
                     <input type="text" class="input" id="ob-invite" placeholder="Paste invite code" autofocus>

@@ -840,7 +840,7 @@
         .feed-timer {
             max-width: 500px;
             margin: 0 auto 16px;
-            background: #FFF0E6;
+            background: #FFE4CC;
             border-radius: 14px;
             padding: 14px 18px;
             display: flex;
@@ -1473,15 +1473,15 @@
                     <span>Poop</span>
                 </button>
                 <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
-                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span>
+                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span>
                     <span>Feed L</span>
                 </button>
                 <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
-                    <span class="emoji">&#127868;</span>
+                    <span class="emoji">🤱</span>
                     <span>Feed R</span>
                 </button>
                 <button class="btn btn-pump" onclick="startPumpSession()" style="grid-column: 1 / -1;">
-                    <span class="emoji">🤱</span>
+                    <span class="emoji">🍼</span>
                     <span>Pump</span>
                 </button>
             </div>
@@ -1503,13 +1503,13 @@
                     <span class="emoji">&#128169;</span><span>Poop</span>
                 </button>
                 <button type="button" class="activity-btn" onclick="setActivity('feed_l')" data-type="feed_l">
-                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">&#127868;</span><span>Feed L</span>
+                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span><span>Feed L</span>
                 </button>
                 <button type="button" class="activity-btn" onclick="setActivity('feed_r')" data-type="feed_r">
-                    <span class="emoji">&#127868;</span><span>Feed R</span>
+                    <span class="emoji">🤱</span><span>Feed R</span>
                 </button>
                 <button type="button" class="activity-btn" onclick="setActivity('pump')" data-type="pump">
-                    <span class="emoji">🤱</span><span>Pump</span>
+                    <span class="emoji">🍼</span><span>Pump</span>
                 </button>
             </div>
             <div class="time-chips">
@@ -2096,12 +2096,12 @@
         const ACTIVITIES = {
             pee:    { emoji: '\u{1F4A6}', label: 'Pee' },
             poop:   { emoji: '\u{1F4A9}', label: 'Poop' },
-            feed:   { emoji: '\u{1F37C}', label: 'Feed' },
-            feed_l: { emoji: '\u{1F37C}', label: 'Feed L', flip: true },
-            feed_r: { emoji: '\u{1F37C}', label: 'Feed R' },
-            pump:          { emoji: '\u{1F931}', label: 'Pump' },
-            pump_fridge:   { emoji: '\u{1F931}', label: 'Pump', badge: '🧊' },
-            pump_freezer:  { emoji: '\u{1F931}', label: 'Pump', badge: '❄️' },
+            feed:   { emoji: '\u{1F931}', label: 'Feed' },
+            feed_l: { emoji: '\u{1F931}', label: 'Feed L', flip: true },
+            feed_r: { emoji: '\u{1F931}', label: 'Feed R' },
+            pump:          { emoji: '\u{1F37C}', label: 'Pump' },
+            pump_fridge:   { emoji: '\u{1F37C}', label: 'Pump', badge: '🧊' },
+            pump_freezer:  { emoji: '\u{1F37C}', label: 'Pump', badge: '❄️' },
         };
 
         function emojiClass(type) {
@@ -2286,8 +2286,8 @@
                     const parts = [];
                     if (counts.pee) parts.push(`<span>\u{1F4A6} ${counts.pee}</span>`);
                     if (counts.poop) parts.push(`<span>\u{1F4A9} ${counts.poop}</span>`);
-                    if (counts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${counts.feed_l}</span>`);
-                    if (counts.feed_r) parts.push(`<span>\u{1F37C} ${counts.feed_r}</span>`);
+                    if (counts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F931}</span> ${counts.feed_l}</span>`);
+                    if (counts.feed_r) parts.push(`<span>\u{1F931} ${counts.feed_r}</span>`);
                     const pumpTotalH = (counts.pump || 0) + (counts.pump_fridge || 0) + (counts.pump_freezer || 0);
                     if (pumpTotalH) parts.push(`<span>\u{1F931} ${pumpTotalH}</span>`);
                     const summaryHtml = parts.length ? `<div class="day-summary">${parts.join('')}</div>` : '';
@@ -2339,8 +2339,8 @@
                 const summaryParts = [];
                 if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
                 if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
-                if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${todayCounts.feed_l}</span>`);
-                if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F37C} ${todayCounts.feed_r}</span>`);
+                if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F931}</span> ${todayCounts.feed_l}</span>`);
+                if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F931} ${todayCounts.feed_r}</span>`);
                 const pumpTotal = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
                 if (pumpTotal) summaryParts.push(`<span>\u{1F931} ${pumpTotal}</span>`);
                 todaySummaryEl.innerHTML = summaryParts.join('');
@@ -2420,8 +2420,8 @@
             const types = [
                 { key: 'pee', emoji: '\u{1F4A6}', label: 'Pee', cls: 'pee' },
                 { key: 'poop', emoji: '\u{1F4A9}', label: 'Poop', cls: 'poop' },
-                { key: 'feed_l', emoji: '\u{1F37C}', label: 'Feed L', cls: 'feed', flip: true },
-                { key: 'feed_r', emoji: '\u{1F37C}', label: 'Feed R', cls: 'feed' },
+                { key: 'feed_l', emoji: '\u{1F931}', label: 'Feed L', cls: 'feed', flip: true },
+                { key: 'feed_r', emoji: '\u{1F931}', label: 'Feed R', cls: 'feed' },
             ];
 
             // Count per day per type
