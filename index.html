@@ -39,10 +39,11 @@
 
         body {
             font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #fef9f0;
-            color: #333;
+            background: #fafaf8;
+            color: #1a1a1a;
             min-height: 100vh;
             padding: 0 20px calc(80px + env(safe-area-inset-bottom));
+            -webkit-font-smoothing: antialiased;
         }
 
         /* --- Auth & Onboarding Screens --- */
@@ -131,7 +132,8 @@
             position: sticky;
             top: 0;
             z-index: 60;
-            background: #5a4a3a;
+            background: #fff;
+            border-bottom: 1px solid #f0f0ee;
             margin: 0 -20px;
             padding: env(safe-area-inset-top) 0 0;
         }
@@ -141,8 +143,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
-            margin-bottom: 24px;
+            padding: 12px 16px;
+            margin-bottom: 0;
         }
 
         .top-bar-center {
@@ -156,40 +158,49 @@
         .top-bar-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .top-bar-left .top-link {
             background: none;
             border: none;
             cursor: pointer;
-            color: rgba(255,255,255,0.5);
-            padding: 4px;
+            color: #b5b5b5;
+            padding: 5px;
             display: flex;
             align-items: center;
+            border-radius: 8px;
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+
+        .top-bar-left .top-link:hover {
+            background: #f0f0ee;
         }
 
         .top-bar-left .top-link.active {
-            color: #fff;
+            color: #1a1a1a;
         }
 
         .top-bar h1 {
-            font-size: 1.1rem;
-            color: #fff;
+            font-size: 1rem;
+            color: #1a1a1a;
             margin: 0;
             text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         .top-bar .back-btn {
             position: absolute;
-            left: 12px;
+            left: 16px;
             background: none;
             border: none;
             font-size: 1.3rem;
             cursor: pointer;
-            color: rgba(255,255,255,0.7);
-            padding: 4px;
+            color: #8a8a8a;
+            padding: 5px;
             display: none;
+            border-radius: 8px;
         }
 
         .top-bar .back-btn.visible {
@@ -199,11 +210,17 @@
         .top-bar .settings-btn {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            color: rgba(255,255,255,0.7);
-            padding: 4px;
+            color: #8a8a8a;
+            padding: 5px;
             text-align: right;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+
+        .top-bar .settings-btn:hover {
+            background: #f0f0ee;
         }
 
         /* --- Settings --- */
@@ -211,7 +228,7 @@
             display: none;
             max-width: 500px;
             margin: 0 auto;
-            padding-top: 16px;
+            padding-top: 20px;
         }
 
         .settings-page.active {
@@ -220,38 +237,47 @@
 
         .settings-page h2 {
             font-size: 1.2rem;
-            color: #5a4a3a;
+            color: #1a1a1a;
             margin-bottom: 20px;
         }
 
         .settings-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
+            gap: 14px;
+            padding: 15px 16px;
             background: white;
-            border-radius: 12px;
-            margin-bottom: 8px;
+            border-radius: 14px;
+            margin-bottom: 6px;
             box-shadow: none;
             cursor: pointer;
             border: none;
             width: 100%;
-            font-size: 0.95rem;
-            color: #333;
+            font-size: 0.9rem;
+            color: #1a1a1a;
             font-family: inherit;
             text-align: left;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .settings-item:active {
-            transform: scale(0.98);
+            background: #fafaf8;
         }
 
         .settings-item .settings-icon {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0ee;
+            flex-shrink: 0;
         }
 
         .settings-item.danger {
-            color: #e74c3c;
+            color: #E74C3C;
         }
 
         /* --- Main App --- */
@@ -263,68 +289,68 @@
             z-index: 50;
             pointer-events: none;
             background: #fff;
+            border-top: 1px solid #f0f0ee;
         }
 
         .buttons-fade {
-            height: 40px;
-            background: linear-gradient(to top, transparent, #faf6f0);
-            transition: height 0.3s ease;
+            height: 0;
+            background: transparent;
         }
 
         .buttons-wrapper.compact .buttons-fade {
-            height: 20px;
+            height: 0;
         }
 
         .buttons {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding: 16px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 12px 16px;
             padding-bottom: 0;
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
             background: transparent;
             pointer-events: auto;
-            transition: gap 0.3s ease;
         }
 
         .buttons.compact {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 6px;
-            padding: 8px 14px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 12px 16px;
             padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
         }
 
         .btn {
             border: none;
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 14px 0;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             box-shadow: none;
             flex: 1;
             min-width: 0;
-            transition: padding 0.3s ease, gap 0.3s ease, border-radius 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .buttons.compact .btn {
             padding: 10px 0;
-            gap: 2px;
+            gap: 3px;
             border-radius: 12px;
         }
 
         .btn:active {
-            transform: scale(0.95);
+            transform: scale(0.93);
         }
 
         .btn .emoji {
-            font-size: 1.8rem;
-            transition: font-size 0.3s ease;
+            font-size: 1.5rem;
+            line-height: 1;
         }
 
         .buttons.compact .btn .emoji {
@@ -332,22 +358,22 @@
         }
 
         .buttons.compact .btn span:not(.emoji) {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
         }
 
         .btn-sleep {
-            background: #d4e6ff;
-            color: #2a5298;
+            background: #E3EEFF;
+            color: #3B6BC4;
         }
 
         .btn-poop {
-            background: #f5e6d0;
-            color: #7a5c2e;
+            background: #FFEDCF;
+            color: #A06B2E;
         }
 
         .btn-feed {
-            background: #d9f5d9;
-            color: #2e6b2e;
+            background: #DEFADE;
+            color: #2E8A2E;
         }
 
         .history {
@@ -463,8 +489,8 @@
         .entry-wrapper {
             position: relative;
             overflow: hidden;
-            border-radius: 12px;
-            margin-bottom: 8px;
+            border-radius: 14px;
+            margin-bottom: 6px;
         }
 
         .entry-delete-bg {
@@ -492,10 +518,10 @@
             position: relative;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
+            gap: 14px;
+            padding: 14px 16px;
             background: white;
-            border-radius: 12px;
+            border-radius: 14px;
             box-shadow: none;
             animation: slideIn 0.2s ease-out;
             transition: transform 0.2s ease;
@@ -515,8 +541,19 @@
         }
 
         .entry .emoji {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
+
+        .entry .emoji.emoji-pee { background: #E3EEFF; }
+        .entry .emoji.emoji-poop { background: #FFEDCF; }
+        .entry .emoji.emoji-feed { background: #DEFADE; }
 
         .entry .details {
             flex: 1;
@@ -524,12 +561,14 @@
 
         .entry .activity {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            color: #1a1a1a;
         }
 
         .entry .time {
-            color: #888;
-            font-size: 0.85rem;
+            color: #8a8a8a;
+            font-size: 0.75rem;
+            margin-top: 1px;
         }
 
 
@@ -571,17 +610,18 @@
         .feed-timer {
             max-width: 500px;
             margin: 0 auto 16px;
-            background: #fff3e0;
+            background: #FFF0E6;
             border-radius: 14px;
-            padding: 16px;
+            padding: 14px 18px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             box-shadow: none;
         }
 
         .feed-timer .emoji {
             font-size: 1.6rem;
+            line-height: 1;
         }
 
         .feed-timer .info {
@@ -589,53 +629,55 @@
         }
 
         .feed-timer .label {
-            font-size: 0.8rem;
-            color: #b07a30;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #8a8a8a;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.04em;
         }
 
         .feed-timer .countdown {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: #7a5c2e;
+            color: #1a1a1a;
             font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            margin-top: 1px;
         }
 
         .feed-timer .skip-btn {
             background: none;
             border: none;
             font-size: 1.1rem;
-            color: #b07a30;
+            color: #b5b5b5;
             cursor: pointer;
             padding: 4px 8px;
-            opacity: 0.6;
         }
 
         .feed-timer.overdue .skip-btn {
-            color: #c0392b;
+            color: #D45454;
         }
 
         .feed-timer.overdue {
-            background: #fde8e8;
+            background: #FFF0F0;
         }
 
         .feed-timer.overdue .label {
-            color: #c0392b;
+            color: #D45454;
         }
 
         .feed-timer.overdue .countdown {
-            color: #e74c3c;
+            color: #D45454;
         }
 
         .entry .stop-btn {
-            background: #e74c3c;
+            background: #E74C3C;
             color: #fff;
             border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            font-size: 0.9rem;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
             cursor: pointer;
             flex-shrink: 0;
         }
@@ -684,9 +726,10 @@
         }
 
         .entry .feed-stopwatch {
-            font-weight: 700;
-            color: #2e6b2e;
+            font-weight: 600;
+            color: #E07A4B;
             font-variant-numeric: tabular-nums;
+            font-size: 0.85rem;
         }
 
         .notif-banner {
@@ -714,7 +757,7 @@
         }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; padding-top: 0; padding-bottom: 180px; }
+        .tab-content.active { display: block; padding-top: 12px; padding-bottom: 180px; }
 
         /* --- Bottom Nav Bar --- */
         .bottom-nav {
@@ -867,7 +910,7 @@
 </head>
 <body>
     <!-- Splash Screen -->
-    <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fef9f0; z-index:999;">
+    <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fafaf8; z-index:999;">
         <div id="splash-word" style="font-size:6rem; color:#5a4a3a; opacity:0; transition: transform 0.25s ease, opacity 0.2s ease; transform: scale(1);"></div>
         <div id="splash-spinner" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);"><div class="spinner"></div></div>
     </div>
@@ -929,7 +972,7 @@
             </div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
-                <div id="baby-age" style="font-size:0.75rem; color:rgba(255,255,255,0.6); margin-top:2px;"></div>
+                <div id="baby-age" style="font-size:0.7rem; color:#b5b5b5; margin-top:1px;"></div>
             </div>
             <button class="settings-btn" id="settings-btn" onclick="openSettings()">&#9881;</button>
         </div>
@@ -1086,8 +1129,8 @@
                     <span>Feed R</span>
                 </button>
             </div>
-            <button onclick="openAddModal()" style="display:flex; align-items:center; justify-content:center; width:100%; max-width:500px; margin:0 auto; padding:24px; background:#fff; border:none; border-radius:12px; font-size:0.85rem; color:#999; cursor:pointer; font-family:inherit; gap:6px; pointer-events:auto;">
-                <span style="font-size:1rem; color:#bbb;">+</span> Add past entry
+            <button onclick="openAddModal()" style="display:flex; align-items:center; justify-content:center; width:100%; max-width:500px; margin:0 auto; padding:10px; margin-top:6px; background:transparent; border:none; font-size:0.75rem; font-weight:500; color:#b5b5b5; cursor:pointer; font-family:inherit; gap:4px; pointer-events:auto;">
+                + Add past entry
             </button>
         </div>
 
@@ -1619,6 +1662,12 @@
             feed_r: { emoji: '\u{1F37C}', label: 'Feed R' },
         };
 
+        function emojiClass(type) {
+            if (type === 'pee') return 'emoji-pee';
+            if (type === 'poop') return 'emoji-poop';
+            return 'emoji-feed';
+        }
+
         let entries = [];
 
         function getEntries() {
@@ -1801,13 +1850,13 @@
                 }
 
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
-                const flipStyle = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
+                const flipStyle = act.flip ? ' style="transform:scaleX(-1)"' : '';
                 const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m ${entry.duration % 60}s)` : '';
                 html += `
                     <div class="entry-wrapper">
                         <div class="entry-delete-bg">Delete</div>
                         <div class="entry" data-index="${i}">
-                            <span class="emoji"${flipStyle}>${act.emoji}</span>
+                            <span class="emoji ${emojiClass(entry.type)}"${flipStyle}>${act.emoji}</span>
                             <div class="details">
                                 <div class="activity">${act.label}${durationText}</div>
                                 <div class="time">${formatTime(entry.timestamp)}</div>
@@ -1849,7 +1898,7 @@
                     todayEntries.forEach((entry) => {
                         const globalIndex = entries.indexOf(entry);
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
-                        const tFlip = act.flip ? ' style="display:inline-block;transform:scaleX(-1)"' : '';
+                        const tFlip = act.flip ? ' style="transform:scaleX(-1)"' : '';
                         const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m)` : '';
                         const isFeed = entry.type === 'feed_l' || entry.type === 'feed_r';
                         let trailingHtml = '';
@@ -1863,7 +1912,7 @@
                             <div class="entry-wrapper">
                                 <div class="entry-delete-bg">Delete</div>
                                 <div class="entry" data-index="${globalIndex}" id="entry-${globalIndex}">
-                                    <span class="emoji"${tFlip}>${act.emoji}</span>
+                                    <span class="emoji ${emojiClass(entry.type)}"${tFlip}>${act.emoji}</span>
                                     <div class="details">
                                         <div class="activity">${act.label}${durationText}</div>
                                         <div class="time">${timeText}</div>
