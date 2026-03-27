@@ -1168,6 +1168,9 @@
             ];
         }
 
+        // Start splash immediately so _splashDone is available for later awaits
+        window._splashDone = playSplash();
+
         // Show spinner on loading screen after splash emojis finish
         window._splashDone.then(() => {
             const sp = document.getElementById('splash-spinner');
@@ -1356,13 +1359,15 @@
 
         function startApp(logsAlreadyLoaded) {
             // Render into hidden DOM first, then show — avoids flash of empty content
-            updateProfileDisplay();
-            document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
-            if (logsAlreadyLoaded) {
-                render();
-                updateFeedTimer();
-                resumeFeedSession();
-            }
+            try {
+                updateProfileDisplay();
+                document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
+                if (logsAlreadyLoaded) {
+                    render();
+                    updateFeedTimer();
+                    resumeFeedSession();
+                }
+            } catch(e) { console.error('Pre-render error:', e); }
             showScreen('app');
             if (isDevMode) {
                 var tabParam = new URLSearchParams(location.search).get('tab');
@@ -2361,7 +2366,6 @@
         }, { passive: true });
 
         // Boot
-        window._splashDone = playSplash();
         initSupabase().catch(e => {
             console.error('Init failed:', e);
             const errEl = document.createElement('pre');
