@@ -868,7 +868,7 @@
 <body>
     <!-- Splash Screen -->
     <div id="loading-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fef9f0; z-index:999;">
-        <div id="splash-word" style="font-size:6rem; color:#5a4a3a; opacity:0; transition: transform 0.3s ease, opacity 0.2s ease; transform: scale(1);"></div>
+        <div id="splash-word" style="font-size:6rem; color:#5a4a3a; opacity:0; transition: transform 0.15s ease, opacity 0.1s ease; transform: scale(1);"></div>
         <div id="splash-spinner" style="display:none; margin-top:24px;"><div class="spinner"></div></div>
     </div>
 
@@ -1355,9 +1355,15 @@
         }
 
         function startApp(logsAlreadyLoaded) {
-            showScreen('app');
+            // Render into hidden DOM first, then show — avoids flash of empty content
             updateProfileDisplay();
             document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
+            if (logsAlreadyLoaded) {
+                render();
+                updateFeedTimer();
+                resumeFeedSession();
+            }
+            showScreen('app');
             if (isDevMode) {
                 var tabParam = new URLSearchParams(location.search).get('tab');
                 if (tabParam) switchTab(tabParam);
@@ -1370,9 +1376,6 @@
                 }
             });
             if (logsAlreadyLoaded) {
-                render();
-                updateFeedTimer();
-                resumeFeedSession();
                 // Still migrate in background, re-fetch if needed
                 migrateLocalStorage().then(() => {
                     if (!localStorage.getItem('baby_log_migrated')) fetchEntries();
@@ -2327,15 +2330,15 @@
             const emojis = ['🍼', '💩', '😴', '🔁'];
             const el = document.getElementById('splash-word');
             if (!el) return;
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 50));
             for (const emoji of emojis) {
                 el.textContent = emoji;
                 el.style.opacity = '1';
                 el.style.transform = 'scale(1)';
-                await new Promise(r => setTimeout(r, 250));
+                await new Promise(r => setTimeout(r, 180));
                 el.style.transform = 'scale(0.2)';
                 el.style.opacity = '0';
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 100));
             }
         }
 
