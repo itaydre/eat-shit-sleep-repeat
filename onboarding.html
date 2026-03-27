@@ -573,22 +573,25 @@
             const hourValues = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
             const minValues = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
-            const hoursWheel = setupDrum(
-                document.getElementById('drum-hours'),
-                document.getElementById('track-hours'),
-                hourValues, 12, updateTime
-            );
-            const minutesWheel = setupDrum(
-                document.getElementById('drum-minutes'),
-                document.getElementById('track-minutes'),
-                minValues, 0, updateTime
-            );
+            let hoursWheel, minutesWheel;
 
             function updateTime() {
+                if (!hoursWheel || !minutesWheel) return;
                 const h = hourValues[hoursWheel.getIndex()];
                 const m = minValues[minutesWheel.getIndex()];
                 document.getElementById('ob-time').value = h + ':' + m;
             }
+
+            hoursWheel = setupDrum(
+                document.getElementById('drum-hours'),
+                document.getElementById('track-hours'),
+                hourValues, 12, updateTime
+            );
+            minutesWheel = setupDrum(
+                document.getElementById('drum-minutes'),
+                document.getElementById('track-minutes'),
+                minValues, 0, updateTime
+            );
             updateTime();
         }
 
