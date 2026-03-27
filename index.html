@@ -600,27 +600,30 @@
             font-size: 0.95rem;
         }
 
+        .day-header {
+            position: sticky;
+            top: calc(env(safe-area-inset-top, 0px) + 55px);
+            background: #fafaf8;
+            z-index: 10;
+            margin-left: -20px;
+            margin-right: -20px;
+            padding: 10px 24px 6px;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         .day-label {
             font-size: 0.8rem;
             color: #aaa;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin: 16px 0 0;
-            padding: 8px 4px 4px;
-            position: sticky;
-            top: 0;
-            background: #fafaf8;
-            z-index: 10;
-            margin-left: -20px;
-            margin-right: -20px;
-            padding-left: 24px;
-            padding-right: 24px;
         }
 
         .day-summary {
             display: flex;
-            gap: 12px;
-            padding: 6px 4px 8px;
+            gap: 10px;
             font-size: 0.8rem;
             color: #aaa;
         }
@@ -2054,14 +2057,14 @@
                 const dayLabel = formatDayLabel(entry.timestamp);
                 if (dayLabel !== currentDay) {
                     currentDay = dayLabel;
-                    html += `<div class="day-label">${dayLabel}</div>`;
                     const counts = dayGroups[dayLabel];
                     const parts = [];
                     if (counts.pee) parts.push(`<span>\u{1F4A6} ${counts.pee}</span>`);
                     if (counts.poop) parts.push(`<span>\u{1F4A9} ${counts.poop}</span>`);
                     if (counts.feed_l) parts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F37C}</span> ${counts.feed_l}</span>`);
                     if (counts.feed_r) parts.push(`<span>\u{1F37C} ${counts.feed_r}</span>`);
-                    if (parts.length) html += `<div class="day-summary">${parts.join('')}</div>`;
+                    const summaryHtml = parts.length ? `<div class="day-summary">${parts.join('')}</div>` : '';
+                    html += `<div class="day-header"><div class="day-label">${dayLabel}</div>${summaryHtml}</div>`;
                 }
 
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
