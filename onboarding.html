@@ -507,7 +507,7 @@
 
                         // Position along an arc: x = horizontal offset, y = curve up following ellipse
                         const x = wrappedOffset * SPACING;
-                        const y = (wrappedOffset * wrappedOffset) * 3;
+                        const y = 0;
                         // Tilt to match the arc tangent angle
                         const tilt = wrappedOffset * -8;
                         el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
