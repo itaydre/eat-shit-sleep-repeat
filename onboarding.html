@@ -260,14 +260,14 @@
             width: calc(100% + 48px);
             margin-left: -24px;
             margin-right: -24px;
-            height: 220px;
+            height: 240px;
             overflow: hidden;
             margin-top: 12px;
         }
 
         .time-circle {
-            width: 600px;
-            height: 600px;
+            width: 700px;
+            height: 700px;
             border-radius: 50%;
             background: #fff;
             position: absolute;
@@ -277,18 +277,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 24px;
+            padding-top: 20px;
+            gap: 0;
             touch-action: none;
         }
 
         .drum-row {
             position: relative;
-            width: 100%;
-            height: 90px;
+            width: 340px;
+            height: 60px;
             perspective: 300px;
             overflow: hidden;
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
         }
 
         .drum-track {
@@ -325,23 +326,23 @@
 
         .time-circle-separator {
             font-family: 'Varela Round', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: #1a1a1a;
             line-height: 1;
-            margin: -8px 0;
+            margin: -2px 0;
             position: relative;
             z-index: 2;
         }
 
         .drum-label {
             font-family: 'Varela Round', sans-serif;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #b5b5b5;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             text-align: center;
-            margin-bottom: 2px;
+            margin-bottom: 0;
         }
 
         /* Splash */
@@ -413,6 +414,7 @@
                 <div class="step-emoji">🎂</div>
                 <h2>When were they born?</h2>
                 <input type="date" class="input" id="ob-dob">
+                <script>document.getElementById('ob-dob').valueAsDate = new Date();</script>
                 <div class="time-wheel-label">Time of birth</div>
                 <div class="time-circle-wrapper">
                 <div class="time-circle" id="time-circle">
