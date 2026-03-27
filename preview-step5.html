@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Preview — Bracelet Step</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: inherit; }
+
+        body {
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafaf8;
+            color: #1a1a1a;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 24px;
+            padding-top: calc(20px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .step-topbar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .step-topbar .btn-back {
+            position: absolute;
+            left: 0;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #b5b5b5;
+            padding: 4px 0;
+        }
+
+        .progress {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .progress-dot {
+            font-size: 1.2rem;
+            opacity: 0.25;
+            filter: grayscale(1);
+        }
+
+        .progress-dot.done {
+            opacity: 1;
+            filter: grayscale(0);
+        }
+
+        .progress-dot.current {
+            opacity: 1;
+            filter: grayscale(0);
+        }
+
+        .step-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: 0;
+        }
+
+        .summary-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 0.95rem;
+        }
+
+        .summary-row + .summary-row {
+            border-top: 1px solid #f0f0ee;
+        }
+
+        .summary-label { color: #b5b5b5; }
+        .summary-value { color: #1a1a1a; font-weight: 600; }
+
+        .color-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .color-dot.active {
+            border-color: #1a1a1a;
+            transform: scale(1.1);
+        }
+
+        .color-dot[data-color="custom"].active {
+            border-color: transparent;
+            box-shadow: 0 0 0 2px #1a1a1a;
+        }
+
+        .step-actions {
+            padding: 16px 0;
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="step-topbar">
+            <button class="btn-back">&#8249;</button>
+            <div class="progress">
+                <div class="progress-dot done">👶</div>
+                <div class="progress-dot done">🎂</div>
+                <div class="progress-dot done">⚖️</div>
+                <div class="progress-dot current">✨</div>
+            </div>
+        </div>
+
+        <div class="step-content">
+            <div id="bracelet-container" style="width:100%; height:280px; margin-bottom:8px;"></div>
+            <div id="bracelet-colors" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px;">
+                <button class="color-dot" data-color="#F08080" style="background:#F08080;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot active" data-color="#7EB8E0" style="background:#7EB8E0;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#7ED67E" style="background:#7ED67E;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#F5D76E" style="background:#F5D76E;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#C8A2E8" style="background:#C8A2E8;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#FF9F68" style="background:#FF9F68;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="custom" onclick="pickBraceletColor(this)" style="background:conic-gradient(#F08080, #F5D76E, #7ED67E, #7EB8E0, #C8A2E8, #F08080); border-color:transparent;"></button>
+            </div>
+            <input type="color" id="custom-color-input" style="display:none;" oninput="applyCustomColor(this.value)" onchange="applyCustomColor(this.value)">
+            <div class="summary-card" id="summary">
+                <div class="summary-row"><span class="summary-label">Name</span><span class="summary-value">Maya</span></div>
+                <div class="summary-row"><span class="summary-label">Born</span><span class="summary-value">March 27, 2026 at 12:00 PM</span></div>
+                <div class="summary-row"><span class="summary-label">Gender</span><span class="summary-value">👦 Boy</span></div>
+                <div class="summary-row"><span class="summary-label">Weight</span><span class="summary-value">3200g</span></div>
+                <div class="summary-row"><span class="summary-label">Hospital</span><span class="summary-value">Ichilov</span></div>
+            </div>
+        </div>
+
+        <div class="step-actions">
+            <button class="btn-primary">Let's go 🍼</button>
+        </div>
+    </div>
+
+    <script>
+        let chosenBraceletColor = '#7EB8E0';
+
+        function pickBraceletColor(btn) {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            btn.classList.add('active');
+            if (btn.dataset.color === 'custom') {
+                document.getElementById('custom-color-input').click();
+                return;
+            }
+            chosenBraceletColor = btn.dataset.color;
+            initBracelet();
+        }
+
+        function applyCustomColor(hex) {
+            chosenBraceletColor = hex;
+            const customBtn = document.querySelector('[data-color="custom"]');
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            customBtn.classList.add('active');
+            customBtn.style.background = hex;
+            initBracelet();
+        }
+
+        async function initBracelet() {
+            const container = document.getElementById('bracelet-container');
+            container.innerHTML = '';
+
+            const { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight, DirectionalLight,
+                    BufferGeometry, Float32BufferAttribute, Mesh, MeshPhysicalMaterial,
+                    CylinderGeometry, Vector3, Color, ACESFilmicToneMapping, DoubleSide, CanvasTexture
+            } = await import('https://esm.sh/three@0.171.0');
+            const { OrbitControls } = await import('https://esm.sh/three@0.171.0/examples/jsm/controls/OrbitControls.js');
+
+            const w = container.clientWidth;
+            const h = Math.max(container.clientHeight, 350);
+
+            const renderer = new WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(w, h);
+            renderer.toneMapping = ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.3;
+            container.appendChild(renderer.domElement);
+            renderer.domElement.style.touchAction = 'none';
+
+            const scene = new Scene();
+            const camera = new PerspectiveCamera(30, w / h, 0.1, 100);
+            camera.position.set(0.3, 0.8, 5.5);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.2;
+
+            scene.add(new AmbientLight(0xffffff, 0.7));
+            const key = new DirectionalLight(0xfff8ee, 1.4);
+            key.position.set(4, 6, 5);
+            scene.add(key);
+            const fill = new DirectionalLight(0xeef0ff, 0.5);
+            fill.position.set(-4, 3, -3);
+            scene.add(fill);
+
+            // Mock baby data
+            const name = 'Maya';
+            const dob = '2026-03-27';
+            const timeVal = '12:00';
+            const weight = '3200';
+            const gender = 'boy';
+            const hospital = 'Ichilov';
+
+            const d = new Date(dob + 'T' + timeVal);
+            const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            function getZodiac(dateStr) {
+                if (!dateStr) return null;
+                const d = new Date(dateStr);
+                const m = d.getMonth() + 1, day = d.getDate();
+                const signs = [
+                    { name: 'Capricorn', emoji: '♑', end: [1, 19] },
+                    { name: 'Aquarius', emoji: '♒', end: [2, 18] },
+                    { name: 'Pisces', emoji: '♓', end: [3, 20] },
+                    { name: 'Aries', emoji: '♈', end: [4, 19] },
+                    { name: 'Taurus', emoji: '♉', end: [5, 20] },
+                    { name: 'Gemini', emoji: '♊', end: [6, 20] },
+                    { name: 'Cancer', emoji: '♋', end: [7, 22] },
+                    { name: 'Leo', emoji: '♌', end: [8, 22] },
+                    { name: 'Virgo', emoji: '♍', end: [9, 22] },
+                    { name: 'Libra', emoji: '♎', end: [10, 22] },
+                    { name: 'Scorpio', emoji: '♏', end: [11, 21] },
+                    { name: 'Sagittarius', emoji: '♐', end: [12, 21] },
+                    { name: 'Capricorn', emoji: '♑', end: [12, 31] },
+                ];
+                for (const s of signs) {
+                    if (m < s.end[0] || (m === s.end[0] && day <= s.end[1])) return s;
+                }
+                return signs[0];
+            }
+
+            const zodiac = getZodiac(dob);
+            const bandColor = chosenBraceletColor;
+
+            function createTex() {
+                const c = document.createElement('canvas');
+                const W = 2048, H = 512;
+                c.width = W; c.height = H;
+                const ctx = c.getContext('2d');
+
+                ctx.fillStyle = bandColor;
+                ctx.fillRect(0, 0, W, H);
+                for (let i = 0; i < 4000; i++) {
+                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.015})`;
+                    ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+                }
+
+                const bandLen = 5, bandFullW = 0.8, stripW = bandFullW * 0.35;
+                const pxX = W / bandLen, pxY = H / stripW;
+                const hr = 0.03;
+                for (let i = 0; i < 5; i++) {
+                    const hx = W * 0.05 + i * (W * 0.055);
+                    const rx = hr * pxX, ry = hr * pxY;
+                    ctx.save(); ctx.beginPath(); ctx.ellipse(hx, H/2, rx, ry, 0, 0, Math.PI*2); ctx.clip();
+                    ctx.clearRect(hx-rx-2, H/2-ry-2, rx*2+4, ry*2+4); ctx.restore();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.ellipse(hx, H/2, rx, ry, 0, 0, Math.PI*2); ctx.stroke();
+                }
+
+                const rpy = H / bandFullW, rry = hr * rpy;
+                for (let i = 0; i < 3; i++) {
+                    const hx = W*0.82+i*(W*0.055), rx = hr*pxX;
+                    ctx.save(); ctx.beginPath(); ctx.ellipse(hx,H/2,rx,rry,0,0,Math.PI*2); ctx.clip();
+                    ctx.clearRect(hx-rx-2,H/2-rry-2,rx*2+4,rry*2+4); ctx.restore();
+                    ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=2;
+                    ctx.beginPath(); ctx.ellipse(hx,H/2,rx,rry,0,0,Math.PI*2); ctx.stroke();
+                }
+
+                const ls = W*0.48, le = W*0.78, lp = H*0.08, r = 4;
+                ctx.fillStyle = 'rgb(244,240,232)';
+                ctx.beginPath();
+                ctx.moveTo(ls+r,lp); ctx.lineTo(le-r,lp); ctx.arcTo(le,lp,le,lp+r,r);
+                ctx.lineTo(le,H-lp-r); ctx.arcTo(le,H-lp,le-r,H-lp,r);
+                ctx.lineTo(ls+r,H-lp); ctx.arcTo(ls,H-lp,ls,H-lp-r,r);
+                ctx.lineTo(ls,lp+r); ctx.arcTo(ls,lp,ls+r,lp,r); ctx.fill();
+
+                ctx.save(); ctx.clip();
+                for (let i = 0; i < 5000; i++) {
+                    ctx.fillStyle = Math.random()<0.5 ? `rgba(0,0,0,${Math.random()*0.03})` : `rgba(255,255,255,${Math.random()*0.04})`;
+                    ctx.fillRect(ls+Math.random()*(le-ls), lp+Math.random()*(H-lp*2), 1+Math.random(), 1);
+                }
+                const sg = ctx.createLinearGradient(0,lp,0,lp+25);
+                sg.addColorStop(0,'rgba(0,0,0,0.12)'); sg.addColorStop(1,'rgba(0,0,0,0)');
+                ctx.fillStyle=sg; ctx.fillRect(ls,lp,le-ls,25);
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.rect(ls,lp,le-ls,H-lp*2); ctx.clip();
+                const tx = ls+28; let ty = H/2-95;
+                ctx.fillStyle='#3a3530'; ctx.font='bold 46px system-ui,sans-serif';
+                ctx.fillText(name, tx, ty); ty += 46;
+                ctx.font='500 26px system-ui,sans-serif'; ctx.fillStyle='#6a6258';
+                if (dateStr) { ctx.fillText('DOB: ' + dateStr + (timeStr ? '  ' + timeStr : ''), tx, ty); ty += 34; }
+                ctx.font='500 22px system-ui,sans-serif';
+                if (weight) { ctx.fillStyle='#6a6258'; ctx.fillText('WT:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(weight + 'g', tx+42, ty); }
+                if (gender) { ctx.fillStyle='#6a6258'; ctx.fillText('SEX:', tx+180, ty); ctx.fillStyle='#3a3530'; ctx.fillText(gender.charAt(0).toUpperCase(), tx+232, ty); }
+                ty += 30;
+                if (hospital) { ctx.fillStyle='#6a6258'; ctx.fillText('HOSP:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(hospital, tx+70, ty); ty += 30; }
+                if (zodiac) { ctx.font='500 22px system-ui,sans-serif'; ctx.fillStyle='#6a6258'; ctx.fillText(zodiac.emoji + ' ' + zodiac.name, tx, ty); ty += 30; }
+                for (let i=0;i<45;i++) { ctx.fillStyle=`rgba(50,45,40,${0.7+Math.random()*0.25})`; ctx.fillRect(tx+i*6,ty,Math.random()>0.4?3:1.2,36); }
+                ctx.restore();
+
+                return new CanvasTexture(c);
+            }
+
+            const len=5, bw=0.8, drp=3, stripW2=bw*0.35, labelW2=bw;
+            const uS=120, vS=8, verts=[], uvs=[], idx=[];
+            for(let i=0;i<=uS;i++){
+                const u=i/uS, x=(u-0.5)*len;
+                const dd=drp*(Math.cosh((u-0.5)*2.5)-1)/(Math.cosh(1.25)-1);
+                let hw; const ts=0.35, te=0.45;
+                if(u<ts)hw=stripW2/2;
+                else if(u<te){const t=(u-ts)/(te-ts);hw=stripW2/2+(labelW2/2-stripW2/2)*(0.5-0.5*Math.cos(t*Math.PI));}
+                else hw=labelW2/2;
+                for(let j=0;j<=vS;j++){
+                    const v=j/vS;
+                    verts.push(x,(v-0.5)*2*hw,-dd); uvs.push(u,v);
+                    if(i<uS&&j<vS){const a=i*(vS+1)+j,b=a+1,c=a+(vS+1),d2=c+1;idx.push(a,c,b);idx.push(b,c,d2);}
+                }
+            }
+            const geo=new BufferGeometry();
+            geo.setAttribute('position',new Float32BufferAttribute(verts,3));
+            geo.setAttribute('uv',new Float32BufferAttribute(uvs,2));
+            geo.setIndex(idx); geo.computeVertexNormals();
+
+            const mat = new MeshPhysicalMaterial({
+                map:createTex(), color:0xffffff, roughness:0.7, clearcoat:0.15,
+                clearcoatRoughness:0.6, sheen:0.4, sheenRoughness:0.8,
+                sheenColor:new Color(0xe8e0d8), transparent:true, alphaTest:0.5, side:DoubleSide,
+            });
+
+            const band = new Mesh(geo, mat);
+
+            const snapR=bw*0.12;
+            const snapGeo=new CylinderGeometry(snapR,snapR,0.01,32);
+            const snapMat=new MeshPhysicalMaterial({color:0xfafafa,roughness:0.2,metalness:0.05,clearcoat:0.5});
+            const snap=new Mesh(snapGeo,snapMat);
+            const sU=0.97, droopAt=u=>drp*(Math.cosh((u-0.5)*2.5)-1)/(Math.cosh(1.25)-1);
+            const sZ=-droopAt(sU), eps=0.001;
+            const tan=new Vector3(eps*len,0,-(droopAt(sU+eps)-droopAt(sU))).normalize();
+            const norm=new Vector3(-tan.z,0,tan.x).normalize();
+            snap.quaternion.setFromUnitVectors(new Vector3(0,1,0),norm);
+            snap.position.set(len*0.47,0,sZ+0.006);
+            band.add(snap);
+
+            const targetScale = 0.6;
+            band.position.y = 6;
+            band.rotation.x = -0.3;
+            band.rotation.y = Math.PI * 4;
+            band.scale.setScalar(0.1);
+
+            scene.add(band);
+
+            const animStart = performance.now();
+            const animDuration = 2000;
+            let animDone = false;
+
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+            function animate(){
+                requestAnimationFrame(animate);
+                if (!animDone) {
+                    const elapsed = performance.now() - animStart;
+                    const t = Math.min(elapsed / animDuration, 1);
+                    const e = easeOutCubic(t);
+                    band.position.y = 6 * (1 - e);
+                    band.scale.setScalar(0.1 + (targetScale - 0.1) * e);
+                    band.rotation.y = Math.PI * 4 * (1 - e);
+                    if (t >= 1) {
+                        animDone = true;
+                        band.position.y = 0;
+                        band.scale.setScalar(targetScale);
+                        band.rotation.y = 0;
+                        controls.autoRotate = true;
+                        controls.autoRotateSpeed = 1.2;
+                    }
+                }
+                controls.update();
+                renderer.render(scene,camera);
+            }
+            animate();
+
+            const ro = new ResizeObserver(() => {
+                const nw = container.clientWidth, nh = Math.max(container.clientHeight, 350);
+                camera.aspect = nw / nh;
+                camera.updateProjectionMatrix();
+                renderer.setSize(nw, nh);
+            });
+            ro.observe(container);
+        }
+
+        initBracelet();
+    </script>
+</body>
+</html>
