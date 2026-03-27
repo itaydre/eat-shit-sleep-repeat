@@ -313,8 +313,8 @@
 
         .buttons {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             padding: 12px 16px;
             padding-bottom: 0;
             max-width: 500px;
@@ -322,30 +322,32 @@
             margin-right: auto;
             background: transparent;
             pointer-events: auto;
+            transition: gap 0.3s ease;
         }
 
         .buttons.compact {
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            padding: 12px 16px;
+            padding: 8px 16px;
             padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
         }
 
         .btn {
             border: none;
-            border-radius: 12px;
-            padding: 14px 0;
-            font-size: 0.7rem;
+            border-radius: 16px;
+            padding: 16px 0;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             box-shadow: none;
             flex: 1;
             min-width: 0;
             -webkit-tap-highlight-color: transparent;
+            transition: padding 0.3s ease, gap 0.3s ease, border-radius 0.3s ease;
         }
 
         .buttons.compact .btn {
@@ -359,8 +361,9 @@
         }
 
         .btn .emoji {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             line-height: 1;
+            transition: font-size 0.3s ease;
         }
 
         .buttons.compact .btn .emoji {
@@ -1035,8 +1038,10 @@
                     <span>Send feedback</span>
                 </a>
             </div>
-            <div style="text-align:center; padding-top:4px;">
-                <button onclick="logout()" style="background:none; border:none; font-size:0.85rem; color:#b5b5b5; cursor:pointer; font-family:inherit; padding:10px 20px;">Sign out</button>
+            <div style="background:#fff; border-radius:14px; overflow:hidden;">
+                <button class="settings-item" onclick="logout()" style="margin-bottom:0; border-radius:0; color:#b5b5b5; justify-content:center;">
+                    <span>Sign out</span>
+                </button>
             </div>
         </div>
 
@@ -1569,8 +1574,8 @@
 
         function updateHeaderForSettings(isSettings) {
             document.getElementById('back-btn').classList.toggle('visible', isSettings);
-            document.querySelector('.top-bar-left').style.display = isSettings ? 'none' : '';
-            document.getElementById('settings-btn').style.display = isSettings ? 'none' : '';
+            document.querySelector('.top-bar-left').style.visibility = isSettings ? 'hidden' : '';
+            document.getElementById('settings-btn').style.visibility = isSettings ? 'hidden' : '';
         }
 
         function switchTab(tab) {

@@ -267,24 +267,44 @@
     </div>
 
     <div class="onboarding" id="onboarding" style="display:none;">
-        <!-- Step 1: Name -->
+        <!-- Step 1: Invite Code -->
         <div class="step active" id="step-1">
-            <div class="progress" id="progress-1"></div>
+            <div class="step-content">
+                <div class="step-emoji">👋</div>
+                <h2>Welcome!</h2>
+                <p>Were you invited by a partner?</p>
+                <div id="invite-choice" style="display:flex; flex-direction:column; gap:10px;">
+                    <button class="btn-primary" onclick="showInviteInput()">Yes, I have a code</button>
+                    <button class="btn-skip" onclick="goStep(2)" style="margin-top:0;">No, start fresh</button>
+                </div>
+                <div id="invite-input" style="display:none; margin-top:8px;">
+                    <input type="text" class="input" id="ob-invite" placeholder="Paste invite code" autofocus>
+                    <div style="display:flex; gap:8px; margin-top:12px;">
+                        <button onclick="hideInviteInput()" style="flex:1; background:none; border:1px solid #f0f0ee; border-radius:12px; padding:14px; font-size:1rem; color:#b5b5b5; cursor:pointer; font-family:inherit;">Back</button>
+                        <button class="btn-primary" id="btn-join" onclick="joinWithCode()" disabled style="flex:2;">Join</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Name -->
+        <div class="step" id="step-2">
+            <div class="progress" id="progress-2"></div>
             <div class="step-content">
                 <div class="step-emoji">👶</div>
                 <h2>What's your baby's name?</h2>
                 <p>We'll use this throughout the app</p>
-                <input type="text" class="input" id="ob-name" placeholder="e.g. Maya" autofocus>
+                <input type="text" class="input" id="ob-name" placeholder="e.g. Maya">
             </div>
             <div class="step-actions">
-                <button class="btn-primary" id="btn-step1" onclick="goStep(2)" disabled>Continue</button>
+                <button class="btn-primary" id="btn-step2" onclick="goStep(3)" disabled>Continue</button>
             </div>
         </div>
 
-        <!-- Step 2: Birthday -->
-        <div class="step" id="step-2">
-            <div class="progress" id="progress-2"></div>
-            <button class="btn-back" onclick="goStep(1)">&#8249;</button>
+        <!-- Step 3: Birthday -->
+        <div class="step" id="step-3">
+            <div class="progress" id="progress-3"></div>
+            <button class="btn-back" onclick="goStep(2)">&#8249;</button>
             <div class="step-content">
                 <div class="step-emoji">🎂</div>
                 <h2>When were they born?</h2>
@@ -293,15 +313,15 @@
                 <input type="time" class="input" id="ob-time" placeholder="Time of birth">
             </div>
             <div class="step-actions">
-                <button class="btn-primary" onclick="goStep(3)">Continue</button>
-                <button class="btn-skip" onclick="goStep(3)">Skip for now</button>
+                <button class="btn-primary" onclick="goStep(4)">Continue</button>
+                <button class="btn-skip" onclick="goStep(4)">Skip for now</button>
             </div>
         </div>
 
-        <!-- Step 3: Gender & Weight -->
-        <div class="step" id="step-3">
-            <div class="progress" id="progress-3"></div>
-            <button class="btn-back" onclick="goStep(2)">&#8249;</button>
+        <!-- Step 4: Gender & Weight -->
+        <div class="step" id="step-4">
+            <div class="progress" id="progress-4"></div>
+            <button class="btn-back" onclick="goStep(3)">&#8249;</button>
             <div class="step-content">
                 <div class="step-emoji">⚖️</div>
                 <h2>A few more details</h2>
@@ -318,35 +338,18 @@
                 <input type="text" class="input" id="ob-hospital" placeholder="Hospital name (e.g. Ichilov)">
             </div>
             <div class="step-actions">
-                <button class="btn-primary" onclick="goStep(4)">Continue</button>
-                <button class="btn-skip" onclick="goStep(4)">Skip for now</button>
-            </div>
-        </div>
-
-        <!-- Step 4: Summary + Invite -->
-        <div class="step" id="step-4">
-            <div class="progress" id="progress-4"></div>
-            <button class="btn-back" onclick="goStep(3)">&#8249;</button>
-            <div class="step-content">
-                <div class="step-emoji">🎉</div>
-                <h2>All set!</h2>
-                <p>Here's what we've got</p>
-                <div class="summary-card" id="summary"></div>
-                <div class="invite-section">
-                    <div class="invite-label">Have a partner? Enter their invite code to share data</div>
-                    <input type="text" class="input" id="ob-invite" placeholder="Paste invite code">
-                </div>
-            </div>
-            <div class="step-actions">
                 <button class="btn-primary" onclick="goStep(5)">Continue</button>
+                <button class="btn-skip" onclick="goStep(5)">Skip for now</button>
             </div>
         </div>
 
-        <!-- Step 5: Bracelet -->
+        <!-- Step 5: Summary + Bracelet -->
         <div class="step" id="step-5">
+            <div class="progress" id="progress-5"></div>
             <button class="btn-back" onclick="goStep(4)">&#8249;</button>
-            <div class="step-content" style="padding:0; position:relative;">
-                <div id="bracelet-container" style="width:100%; height:100%; min-height:400px;"></div>
+            <div class="step-content" style="justify-content:flex-start; padding-top:20px;">
+                <div id="bracelet-container" style="width:100%; height:280px; margin-bottom:16px;"></div>
+                <div class="summary-card" id="summary"></div>
             </div>
             <div class="step-actions">
                 <button class="btn-primary" onclick="enterApp()">Let's go 🍼</button>
@@ -378,10 +381,34 @@
             }, 300);
         }
 
+        // Step 1: Invite code logic
+        function showInviteInput() {
+            document.getElementById('invite-choice').style.display = 'none';
+            document.getElementById('invite-input').style.display = 'block';
+            document.getElementById('ob-invite').focus();
+        }
+
+        function hideInviteInput() {
+            document.getElementById('invite-input').style.display = 'none';
+            document.getElementById('invite-choice').style.display = 'flex';
+        }
+
+        const inviteInput = document.getElementById('ob-invite');
+        inviteInput.addEventListener('input', () => {
+            document.getElementById('btn-join').disabled = !inviteInput.value.trim();
+        });
+
+        function joinWithCode() {
+            const code = document.getElementById('ob-invite').value.trim();
+            console.log('Joining with invite code:', code);
+            // In real app: POST code to API, then redirect
+            window.location.href = '/';
+        }
+
         // Enable continue only when name is filled
         const nameInput = document.getElementById('ob-name');
         nameInput.addEventListener('input', () => {
-            document.getElementById('btn-step1').disabled = !nameInput.value.trim();
+            document.getElementById('btn-step2').disabled = !nameInput.value.trim();
         });
 
         function pickGender(btn, gender) {
@@ -390,16 +417,19 @@
             btn.classList.add('active');
         }
 
-        const totalSteps = 5;
+        // Steps 2-5 have progress (step 1 is the invite gate, no progress bar)
+        const totalOnboardingSteps = 4; // steps 2-5
 
         function updateProgress(step) {
-            for (let s = 1; s <= totalSteps; s++) {
+            // step 2=1st dot, step 3=2nd, step 4=3rd, step 5=4th
+            const progressStep = step - 1;
+            for (let s = 2; s <= 5; s++) {
                 const bar = document.getElementById('progress-' + s);
                 if (!bar) continue;
                 bar.innerHTML = '';
-                for (let i = 1; i <= totalSteps; i++) {
+                for (let i = 1; i <= totalOnboardingSteps; i++) {
                     const dot = document.createElement('div');
-                    dot.className = 'progress-dot' + (i <= step ? ' done' : '');
+                    dot.className = 'progress-dot' + (i <= progressStep ? ' done' : '');
                     bar.appendChild(dot);
                 }
             }
@@ -408,12 +438,11 @@
         function goStep(n) {
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
             document.getElementById('step-' + n).classList.add('active');
-            updateProgress(n);
-            if (n === 4) renderSummary();
-            if (n === 5) initBracelet();
+            if (n >= 2) updateProgress(n);
+            if (n === 5) { renderSummary(); initBracelet(); }
         }
 
-        updateProgress(1);
+        updateProgress(2);
 
         function renderSummary() {
             const name = document.getElementById('ob-name').value.trim();
@@ -461,7 +490,6 @@
             const time = document.getElementById('ob-time').value;
             const weight = document.getElementById('ob-weight').value;
             const hospital = document.getElementById('ob-hospital')?.value.trim() || '';
-            const invite = document.getElementById('ob-invite').value.trim();
 
             console.log('Onboarding complete:', {
                 baby_name: name,
@@ -469,7 +497,6 @@
                 baby_birth_weight: weight ? Number(weight) : null,
                 baby_gender: selectedGender || null,
                 baby_hospital: hospital || null,
-                invite_code: invite || null,
             });
 
             // In real app, would save profile and redirect
