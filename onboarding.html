@@ -246,7 +246,7 @@
             font-weight: 600;
         }
 
-        /* Time Wheel Picker */
+        /* Circular Time Picker */
         .time-wheel-label {
             font-size: 0.8rem;
             color: #b5b5b5;
@@ -255,80 +255,82 @@
             margin-bottom: 8px;
         }
 
-        .time-wheel {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
+        .time-circle {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
             background: #fff;
-            border-radius: 16px;
-            padding: 8px 12px;
+            margin: 0 auto;
             position: relative;
             overflow: hidden;
-        }
-
-        .wheel-col {
-            position: relative;
-            height: 160px;
-            overflow: hidden;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%);
-        }
-
-        .wheel-col.hours { width: 64px; }
-        .wheel-col.minutes { width: 64px; }
-
-        .wheel-track {
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-
-        .wheel-item {
-            height: 40px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-family: 'Varela Round', sans-serif;
-            font-size: 1.3rem;
-            color: #d0d0ce;
-            transition: color 0.15s ease, font-size 0.15s ease, font-weight 0.15s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            cursor: grab;
+            touch-action: none;
         }
 
-        .wheel-item.active {
-            color: #1a1a1a;
-            font-size: 1.6rem;
-            font-weight: 700;
+        .drum-row {
+            position: relative;
+            width: 100%;
+            height: 90px;
+            perspective: 300px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
         }
 
-        .wheel-separator {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            padding: 0 2px;
-            align-self: center;
-        }
-
-        .wheel-highlight {
+        .drum-track {
             position: absolute;
             top: 50%;
-            left: 12px;
-            right: 12px;
-            height: 42px;
-            transform: translateY(-50%);
-            background: #f5f5f3;
-            border-radius: 10px;
-            pointer-events: none;
-            z-index: 0;
+            left: 50%;
+            transform-style: preserve-3d;
+            transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
-        .wheel-col, .wheel-separator {
+        .drum-item {
+            position: absolute;
+            width: 56px;
+            text-align: center;
+            font-family: 'Varela Round', sans-serif;
+            font-size: 1rem;
+            color: #ccc;
+            transform-origin: center center;
+            backface-visibility: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+            transition: color 0.15s ease;
+            top: -12px;
+            left: -28px;
+        }
+
+        .drum-item.active {
+            color: #1a1a1a;
+            font-size: 1.5rem;
+            font-weight: 700;
+            top: -16px;
+        }
+
+        .time-circle-separator {
+            font-family: 'Varela Round', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1;
+            margin: -8px 0;
             position: relative;
-            z-index: 1;
+            z-index: 2;
+        }
+
+        .drum-label {
+            font-family: 'Varela Round', sans-serif;
+            font-size: 0.6rem;
+            color: #b5b5b5;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: center;
+            margin-bottom: 2px;
         }
 
         /* Splash */
@@ -401,14 +403,15 @@
                 <h2>When were they born?</h2>
                 <input type="date" class="input" id="ob-dob">
                 <div class="time-wheel-label">Time of birth</div>
-                <div class="time-wheel">
-                    <div class="wheel-highlight"></div>
-                    <div class="wheel-col hours" id="wheel-hours">
-                        <div class="wheel-track" id="track-hours"></div>
+                <div class="time-circle" id="time-circle">
+                    <div class="drum-label">HOUR</div>
+                    <div class="drum-row" id="drum-hours">
+                        <div class="drum-track" id="track-hours"></div>
                     </div>
-                    <div class="wheel-separator">:</div>
-                    <div class="wheel-col minutes" id="wheel-minutes">
-                        <div class="wheel-track" id="track-minutes"></div>
+                    <div class="time-circle-separator">:</div>
+                    <div class="drum-label">MINUTE</div>
+                    <div class="drum-row" id="drum-minutes">
+                        <div class="drum-track" id="track-minutes"></div>
                     </div>
                 </div>
                 <input type="hidden" id="ob-time">
@@ -458,124 +461,122 @@
     <script>
         let selectedGender = '';
 
-        // --- Time Wheel Picker ---
+        // --- Circular Arc Time Picker ---
         function initTimeWheel() {
-            const ITEM_H = 40;
-            const hoursTrack = document.getElementById('track-hours');
-            const minutesTrack = document.getElementById('track-minutes');
-            let selectedHour = 12;
-            let selectedMinute = 0;
+            const RADIUS = 140; // 3D cylinder radius
+            const ANGLE_STEP = 22; // degrees between items
+            const VISIBLE = 5; // items visible (2 each side + center)
 
-            // Build items
-            for (let h = 0; h < 24; h++) {
-                const el = document.createElement('div');
-                el.className = 'wheel-item' + (h === selectedHour ? ' active' : '');
-                el.textContent = String(h).padStart(2, '0');
-                el.dataset.value = h;
-                hoursTrack.appendChild(el);
-            }
-            for (let m = 0; m < 60; m += 5) {
-                const el = document.createElement('div');
-                el.className = 'wheel-item' + (m === selectedMinute ? ' active' : '');
-                el.textContent = String(m).padStart(2, '0');
-                el.dataset.value = m;
-                minutesTrack.appendChild(el);
-            }
-
-            function setupWheel(col, track, count, initialIdx) {
-                // Offset so selected item is centered (2 items above)
-                const PAD = 2;
+            function setupDrum(rowEl, trackEl, values, initialIdx, onChange) {
                 let currentIdx = initialIdx;
 
-                function setPosition(idx, animate) {
-                    currentIdx = Math.max(0, Math.min(count - 1, idx));
-                    const offset = -(currentIdx * ITEM_H) + (PAD * ITEM_H);
-                    track.style.transition = animate ? 'transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none';
-                    track.style.transform = `translateY(${offset}px)`;
-                    // Update active
-                    track.querySelectorAll('.wheel-item').forEach((el, i) => {
-                        el.classList.toggle('active', i === currentIdx);
+                // Create items positioned on a 3D cylinder (rotateX)
+                values.forEach((val, i) => {
+                    const el = document.createElement('div');
+                    el.className = 'drum-item';
+                    el.textContent = val;
+                    el.dataset.idx = i;
+                    el.addEventListener('click', () => { setIndex(i, true); });
+                    trackEl.appendChild(el);
+                });
+
+                function setIndex(idx, animate) {
+                    currentIdx = ((idx % values.length) + values.length) % values.length;
+                    trackEl.style.transition = animate ? 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none';
+                    // Position each item on the cylinder
+                    const items = trackEl.querySelectorAll('.drum-item');
+                    items.forEach((el, i) => {
+                        const offset = i - currentIdx;
+                        // Wrap around for circular feel
+                        let wrappedOffset = offset;
+                        if (wrappedOffset > values.length / 2) wrappedOffset -= values.length;
+                        if (wrappedOffset < -values.length / 2) wrappedOffset += values.length;
+
+                        const angle = wrappedOffset * ANGLE_STEP;
+                        const isVisible = Math.abs(wrappedOffset) <= 2;
+                        const isActive = wrappedOffset === 0;
+
+                        el.style.display = isVisible ? '' : 'none';
+                        el.classList.toggle('active', isActive);
+
+                        // Position on cylinder arc
+                        const rad = (angle * Math.PI) / 180;
+                        const x = Math.sin(rad) * RADIUS;
+                        const z = Math.cos(rad) * RADIUS - RADIUS;
+                        el.style.transform = `translate3d(${x}px, -50%, ${z}px) rotateY(${angle}deg)`;
+                        el.style.opacity = isActive ? 1 : Math.max(0.2, 1 - Math.abs(wrappedOffset) * 0.35);
                     });
-                    return currentIdx;
+                    if (onChange) onChange();
                 }
 
-                setPosition(initialIdx, false);
+                setIndex(initialIdx, false);
 
-                // Touch handling
-                let startY = 0, startIdx = 0, isDragging = false;
+                // Swipe horizontally
+                let startX = 0, startIdx = 0, dragging = false;
 
-                col.addEventListener('touchstart', (e) => {
-                    startY = e.touches[0].clientY;
+                rowEl.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
                     startIdx = currentIdx;
-                    isDragging = true;
-                    track.style.transition = 'none';
+                    dragging = true;
+                    trackEl.style.transition = 'none';
                 }, { passive: true });
 
-                col.addEventListener('touchmove', (e) => {
-                    if (!isDragging) return;
-                    const dy = e.touches[0].clientY - startY;
-                    const delta = Math.round(-dy / ITEM_H);
-                    setPosition(startIdx + delta, false);
+                rowEl.addEventListener('touchmove', (e) => {
+                    if (!dragging) return;
+                    const dx = e.touches[0].clientX - startX;
+                    const delta = Math.round(-dx / 40);
+                    setIndex(startIdx + delta, false);
                 }, { passive: true });
 
-                col.addEventListener('touchend', () => {
-                    isDragging = false;
-                    setPosition(currentIdx, true);
-                    updateHiddenTime();
+                rowEl.addEventListener('touchend', () => {
+                    dragging = false;
+                    setIndex(currentIdx, true);
                 });
 
-                // Mouse fallback
-                col.addEventListener('mousedown', (e) => {
-                    startY = e.clientY;
+                // Mouse
+                rowEl.addEventListener('mousedown', (e) => {
+                    startX = e.clientX;
                     startIdx = currentIdx;
-                    isDragging = true;
-                    track.style.transition = 'none';
+                    dragging = true;
                     e.preventDefault();
                 });
-
                 window.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    const dy = e.clientY - startY;
-                    const delta = Math.round(-dy / ITEM_H);
-                    setPosition(startIdx + delta, false);
+                    if (!dragging) return;
+                    const dx = e.clientX - startX;
+                    const delta = Math.round(-dx / 40);
+                    setIndex(startIdx + delta, false);
                 });
-
                 window.addEventListener('mouseup', () => {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    setPosition(currentIdx, true);
-                    updateHiddenTime();
+                    if (!dragging) return;
+                    dragging = false;
+                    setIndex(currentIdx, true);
                 });
 
-                // Click on item to select
-                track.querySelectorAll('.wheel-item').forEach((el, i) => {
-                    el.addEventListener('click', () => {
-                        setPosition(i, true);
-                        updateHiddenTime();
-                    });
-                });
-
-                return { getIndex: () => currentIdx };
+                return { getIndex: () => currentIdx, setIndex };
             }
 
-            const hoursWheel = setupWheel(
-                document.getElementById('wheel-hours'),
-                hoursTrack, 24, selectedHour
+            const hourValues = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+            const minValues = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+
+            const hoursWheel = setupDrum(
+                document.getElementById('drum-hours'),
+                document.getElementById('track-hours'),
+                hourValues, 12, updateTime
             );
-            const minutesWheel = setupWheel(
-                document.getElementById('wheel-minutes'),
-                minutesTrack, 12, selectedMinute / 5
+            const minutesWheel = setupDrum(
+                document.getElementById('drum-minutes'),
+                document.getElementById('track-minutes'),
+                minValues, 0, updateTime
             );
 
-            function updateHiddenTime() {
-                const h = String(hoursWheel.getIndex()).padStart(2, '0');
-                const m = String(minutesWheel.getIndex() * 5).padStart(2, '0');
+            function updateTime() {
+                const h = hourValues[hoursWheel.getIndex()];
+                const m = minValues[minutesWheel.getIndex()];
                 document.getElementById('ob-time').value = h + ':' + m;
             }
-            updateHiddenTime();
+            updateTime();
         }
 
-        // Init wheel when DOM ready
         document.addEventListener('DOMContentLoaded', initTimeWheel);
 
         // Splash animation
