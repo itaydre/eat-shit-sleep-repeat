@@ -255,18 +255,29 @@
             margin-bottom: 8px;
         }
 
+        .time-circle-wrapper {
+            position: relative;
+            width: calc(100% + 48px);
+            margin-left: -24px;
+            margin-right: -24px;
+            height: 220px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
         .time-circle {
-            width: 260px;
-            height: 260px;
+            width: 600px;
+            height: 600px;
             border-radius: 50%;
             background: #fff;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding-top: 24px;
             touch-action: none;
         }
 
@@ -403,6 +414,7 @@
                 <h2>When were they born?</h2>
                 <input type="date" class="input" id="ob-dob">
                 <div class="time-wheel-label">Time of birth</div>
+                <div class="time-circle-wrapper">
                 <div class="time-circle" id="time-circle">
                     <div class="drum-label">HOUR</div>
                     <div class="drum-row" id="drum-hours">
@@ -413,6 +425,7 @@
                     <div class="drum-row" id="drum-minutes">
                         <div class="drum-track" id="track-minutes"></div>
                     </div>
+                </div>
                 </div>
                 <input type="hidden" id="ob-time">
             </div>
