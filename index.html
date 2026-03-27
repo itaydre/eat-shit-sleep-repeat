@@ -501,6 +501,7 @@
             transition: transform 0.2s ease;
             touch-action: pan-y;
             z-index: 1;
+            will-change: transform;
         }
 
         @keyframes confettiFall {
@@ -1128,7 +1129,7 @@
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         import { WebHaptics } from 'https://esm.sh/web-haptics@0.0.6';
-        const haptics = new WebHaptics({ debug: true });
+        const haptics = new WebHaptics({ debug: false });
         window.hapticSuccess = () => haptics.trigger('success');
         window.hapticError = () => haptics.trigger('error');
 
@@ -1380,12 +1381,17 @@
                 migrateLocalStorage().then(() => fetchEntries()).then(() => { updateFeedTimer(); resumeFeedSession(); });
             }
             if (!window._intervalsStarted) {
-                setInterval(() => {
-                    if (session) fetchEntries().then(() => updateFeedTimer());
+                window._fetchInterval = setInterval(() => {
+                    if (session && !document.hidden) fetchEntries().then(() => updateFeedTimer());
                 }, 30000);
-                setInterval(() => {
-                    if (session) updateFeedTimer();
+                window._timerInterval = setInterval(() => {
+                    if (session && !document.hidden) updateFeedTimer();
                 }, 10000);
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden && session) {
+                        fetchEntries().then(() => updateFeedTimer());
+                    }
+                });
                 window._intervalsStarted = true;
             }
         }
@@ -1628,7 +1634,7 @@
         }
 
         function emojiConfetti(emoji) {
-            const count = 40;
+            const count = 15;
             const container = document.createElement('div');
             container.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:9999;overflow:hidden';
             document.body.appendChild(container);
@@ -2243,45 +2249,45 @@
             }
         }
 
-        // Swipe to delete
-        function initSwipe() {
-            document.querySelectorAll('.entry').forEach(el => {
-                let startX = 0, currentX = 0, swiping = false;
-                const threshold = 80;
+        // Swipe to delete (event delegation — no per-element listeners)
+        let _swipeState = null;
+        function initSwipe() { /* now handled by delegated listeners below */ }
+        (function initSwipeDelegation() {
+            const threshold = 80;
+            document.addEventListener('touchstart', e => {
+                const el = e.target.closest('.entry');
+                if (!el) return;
+                _swipeState = { el, startX: e.touches[0].clientX, currentX: e.touches[0].clientX };
+                el.style.transition = 'none';
+            }, { passive: true });
 
-                el.addEventListener('touchstart', e => {
-                    startX = e.touches[0].clientX;
-                    currentX = startX;
-                    swiping = true;
-                    el.style.transition = 'none';
-                });
+            document.addEventListener('touchmove', e => {
+                if (!_swipeState) return;
+                const { el, startX } = _swipeState;
+                _swipeState.currentX = e.touches[0].clientX;
+                const dx = _swipeState.currentX - startX;
+                if (dx < 0) {
+                    el.style.transform = `translateX(${dx}px)`;
+                    el.parentElement.classList.add('swiping');
+                }
+            }, { passive: true });
 
-                el.addEventListener('touchmove', e => {
-                    if (!swiping) return;
-                    currentX = e.touches[0].clientX;
-                    const dx = currentX - startX;
-                    if (dx < 0) {
-                        el.style.transform = `translateX(${dx}px)`;
-                        el.parentElement.classList.add('swiping');
-                    }
-                });
-
-                el.addEventListener('touchend', () => {
-                    if (!swiping) return;
-                    swiping = false;
-                    const dx = currentX - startX;
-                    el.style.transition = 'transform 0.2s ease';
-                    if (dx < -threshold) {
-                        el.style.transform = `translateX(-100%)`;
-                        const idx = parseInt(el.dataset.index);
-                        setTimeout(() => deleteEntry(idx), 200);
-                    } else {
-                        el.style.transform = 'translateX(0)';
-                        el.parentElement.classList.remove('swiping');
-                    }
-                });
+            document.addEventListener('touchend', () => {
+                if (!_swipeState) return;
+                const { el, startX, currentX } = _swipeState;
+                _swipeState = null;
+                const dx = currentX - startX;
+                el.style.transition = 'transform 0.2s ease';
+                if (dx < -threshold) {
+                    el.style.transform = `translateX(-100%)`;
+                    const idx = parseInt(el.dataset.index);
+                    setTimeout(() => deleteEntry(idx), 200);
+                } else {
+                    el.style.transform = 'translateX(0)';
+                    el.parentElement.classList.remove('swiping');
+                }
             });
-        }
+        })();
 
         // One-time migration from localStorage to Supabase
         async function migrateLocalStorage() {
@@ -2333,15 +2339,22 @@
             }
         }
 
-        // Collapse buttons to single row on scroll
+        // Collapse buttons to single row on scroll (throttled via rAF)
+        let _scrollTicking = false;
         window.addEventListener('scroll', () => {
-            const buttons = document.querySelector('#action-buttons .buttons');
-            if (!buttons) return;
-            if (window.scrollY > 60) {
-                buttons.classList.add('compact');
-            } else {
-                buttons.classList.remove('compact');
-            }
+            if (_scrollTicking) return;
+            _scrollTicking = true;
+            requestAnimationFrame(() => {
+                const buttons = document.querySelector('#action-buttons .buttons');
+                if (buttons) {
+                    if (window.scrollY > 60) {
+                        buttons.classList.add('compact');
+                    } else {
+                        buttons.classList.remove('compact');
+                    }
+                }
+                _scrollTicking = false;
+            });
         }, { passive: true });
 
         // Boot
@@ -2371,18 +2384,20 @@
             }
         }, { passive: true });
 
+        var ptrRafPending = false;
         document.addEventListener('touchmove', function(e) {
             if (!pulling) return;
             var dy = e.touches[0].clientY - startY;
             if (dy < 0) { pulling = false; return; }
-            var h = Math.min(dy * 0.4, 60);
-            indicator.style.height = h + 'px';
-            spinner.style.transform = 'rotate(' + (dy * 2) + 'deg)';
-            if (dy > threshold) {
-                spinner.style.opacity = '1';
-            } else {
-                spinner.style.opacity = '0.6';
-            }
+            if (ptrRafPending) return;
+            ptrRafPending = true;
+            requestAnimationFrame(function() {
+                ptrRafPending = false;
+                var h = Math.min(dy * 0.4, 60);
+                indicator.style.height = h + 'px';
+                spinner.style.transform = 'rotate(' + (dy * 2) + 'deg)';
+                spinner.style.opacity = dy > threshold ? '1' : '0.6';
+            });
         }, { passive: true });
 
         document.addEventListener('touchend', function() {
