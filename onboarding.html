@@ -508,7 +508,7 @@
                         const x = wrappedOffset * SPACING;
                         const y = -(wrappedOffset * wrappedOffset) * 3;
                         // Tilt to match the arc tangent angle
-                        const tilt = wrappedOffset * -8;
+                        const tilt = wrappedOffset * 8;
                         el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
                         el.style.opacity = isActive ? 1 : Math.max(0.15, 1 - Math.abs(wrappedOffset) * 0.35);
                     });
