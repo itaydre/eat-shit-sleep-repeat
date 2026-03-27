@@ -220,7 +220,7 @@
         .top-bar .settings-btn {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
             color: #8a8a8a;
             padding: 5px;
@@ -1567,6 +1567,12 @@
             document.getElementById('day-prev').style.visibility = hasPrev ? 'visible' : 'hidden';
         }
 
+        function updateHeaderForSettings(isSettings) {
+            document.getElementById('back-btn').classList.toggle('visible', isSettings);
+            document.querySelector('.top-bar-left').style.display = isSettings ? 'none' : '';
+            document.getElementById('settings-btn').style.display = isSettings ? 'none' : '';
+        }
+
         function switchTab(tab) {
             // Close settings if open
             if (settingsOpen) {
@@ -1575,6 +1581,7 @@
                 document.getElementById('profile-edit-page').classList.remove('active');
                 document.getElementById('main-content').style.display = '';
                 document.getElementById('action-buttons').style.display = tab === 'today' ? '' : 'none';
+                updateHeaderForSettings(false);
             }
             ['today', 'history', 'stats'].forEach(t => {
                 const el = document.getElementById('tab-' + t);
@@ -1595,6 +1602,7 @@
             document.getElementById('profile-edit-page').classList.remove('active');
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
+            updateHeaderForSettings(settingsOpen);
             if (!settingsOpen) updateFeedTimer();
         }
 
