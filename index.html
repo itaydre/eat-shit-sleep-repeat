@@ -631,6 +631,112 @@
             gap: 2px;
         }
 
+        /* --- Vitamin D Reminder --- */
+        .vitd-banner {
+            max-width: 500px;
+            margin: 0 auto 12px;
+            background: #FFF8E1;
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .vitd-banner .vitd-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .vitd-banner .vitd-content {
+            flex: 1;
+        }
+
+        .vitd-banner .vitd-text {
+            font-size: 0.85rem;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+
+        .vitd-banner .vitd-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .vitd-banner .vitd-confirm {
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .vitd-banner .vitd-dismiss {
+            background: none;
+            color: #b5b5b5;
+            border: none;
+            padding: 6px 8px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .vitd-banner.done {
+            background: #DEFADE;
+        }
+
+        .vitd-banner.done .vitd-text {
+            color: #2E8A2E;
+        }
+
+        /* --- Toggle Switch --- */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #e0e0de;
+            border-radius: 26px;
+            transition: background 0.2s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: #E07A4B;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(18px);
+        }
+
         .feed-timer-wrapper {
             max-width: 500px;
             margin: 0 auto;
@@ -715,14 +821,30 @@
             transform: scale(0.95);
         }
 
+        .entry .duration-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .entry .duration-badge .dur-value {
+            background: #f5f5f3;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
         .entry .edit-duration-btn {
             background: none;
             border: none;
-            font-size: 1.1rem;
-            color: #aaa;
+            font-size: 0.9rem;
+            color: #b5b5b5;
             cursor: pointer;
-            padding: 6px 8px;
-            margin-left: auto;
+            padding: 4px;
             flex-shrink: 0;
         }
 
@@ -1055,6 +1177,14 @@
                         <button onclick="saveFeedInterval()" style="background:#1a1a1a; border:none; border-radius:8px; padding:6px 16px; font-size:0.85rem; color:#fff; cursor:pointer; font-family:inherit;">Save</button>
                     </div>
                 </div>
+                <div class="settings-item" style="cursor:default; margin-bottom:0; border-radius:0; border-top:1px solid #f0f0ee;">
+                    <span class="settings-icon" style="background:#FFF8E1;">☀️</span>
+                    <span>Vitamin D reminder</span>
+                    <label class="toggle-switch" style="margin-left:auto;">
+                        <input type="checkbox" id="vitd-toggle" onchange="toggleVitaminD(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
             <div style="font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.06em; padding:0 4px 8px;">Data</div>
             <div style="background:#fff; border-radius:14px; overflow:hidden; margin-bottom:20px;">
@@ -1110,6 +1240,17 @@
                 <div id="notif-banner" class="notif-banner" style="display:none">
                     <span>Enable notifications to get feeding reminders</span>
                     <button onclick="requestNotifPermission()">Enable</button>
+                </div>
+
+                <div class="vitd-banner" id="vitd-banner" style="display:none">
+                    <span class="vitd-icon">☀️</span>
+                    <div class="vitd-content">
+                        <div class="vitd-text" id="vitd-text">Did you give your baby vitamin D today?</div>
+                        <div class="vitd-actions" id="vitd-actions">
+                            <button class="vitd-confirm" onclick="confirmVitaminD()">Done, sunshine covered!</button>
+                            <button class="vitd-dismiss" onclick="dismissVitaminD()">Not yet</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="feed-timer-wrapper" id="feed-timer-wrapper" style="display:none">
@@ -1468,6 +1609,7 @@
                 if (logsAlreadyLoaded) {
                     render();
                     updateFeedTimer();
+                    updateVitdBanner();
                     resumeFeedSession();
                 }
             } catch(e) { console.error('Pre-render error:', e); }
@@ -1489,7 +1631,7 @@
                     if (!localStorage.getItem('baby_log_migrated')) fetchEntries();
                 });
             } else {
-                migrateLocalStorage().then(() => fetchEntries()).then(() => { updateFeedTimer(); resumeFeedSession(); });
+                migrateLocalStorage().then(() => fetchEntries()).then(() => { updateFeedTimer(); updateVitdBanner(); resumeFeedSession(); });
             }
             if (!window._intervalsStarted) {
                 window._fetchInterval = setInterval(() => {
@@ -1642,7 +1784,12 @@
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
             updateHeaderForSettings(settingsOpen);
-            if (!settingsOpen) updateFeedTimer();
+            if (settingsOpen) {
+                document.getElementById('vitd-toggle').checked = getVitdEnabled();
+            } else {
+                updateFeedTimer();
+                updateVitdBanner();
+            }
         }
 
         function selectGender(btn, inputId) {
@@ -1919,16 +2066,22 @@
 
                 const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                 const flipStyle = act.flip ? ' style="transform:scaleX(-1)"' : '';
-                const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m ${entry.duration % 60}s)` : '';
+                const isFeedH = entry.type === 'feed_l' || entry.type === 'feed_r';
+                const durMinsH = entry.duration ? Math.floor(entry.duration / 60) : 0;
+                let histTrailing = '';
+                if (isFeedH && durMinsH > 0) {
+                    histTrailing = `<div class="duration-badge"><span class="dur-value">${durMinsH}m</span></div>`;
+                }
                 html += `
                     <div class="entry-wrapper">
                         <div class="entry-delete-bg">Delete</div>
                         <div class="entry" data-index="${i}">
                             <span class="emoji ${emojiClass(entry.type)}"${flipStyle}>${act.emoji}</span>
                             <div class="details">
-                                <div class="activity">${act.label}${durationText}</div>
+                                <div class="activity">${act.label}</div>
                                 <div class="time">${formatTime(entry.timestamp)}</div>
                             </div>
+                            ${histTrailing}
                         </div>
                     </div>
                 `;
@@ -1967,13 +2120,14 @@
                         const globalIndex = entries.indexOf(entry);
                         const act = ACTIVITIES[entry.type] || { emoji: '\u2753', label: entry.type };
                         const tFlip = act.flip ? ' style="transform:scaleX(-1)"' : '';
-                        const durationText = entry.duration ? ` (${Math.floor(entry.duration / 60)}m)` : '';
                         const isFeed = entry.type === 'feed_l' || entry.type === 'feed_r';
                         let trailingHtml = '';
                         if (entry.pending) {
                             trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" style="margin-left:auto;">&#9632;</button>`;
                         } else if (isFeed) {
-                            trailingHtml = `<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button>`;
+                            const durMins = entry.duration ? Math.floor(entry.duration / 60) : 0;
+                            const durBadge = durMins > 0 ? `<span class="dur-value">${durMins}m</span>` : '';
+                            trailingHtml = `<div class="duration-badge">${durBadge}<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button></div>`;
                         }
                         const timeText = entry.pending ? `<span class="feed-stopwatch" id="feed-stopwatch">0:00</span>` : formatTime(entry.timestamp);
                         todayHtml += `
@@ -1982,7 +2136,7 @@
                                 <div class="entry" data-index="${globalIndex}" id="entry-${globalIndex}">
                                     <span class="emoji ${emojiClass(entry.type)}"${tFlip}>${act.emoji}</span>
                                     <div class="details">
-                                        <div class="activity">${act.label}${durationText}</div>
+                                        <div class="activity">${act.label}</div>
                                         <div class="time">${timeText}</div>
                                     </div>
                                     ${trailingHtml}
@@ -2193,6 +2347,68 @@
                 const el = document.getElementById('feed-stopwatch');
                 if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
             }, 1000);
+        }
+
+        // --- Vitamin D Reminder ---
+        function getVitdEnabled() {
+            return localStorage.getItem('vitdReminder') !== 'off';
+        }
+
+        function getTodayKey() {
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function getVitdStatus() {
+            // Returns 'confirmed', 'dismissed', or null for today
+            const data = JSON.parse(localStorage.getItem('vitdStatus') || '{}');
+            return data[getTodayKey()] || null;
+        }
+
+        function setVitdStatus(status) {
+            const data = JSON.parse(localStorage.getItem('vitdStatus') || '{}');
+            // Clean old entries (keep only last 7 days)
+            const keys = Object.keys(data);
+            if (keys.length > 7) {
+                keys.sort();
+                keys.slice(0, keys.length - 7).forEach(k => delete data[k]);
+            }
+            data[getTodayKey()] = status;
+            localStorage.setItem('vitdStatus', JSON.stringify(data));
+        }
+
+        function updateVitdBanner() {
+            const banner = document.getElementById('vitd-banner');
+            if (!getVitdEnabled()) { banner.style.display = 'none'; return; }
+            const status = getVitdStatus();
+            if (status === 'dismissed') { banner.style.display = 'none'; return; }
+            banner.style.display = 'flex';
+            const name = (profile && profile.baby_name) ? profile.baby_name : 'your baby';
+            const textEl = document.getElementById('vitd-text');
+            const actionsEl = document.getElementById('vitd-actions');
+            if (status === 'confirmed') {
+                banner.classList.add('done');
+                textEl.textContent = name + ' got their vitamin D today ✓';
+                actionsEl.style.display = 'none';
+            } else {
+                banner.classList.remove('done');
+                textEl.textContent = 'Did you give ' + name + ' vitamin D today?';
+                actionsEl.style.display = 'flex';
+            }
+        }
+
+        function confirmVitaminD() {
+            setVitdStatus('confirmed');
+            updateVitdBanner();
+        }
+
+        function dismissVitaminD() {
+            setVitdStatus('dismissed');
+            updateVitdBanner();
+        }
+
+        function toggleVitaminD(on) {
+            localStorage.setItem('vitdReminder', on ? 'on' : 'off');
+            updateVitdBanner();
         }
 
         // --- Feed Interval Setting ---
@@ -2444,7 +2660,8 @@
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
             openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay,
-            editDuration, saveDuration, refreshData
+            editDuration, saveDuration, refreshData,
+            confirmVitaminD, dismissVitaminD, toggleVitaminD
         });
 
         // Splash animation
