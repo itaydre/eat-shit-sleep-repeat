@@ -1215,24 +1215,38 @@
         </div>
 
         <div class="settings-page" id="profile-edit-page">
-            <h2>Edit profile</h2>
-            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Baby's name</label>
-            <input type="text" id="edit-baby-name" class="auth-input" placeholder="e.g. Maya" style="margin-bottom:12px;">
-            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Date of birth</label>
-            <input type="date" id="edit-baby-dob" class="auth-input" style="margin-bottom:12px;">
-            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Time of birth</label>
-            <input type="time" id="edit-baby-birth-time" class="auth-input" style="margin-bottom:12px;">
-            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Birth weight (grams)</label>
-            <input type="number" id="edit-baby-birth-weight" class="auth-input" placeholder="e.g. 3200" style="margin-bottom:12px;">
-            <label style="display:block; font-size:0.85rem; color:#999; margin-bottom:4px; text-align:left;">Gender</label>
-            <div style="display:flex; gap:8px; margin-bottom:20px;">
-                <button type="button" class="gender-btn" data-gender="boy" onclick="selectGender(this, 'edit-baby-gender')">👦 Boy</button>
-                <button type="button" class="gender-btn" data-gender="girl" onclick="selectGender(this, 'edit-baby-gender')">👧 Girl</button>
+            <div style="background:#fff; border-radius:14px; overflow:hidden; margin-bottom:16px;">
+                <div style="padding:14px 16px; border-bottom:1px solid #f0f0ee;">
+                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Baby's name</label>
+                    <input type="text" id="edit-baby-name" placeholder="e.g. Maya" style="width:100%; border:none; background:none; font-size:0.95rem; color:#1a1a1a; font-family:inherit; outline:none;">
+                </div>
+                <div style="padding:14px 16px; border-bottom:1px solid #f0f0ee;">
+                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Date of birth</label>
+                    <input type="date" id="edit-baby-dob" style="width:100%; border:none; background:none; font-size:0.95rem; color:#1a1a1a; font-family:inherit; outline:none;">
+                </div>
+                <div style="padding:14px 16px; border-bottom:1px solid #f0f0ee;">
+                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Time of birth</label>
+                    <input type="time" id="edit-baby-birth-time" style="width:100%; border:none; background:none; font-size:0.95rem; color:#1a1a1a; font-family:inherit; outline:none;">
+                </div>
+                <div style="padding:14px 16px; border-bottom:1px solid #f0f0ee;">
+                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Birth weight</label>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <input type="number" id="edit-baby-birth-weight" placeholder="3200" style="flex:1; border:none; background:none; font-size:0.95rem; color:#1a1a1a; font-family:inherit; outline:none;">
+                        <span style="font-size:0.8rem; color:#b5b5b5;">grams</span>
+                    </div>
+                </div>
+                <div style="padding:14px 16px;">
+                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:10px;">Gender</label>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="gender-btn" data-gender="boy" onclick="selectGender(this, 'edit-baby-gender')" style="flex:1; padding:10px; border:1px solid #f0f0ee; border-radius:10px; font-size:0.9rem; background:#fff; cursor:pointer; font-family:inherit; transition:border-color 0.15s ease, background 0.15s ease;">👦 Boy</button>
+                        <button type="button" class="gender-btn" data-gender="girl" onclick="selectGender(this, 'edit-baby-gender')" style="flex:1; padding:10px; border:1px solid #f0f0ee; border-radius:10px; font-size:0.9rem; background:#fff; cursor:pointer; font-family:inherit; transition:border-color 0.15s ease, background 0.15s ease;">👧 Girl</button>
+                    </div>
+                    <input type="hidden" id="edit-baby-gender">
+                </div>
             </div>
-            <input type="hidden" id="edit-baby-gender">
             <div style="display:flex; gap:8px;">
-                <button onclick="closeProfileEdit()" style="flex:1; background:none; border:1px solid #f0f0ee; border-radius:12px; padding:12px; font-size:0.95rem; color:#8a8a8a; cursor:pointer; font-family:inherit;">Cancel</button>
-                <button onclick="saveProfileEdit()" style="flex:1; background:#1a1a1a; border:none; border-radius:12px; padding:12px; font-size:0.95rem; color:#fff; cursor:pointer; font-family:inherit;">Save</button>
+                <button onclick="closeProfileEdit()" style="flex:1; background:#fff; border:none; border-radius:14px; padding:14px; font-size:0.9rem; color:#8a8a8a; cursor:pointer; font-family:inherit; font-weight:600;">Cancel</button>
+                <button onclick="saveProfileEdit()" style="flex:1; background:#1a1a1a; border:none; border-radius:14px; padding:14px; font-size:0.9rem; color:#fff; cursor:pointer; font-family:inherit; font-weight:600;">Save</button>
             </div>
         </div>
 
