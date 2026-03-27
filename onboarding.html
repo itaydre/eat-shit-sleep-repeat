@@ -488,14 +488,12 @@
                 <div class="progress" id="progress-5"></div>
             </div>
             <div class="step-content" style="justify-content:flex-start; padding-top:20px;">
-                <div id="bracelet-container" style="width:100%; height:280px; margin-bottom:8px;"></div>
-                <div id="bracelet-colors" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px;">
-                    <button class="color-dot active" data-color="#F08080" style="background:#F08080;" onclick="pickBraceletColor(this)"></button>
-                    <button class="color-dot" data-color="#7EB8E0" style="background:#7EB8E0;" onclick="pickBraceletColor(this)"></button>
-                    <button class="color-dot" data-color="#7ED67E" style="background:#7ED67E;" onclick="pickBraceletColor(this)"></button>
-                    <button class="color-dot" data-color="#F5D76E" style="background:#F5D76E;" onclick="pickBraceletColor(this)"></button>
-                    <button class="color-dot" data-color="#C8A2E8" style="background:#C8A2E8;" onclick="pickBraceletColor(this)"></button>
-                    <button class="color-dot" data-color="#FF9F68" style="background:#FF9F68;" onclick="pickBraceletColor(this)"></button>
+                <div id="bracelet-container" style="width:100%; height:260px; margin-bottom:8px;"></div>
+                <div id="bracelet-colors" style="display:flex; align-items:center; gap:10px; padding:8px; background:white; width:fit-content; border-radius:1000px; margin:0 auto 16px;">
+                    <button class="color-dot active" data-color="#7EB8E0" style="background:#7EB8E0;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#90D4A0" style="background:#90D4A0;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#E0D47A" style="background:#E0D47A;" onclick="pickBraceletColor(this)"></button>
+                    <button class="color-dot" data-color="#B8A8D8" style="background:#B8A8D8;" onclick="pickBraceletColor(this)"></button>
                     <button class="color-dot color-dot-custom" data-color="custom" onclick="pickBraceletColor(this)" style="background:conic-gradient(#F08080, #F5D76E, #7ED67E, #7EB8E0, #C8A2E8, #F08080); border-color:transparent;"></button>
                 </div>
                 <input type="color" id="custom-color-input" style="display:none;" oninput="applyCustomColor(this.value)" onchange="applyCustomColor(this.value)">
@@ -834,7 +832,9 @@
 
             const scene = new Scene();
             const camera = new PerspectiveCamera(30, w / h, 0.1, 100);
-            camera.position.set(0.3, 0.8, 5.5);
+            camera.position.set(0.8, 1.5, 4.4);
+            camera.fov = 44;
+            camera.updateProjectionMatrix();
 
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -842,7 +842,7 @@
             controls.enableZoom = false;
             controls.enablePan = false;
             controls.autoRotate = true;
-            controls.autoRotateSpeed = 1.2;
+            controls.autoRotateSpeed = 1.1;
 
             scene.add(new AmbientLight(0xffffff, 0.7));
             const key = new DirectionalLight(0xfff8ee, 1.4);
@@ -975,7 +975,7 @@
             }
 
             // Band geometry
-            const len=5, bw=0.8, drp=3, stripW2=bw*0.35, labelW2=bw;
+            const len=5, bw=1.1, drp=3, stripW2=bw*0.35, labelW2=bw;
             const uS=120, vS=8, verts=[], uvs=[], idx=[];
             for(let i=0;i<=uS;i++){
                 const u=i/uS, x=(u-0.5)*len;
@@ -1018,9 +1018,9 @@
 
             // --- Entrance animation ---
             // Start: above screen, tiny, spinning
-            const targetScale = 0.6;
-            const targetRotX = -0.3;
-            const targetY = 0;
+            const targetScale = 1.05;
+            const targetRotX = -0.29;
+            const targetY = 0.5;
             band.position.y = 6;          // start way above
             band.rotation.x = -0.3;
             band.rotation.y = Math.PI * 4; // 2 full spins
@@ -1056,10 +1056,13 @@
                     if (t >= 1) {
                         animDone = true;
                         band.position.y = targetY;
+                        band.position.x = -0.9;
                         band.scale.setScalar(targetScale);
+                        band.rotation.x = targetRotX;
                         band.rotation.y = 0;
+                        band.rotation.z = -0.04;
                         controls.autoRotate = true;
-                        controls.autoRotateSpeed = 1.2;
+                        controls.autoRotateSpeed = 1.1;
                     }
                 }
 

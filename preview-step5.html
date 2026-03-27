@@ -8,6 +8,69 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: inherit; }
 
+        #debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 260px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 999;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        #debug-panel h4 {
+            margin: 0 0 8px;
+            font-size: 12px;
+            font-family: 'Varela Round', sans-serif;
+            color: #1a1a1a;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+        }
+
+        #debug-panel label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 4px 0;
+            color: #555;
+        }
+
+        #debug-panel input[type="range"] {
+            width: 120px;
+        }
+
+        #debug-panel .val {
+            min-width: 36px;
+            text-align: right;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        #debug-panel .section {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+
+        #debug-panel button {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            width: 100%;
+        }
+
         body {
             font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #fafaf8;
@@ -159,13 +222,11 @@
 
         <div class="step-content">
             <div id="bracelet-container" style="width:100%; height:280px; margin-bottom:8px;"></div>
-            <div id="bracelet-colors" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px;">
-                <button class="color-dot" data-color="#F08080" style="background:#F08080;" onclick="pickBraceletColor(this)"></button>
+            <div id="bracelet-colors" style="display:flex; align-items:center; gap:10px; padding:8px; background:white; width:fit-content; border-radius:1000px; margin:0 auto 16px;">
                 <button class="color-dot active" data-color="#7EB8E0" style="background:#7EB8E0;" onclick="pickBraceletColor(this)"></button>
-                <button class="color-dot" data-color="#7ED67E" style="background:#7ED67E;" onclick="pickBraceletColor(this)"></button>
-                <button class="color-dot" data-color="#F5D76E" style="background:#F5D76E;" onclick="pickBraceletColor(this)"></button>
-                <button class="color-dot" data-color="#C8A2E8" style="background:#C8A2E8;" onclick="pickBraceletColor(this)"></button>
-                <button class="color-dot" data-color="#FF9F68" style="background:#FF9F68;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#90D4A0" style="background:#90D4A0;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#E0D47A" style="background:#E0D47A;" onclick="pickBraceletColor(this)"></button>
+                <button class="color-dot" data-color="#B8A8D8" style="background:#B8A8D8;" onclick="pickBraceletColor(this)"></button>
                 <button class="color-dot" data-color="custom" onclick="pickBraceletColor(this)" style="background:conic-gradient(#F08080, #F5D76E, #7ED67E, #7EB8E0, #C8A2E8, #F08080); border-color:transparent;"></button>
             </div>
             <input type="color" id="custom-color-input" style="display:none;" oninput="applyCustomColor(this.value)" onchange="applyCustomColor(this.value)">
@@ -183,7 +244,89 @@
         </div>
     </div>
 
+    <div id="debug-panel">
+        <h4>Bracelet Controls</h4>
+        <label>Scale <input type="range" id="d-scale" min="0.1" max="1.5" step="0.05" value="0.6"><span class="val" id="v-scale">0.6</span></label>
+        <label>Pos Y <input type="range" id="d-posY" min="-3" max="3" step="0.1" value="0"><span class="val" id="v-posY">0</span></label>
+        <label>Pos X <input type="range" id="d-posX" min="-3" max="3" step="0.1" value="0"><span class="val" id="v-posX">0</span></label>
+        <label>Rot X <input type="range" id="d-rotX" min="-3.14" max="3.14" step="0.05" value="-0.3"><span class="val" id="v-rotX">-0.3</span></label>
+        <label>Rot Z <input type="range" id="d-rotZ" min="-3.14" max="3.14" step="0.05" value="0"><span class="val" id="v-rotZ">0</span></label>
+        <div class="section"><h4>Camera</h4></div>
+        <label>Cam X <input type="range" id="d-camX" min="-5" max="5" step="0.1" value="0.3"><span class="val" id="v-camX">0.3</span></label>
+        <label>Cam Y <input type="range" id="d-camY" min="-5" max="5" step="0.1" value="0.8"><span class="val" id="v-camY">0.8</span></label>
+        <label>Cam Z <input type="range" id="d-camZ" min="1" max="12" step="0.1" value="5.5"><span class="val" id="v-camZ">5.5</span></label>
+        <label>FOV <input type="range" id="d-fov" min="10" max="80" step="1" value="30"><span class="val" id="v-fov">30</span></label>
+        <div class="section"><h4>Band</h4></div>
+        <label>Length <input type="range" id="d-len" min="1" max="8" step="0.5" value="5"><span class="val" id="v-len">5</span></label>
+        <label>Droop <input type="range" id="d-droop" min="0" max="6" step="0.5" value="3"><span class="val" id="v-droop">3</span></label>
+        <label>Width <input type="range" id="d-bw" min="0.2" max="2" step="0.1" value="0.8"><span class="val" id="v-bw">0.8</span></label>
+        <div class="section"><h4>Animation</h4></div>
+        <label>Auto-rotate <input type="range" id="d-autoSpeed" min="0" max="5" step="0.1" value="1.2"><span class="val" id="v-autoSpeed">1.2</span></label>
+        <label>Container H <input type="range" id="d-containerH" min="150" max="500" step="10" value="280"><span class="val" id="v-containerH">280</span></label>
+        <button onclick="logValues()">Copy values to console</button>
+    </div>
+
     <script>
+        // Debug panel wiring
+        let _band = null, _camera = null, _controls = null, _renderer = null;
+        let _firstLoad = true;
+
+        function wireDebug() {
+            const sliders = ['scale','posY','posX','rotX','rotZ','camX','camY','camZ','fov','autoSpeed','containerH'];
+            sliders.forEach(key => {
+                const el = document.getElementById('d-' + key);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    document.getElementById('v-' + key).textContent = el.value;
+                    applyDebug();
+                });
+            });
+            // Band params trigger full rebuild
+            ['len','droop','bw'].forEach(key => {
+                const el = document.getElementById('d-' + key);
+                if (!el) return;
+                el.addEventListener('change', () => {
+                    document.getElementById('v-' + key).textContent = el.value;
+                    initBracelet();
+                });
+                el.addEventListener('input', () => {
+                    document.getElementById('v-' + key).textContent = el.value;
+                });
+            });
+        }
+
+        function applyDebug() {
+            if (_band) {
+                _band.scale.setScalar(parseFloat(document.getElementById('d-scale').value));
+                _band.position.y = parseFloat(document.getElementById('d-posY').value);
+                _band.position.x = parseFloat(document.getElementById('d-posX').value);
+                _band.rotation.x = parseFloat(document.getElementById('d-rotX').value);
+                _band.rotation.z = parseFloat(document.getElementById('d-rotZ').value);
+            }
+            if (_camera) {
+                _camera.position.x = parseFloat(document.getElementById('d-camX').value);
+                _camera.position.y = parseFloat(document.getElementById('d-camY').value);
+                _camera.position.z = parseFloat(document.getElementById('d-camZ').value);
+                _camera.fov = parseFloat(document.getElementById('d-fov').value);
+                _camera.updateProjectionMatrix();
+            }
+            if (_controls) {
+                _controls.autoRotateSpeed = parseFloat(document.getElementById('d-autoSpeed').value);
+            }
+            const ch = parseFloat(document.getElementById('d-containerH').value);
+            document.getElementById('bracelet-container').style.height = ch + 'px';
+        }
+
+        function logValues() {
+            const vals = {};
+            document.querySelectorAll('#debug-panel input[type="range"]').forEach(el => {
+                vals[el.id.replace('d-','')] = parseFloat(el.value);
+            });
+            console.log('Bracelet params:', JSON.stringify(vals, null, 2));
+        }
+
+        document.addEventListener('DOMContentLoaded', wireDebug);
+
         let chosenBraceletColor = '#7EB8E0';
 
         function pickBraceletColor(btn) {
@@ -357,7 +500,10 @@
                 return new CanvasTexture(c);
             }
 
-            const len=5, bw=0.8, drp=3, stripW2=bw*0.35, labelW2=bw;
+            const len=parseFloat(document.getElementById('d-len')?.value||5);
+            const bw=parseFloat(document.getElementById('d-bw')?.value||0.8);
+            const drp=parseFloat(document.getElementById('d-droop')?.value||3);
+            const stripW2=bw*0.35, labelW2=bw;
             const uS=120, vS=8, verts=[], uvs=[], idx=[];
             for(let i=0;i<=uS;i++){
                 const u=i/uS, x=(u-0.5)*len;
@@ -397,17 +543,26 @@
             snap.position.set(len*0.47,0,sZ+0.006);
             band.add(snap);
 
-            const targetScale = 0.6;
-            band.position.y = 6;
-            band.rotation.x = -0.3;
-            band.rotation.y = Math.PI * 4;
-            band.scale.setScalar(0.1);
+            const targetScale = parseFloat(document.getElementById('d-scale')?.value || 0.6);
+            if (_firstLoad) {
+                band.position.y = 6;
+                band.rotation.x = -0.3;
+                band.rotation.y = Math.PI * 4;
+                band.scale.setScalar(0.1);
+            } else {
+                band.position.y = parseFloat(document.getElementById('d-posY')?.value || 0);
+                band.position.x = parseFloat(document.getElementById('d-posX')?.value || 0);
+                band.rotation.x = parseFloat(document.getElementById('d-rotX')?.value || -0.3);
+                band.scale.setScalar(targetScale);
+            }
 
             scene.add(band);
+            _band = band; _camera = camera; _controls = controls; _renderer = renderer;
 
             const animStart = performance.now();
             const animDuration = 2000;
-            let animDone = false;
+            let animDone = !_firstLoad;
+            _firstLoad = false;
 
             function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
