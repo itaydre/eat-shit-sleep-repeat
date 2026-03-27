@@ -1228,7 +1228,7 @@
         </div>
         <div class="app-header">
         <div class="top-bar">
-            <button class="back-btn" id="back-btn" onclick="openSettings()">&#8592;</button>
+            <button class="back-btn" id="back-btn" onclick="handleBack()">&#8592;</button>
             <div class="top-bar-left">
                 <button class="top-link" onclick="switchTab('history')" title="History">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1930,6 +1930,22 @@
 
         // --- Settings ---
         let settingsOpen = false;
+        function handleBack() {
+            // If on a sub-page, go back to settings main
+            const profilePage = document.getElementById('profile-edit-page');
+            const invitePage = document.getElementById('invite-page');
+            if (profilePage.classList.contains('active')) {
+                closeProfileEdit();
+                return;
+            }
+            if (invitePage.classList.contains('active')) {
+                closeInvitePage();
+                return;
+            }
+            // Otherwise toggle settings
+            openSettings();
+        }
+
         function openSettings() {
             settingsOpen = !settingsOpen;
             document.getElementById('settings-page').classList.toggle('active', settingsOpen);
@@ -2942,7 +2958,7 @@
 
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
-            openSettings, confirmClearAll, copyInviteCode, shareInviteCode, openInvitePage, closeInvitePage, deleteEntry, downloadBackup, clearAll,
+            handleBack, openSettings, confirmClearAll, copyInviteCode, shareInviteCode, openInvitePage, closeInvitePage, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
             openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay,
