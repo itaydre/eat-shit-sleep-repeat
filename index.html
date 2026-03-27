@@ -1252,9 +1252,9 @@
                     <span class="settings-icon" style="background:#E3EEFF;">&#128118;</span>
                     <span>Edit profile</span>
                 </button>
-                <button class="settings-item" onclick="copyInviteCode()" style="margin-bottom:0; border-radius:0; border-top:1px solid #f0f0ee;">
+                <button class="settings-item" onclick="openInvitePage()" style="margin-bottom:0; border-radius:0; border-top:1px solid #f0f0ee;">
                     <span class="settings-icon" style="background:#DEFADE;">&#128101;</span>
-                    <span id="invite-btn-text">Invite partner</span>
+                    <span>Invite partner</span>
                 </button>
             </div>
             <div style="font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.06em; padding:0 4px 8px;">Preferences</div>
@@ -1339,6 +1339,27 @@
             <div style="display:flex; gap:8px;">
                 <button onclick="closeProfileEdit()" style="flex:1; background:#fff; border:none; border-radius:14px; padding:14px; font-size:0.9rem; color:#8a8a8a; cursor:pointer; font-family:inherit; font-weight:600;">Cancel</button>
                 <button onclick="saveProfileEdit()" style="flex:1; background:#1a1a1a; border:none; border-radius:14px; padding:14px; font-size:0.9rem; color:#fff; cursor:pointer; font-family:inherit; font-weight:600;">Save</button>
+            </div>
+        </div>
+
+        <div class="settings-page" id="invite-page">
+            <div style="text-align:center; padding:20px 0 24px;">
+                <div style="font-size:3rem; margin-bottom:12px;">👥</div>
+                <h2 style="font-size:1.1rem; margin-bottom:6px;">Invite your partner</h2>
+                <p style="font-size:0.82rem; color:#8a8a8a; line-height:1.5;">Share this code so they can join your baby's log. They'll see everything you track.</p>
+            </div>
+            <div style="background:#fff; border-radius:14px; overflow:hidden; margin-bottom:16px;">
+                <div style="padding:16px; text-align:center;">
+                    <div style="font-size:0.7rem; font-weight:600; color:#b5b5b5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Invite code</div>
+                    <div id="invite-code-display" style="font-size:1.1rem; font-weight:700; color:#1a1a1a; letter-spacing:0.5px; word-break:break-all; font-family:monospace;">—</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <button onclick="copyInviteCode()" style="flex:1; background:#1a1a1a; border:none; border-radius:14px; padding:14px; font-size:0.9rem; color:#fff; cursor:pointer; font-family:inherit; font-weight:600;" id="invite-copy-btn">Copy code</button>
+            </div>
+            <button onclick="shareInviteCode()" id="invite-share-btn" style="display:none; width:100%; background:#fff; border:none; border-radius:14px; padding:14px; font-size:0.9rem; color:#1a1a1a; cursor:pointer; font-family:inherit; font-weight:600; margin-bottom:12px;">Share via...</button>
+            <div style="text-align:center;">
+                <button onclick="closeInvitePage()" style="background:none; border:none; font-size:0.85rem; color:#b5b5b5; cursor:pointer; font-family:inherit; padding:10px;">Back to settings</button>
             </div>
         </div>
 
@@ -1916,6 +1937,7 @@
             settingsOpen = !settingsOpen;
             document.getElementById('settings-page').classList.toggle('active', settingsOpen);
             document.getElementById('profile-edit-page').classList.remove('active');
+            document.getElementById('invite-page').classList.remove('active');
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
             updateHeaderForSettings(settingsOpen);
@@ -1987,13 +2009,41 @@
             closeProfileEdit();
         }
 
+        function openInvitePage() {
+            document.getElementById('settings-page').classList.remove('active');
+            document.getElementById('invite-page').classList.add('active');
+            if (profile && profile.household_id) {
+                document.getElementById('invite-code-display').textContent = profile.household_id;
+            }
+            // Show share button if Web Share API available
+            if (navigator.share) {
+                document.getElementById('invite-share-btn').style.display = 'block';
+            }
+        }
+
+        function closeInvitePage() {
+            document.getElementById('invite-page').classList.remove('active');
+            document.getElementById('settings-page').classList.add('active');
+        }
+
         async function copyInviteCode() {
             if (profile && profile.household_id) {
                 await navigator.clipboard.writeText(profile.household_id);
-                document.getElementById('invite-btn-text').textContent = 'Copied!';
-                setTimeout(() => {
-                    document.getElementById('invite-btn-text').textContent = 'Copy invite code for partner';
-                }, 2000);
+                const btn = document.getElementById('invite-copy-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy code'; }, 2000);
+            }
+        }
+
+        async function shareInviteCode() {
+            if (profile && profile.household_id && navigator.share) {
+                const name = profile.baby_name || 'our baby';
+                try {
+                    await navigator.share({
+                        title: 'Join ' + name + "'s log",
+                        text: 'Use this code to join ' + name + "'s tracking log: " + profile.household_id,
+                    });
+                } catch(e) { /* user cancelled */ }
             }
         }
 
@@ -2895,7 +2945,7 @@
 
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
-            openSettings, confirmClearAll, copyInviteCode, deleteEntry, downloadBackup, clearAll,
+            openSettings, confirmClearAll, copyInviteCode, shareInviteCode, openInvitePage, closeInvitePage, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
             openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay,
