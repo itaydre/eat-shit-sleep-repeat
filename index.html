@@ -900,6 +900,30 @@
             color: #D45454;
         }
 
+        /* --- Toast --- */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1a1a;
+            color: #fff;
+            font-family: 'Varela Round', sans-serif;
+            font-size: 0.82rem;
+            padding: 10px 20px;
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 100;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         .entry .stop-btn {
             background: #E74C3C;
             color: #fff;
@@ -1505,6 +1529,8 @@
     </div>
 
     <!-- Storage Picker Modal -->
+    <div class="toast" id="toast"></div>
+
     <div class="storage-modal" id="storage-modal">
         <div class="storage-backdrop" onclick="skipStorage()"></div>
         <div class="storage-sheet">
@@ -2711,6 +2737,15 @@
         function toggleVitaminD(on) {
             localStorage.setItem('vitdReminder', on ? 'on' : 'off');
             updateVitdBanner();
+            showToast(on ? 'Vitamin D reminder on' : 'Vitamin D reminder off');
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 2000);
         }
 
         // --- Feed Interval Setting ---
