@@ -544,9 +544,13 @@
                         el.style.display = isVisible ? '' : 'none';
                         el.classList.toggle('active', isActive);
 
-                        const x = wrappedOffset * 50;
-                        const y = Math.abs(wrappedOffset) * -10;
-                        const tilt = wrappedOffset * -8;
+                        // Place items on a circular arc
+                        const RADIUS = 220;
+                        const angleStep = 0.23; // radians between items
+                        const angle = wrappedOffset * angleStep;
+                        const x = Math.sin(angle) * RADIUS;
+                        const y = -(Math.cos(angle) - 1) * RADIUS; // arc curves upward
+                        const tilt = -angle * (180 / Math.PI); // tangent rotation
                         el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
                         el.style.opacity = 1;
                     });
