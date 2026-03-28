@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>V2 — Main Page Redesign</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #fafaf8;
+            --surface: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #8a8a8a;
+            --text-tertiary: #b5b5b5;
+            --accent: #E07A4B;
+            --accent-soft: #FFF0E6;
+            --border: #f0f0ee;
+            --pee-bg: #E3EEFF;
+            --pee-text: #3B6BC4;
+            --poop-bg: #FFEDCF;
+            --poop-text: #A06B2E;
+            --feed-bg: #DEFADE;
+            --feed-text: #2E8A2E;
+            --radius: 14px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body {
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Header --- */
+        .header {
+            padding: env(safe-area-inset-top, 0px) 0 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-inner {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 2px;
+        }
+
+        .header-nav-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+
+        .header-nav-btn.active {
+            color: var(--text-primary);
+        }
+
+        .header-nav-btn:hover {
+            background: var(--border);
+        }
+
+        .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .header-center h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .header-center .subtitle {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            margin-top: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 4px;
+        }
+
+        .header-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: background 0.15s ease;
+        }
+
+        .header-btn:hover {
+            background: var(--border);
+        }
+
+        /* --- Feed Timer --- */
+        .feed-timer {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 16px 20px 0;
+        }
+
+        .feed-timer-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: var(--accent-soft);
+            border-radius: var(--radius);
+        }
+
+        .feed-timer-icon {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+
+        .feed-timer-info {
+            flex: 1;
+        }
+
+        .feed-timer-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .feed-timer-countdown {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-top: 1px;
+        }
+
+        .feed-timer-dismiss {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .feed-timer-overdue .feed-timer-card {
+            background: #FFF0F0;
+        }
+
+        .feed-timer-overdue .feed-timer-countdown {
+            color: #D45454;
+        }
+
+        /* --- Day Navigation --- */
+        .day-nav {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .day-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            font-size: 1.1rem;
+            transition: background 0.15s ease;
+        }
+
+        .day-nav-btn:hover {
+            background: var(--border);
+        }
+
+        .day-nav-btn.hidden {
+            visibility: hidden;
+        }
+
+        .day-nav-center {
+            text-align: center;
+        }
+
+        .day-nav-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .day-summary {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .day-summary span {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* --- Entries --- */
+        .entries-list {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-bottom: 280px;
+        }
+
+        .entry {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            transition: transform 0.2s ease;
+            will-change: transform;
+        }
+
+        .entry-emoji {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .entry-emoji.pee { background: var(--pee-bg); }
+        .entry-emoji.poop { background: var(--poop-bg); }
+        .entry-emoji.feed { background: var(--feed-bg); }
+
+        .entry-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .entry-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .entry-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 1px;
+        }
+
+        .entry-duration {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            background: var(--border);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .entry-stopwatch {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .entry-stop {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: #E74C3C;
+            color: #fff;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Bottom Action Bar --- */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding-bottom: calc(var(--safe-bottom) + 8px);
+        }
+
+        .action-bar-inner {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 12px 16px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 14px 0;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .action-btn:active {
+            transform: scale(0.93);
+        }
+
+        .action-btn .emoji {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .action-btn .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+
+        .action-btn.pee {
+            background: var(--pee-bg);
+            color: var(--pee-text);
+        }
+
+        .action-btn.poop {
+            background: var(--poop-bg);
+            color: var(--poop-text);
+        }
+
+        .action-btn.feed {
+            background: var(--feed-bg);
+            color: var(--feed-text);
+        }
+
+        .add-past {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 10px;
+            margin-top: 6px;
+            background: transparent;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .add-past:hover {
+            color: var(--text-secondary);
+        }
+
+
+        /* --- Empty state --- */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-inner">
+            <div class="header-left">
+                <div class="header-nav">
+                    <button class="header-nav-btn" title="History">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </button>
+                    <button class="header-nav-btn" title="Stats">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="header-center">
+                <h1>Maya's log</h1>
+                <div class="subtitle">👧 1.3 weeks old</div>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed Timer -->
+    <div class="feed-timer">
+        <div class="feed-timer-card">
+            <div class="feed-timer-icon">🍼</div>
+            <div class="feed-timer-info">
+                <div class="feed-timer-label">Next feeding</div>
+                <div class="feed-timer-countdown">1h 24m</div>
+            </div>
+            <button class="feed-timer-dismiss" title="Dismiss">✕</button>
+        </div>
+    </div>
+
+    <!-- Day Navigation -->
+    <div class="day-nav">
+        <button class="day-nav-btn">‹</button>
+        <div class="day-nav-center">
+            <div class="day-nav-title">Today</div>
+            <div class="day-summary">
+                <span>💧 4</span>
+                <span>💩 2</span>
+                <span>🍼 3</span>
+            </div>
+        </div>
+        <button class="day-nav-btn hidden">›</button>
+    </div>
+
+    <!-- Entry List -->
+    <div class="entries-list">
+        <div class="entry">
+            <div class="entry-emoji feed" style="transform:scaleX(-1)">🍼</div>
+            <div class="entry-info">
+                <div class="entry-label">Feed L</div>
+                <div class="entry-time">
+                    <span class="entry-stopwatch">3:42</span>
+                </div>
+            </div>
+            <button class="entry-stop">■</button>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji pee">💧</div>
+            <div class="entry-info">
+                <div class="entry-label">Pee</div>
+                <div class="entry-time">2:15 PM</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji poop">💩</div>
+            <div class="entry-info">
+                <div class="entry-label">Poop</div>
+                <div class="entry-time">1:48 PM</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji feed">🍼</div>
+            <div class="entry-info">
+                <div class="entry-label">Feed R</div>
+                <div class="entry-time">12:30 PM</div>
+            </div>
+            <span class="entry-duration">12m</span>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji pee">💧</div>
+            <div class="entry-info">
+                <div class="entry-label">Pee</div>
+                <div class="entry-time">11:45 AM</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji feed" style="transform:scaleX(-1)">🍼</div>
+            <div class="entry-info">
+                <div class="entry-label">Feed L</div>
+                <div class="entry-time">10:00 AM</div>
+            </div>
+            <span class="entry-duration">15m</span>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji poop">💩</div>
+            <div class="entry-info">
+                <div class="entry-label">Poop</div>
+                <div class="entry-time">9:22 AM</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji pee">💧</div>
+            <div class="entry-info">
+                <div class="entry-label">Pee</div>
+                <div class="entry-time">8:50 AM</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-emoji pee">💧</div>
+            <div class="entry-info">
+                <div class="entry-label">Pee</div>
+                <div class="entry-time">7:15 AM</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Action Bar -->
+    <div class="action-bar">
+        <div class="action-bar-inner">
+            <div class="action-buttons">
+                <button class="action-btn pee">
+                    <span class="emoji">💧</span>
+                    <span class="label">Pee</span>
+                </button>
+                <button class="action-btn poop">
+                    <span class="emoji">💩</span>
+                    <span class="label">Poop</span>
+                </button>
+                <button class="action-btn feed">
+                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🍼</span>
+                    <span class="label">Feed L</span>
+                </button>
+                <button class="action-btn feed">
+                    <span class="emoji">🍼</span>
+                    <span class="label">Feed R</span>
+                </button>
+            </div>
+            <button class="add-past">+ Add past entry</button>
+        </div>
+    </div>
+
+</body>
+</html>
