@@ -114,6 +114,62 @@
         }
 
         /* Inputs */
+        .float-field {
+            position: relative;
+            width: 100%;
+        }
+
+        .float-field + .float-field {
+            margin-top: 12px;
+        }
+
+        .float-field .input {
+            width: 100%;
+            padding: 24px 16px 10px;
+            border: 1px solid #f0f0ee;
+            border-radius: 12px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            font-family: inherit;
+            background: #fff;
+            color: #1a1a1a;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .float-field .input:focus {
+            border-color: #1a1a1a;
+        }
+
+        .float-field .input::placeholder {
+            color: transparent;
+        }
+
+        .float-field .float-label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'Varela Round', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #ccc;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+            transform-origin: left center;
+        }
+
+        .float-field .input:focus ~ .float-label,
+        .float-field .input:not(:placeholder-shown) ~ .float-label {
+            top: 12px;
+            transform: translateY(0);
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #b5b5b5;
+            letter-spacing: 0.03em;
+        }
+
+        /* Legacy .input without float-field wrapper (invite code etc) */
         .input {
             width: 100%;
             padding: 14px 16px;
@@ -129,10 +185,6 @@
 
         .input:focus {
             border-color: #1a1a1a;
-        }
-
-        .input + .input {
-            margin-top: 12px;
         }
 
         /* Gender buttons */
@@ -417,7 +469,10 @@
             <div class="step-content">
                 <div class="step-emoji">👶</div>
                 <h2>What's your baby's name?</h2>
-                <input type="text" class="input" id="ob-name" placeholder="e.g. Maya">
+                <div class="float-field">
+                    <input type="text" class="input" id="ob-name" placeholder="e.g. Maya">
+                    <label class="float-label" for="ob-name">Baby's name</label>
+                </div>
             </div>
             <div class="step-actions">
                 <button class="btn-primary" id="btn-step2" onclick="goStep(3)" disabled>Continue</button>
@@ -473,8 +528,14 @@
                         <span class="gender-emoji">👧</span>Girl
                     </button>
                 </div>
-                <input type="number" class="input" id="ob-weight" placeholder="Birth weight in grams (e.g. 3200)">
-                <input type="text" class="input" id="ob-hospital" placeholder="Hospital name (e.g. Ichilov)">
+                <div class="float-field">
+                    <input type="number" class="input" id="ob-weight" placeholder="e.g. 3200">
+                    <label class="float-label" for="ob-weight">Birth weight (grams)</label>
+                </div>
+                <div class="float-field">
+                    <input type="text" class="input" id="ob-hospital" placeholder="e.g. Ichilov">
+                    <label class="float-label" for="ob-hospital">Hospital name</label>
+                </div>
             </div>
             <div class="step-actions">
                 <button class="btn-primary" onclick="goStep(5)">Continue</button>
