@@ -538,10 +538,10 @@
                         if (wrappedOffset > values.length / 2) wrappedOffset -= values.length;
                         if (wrappedOffset < -values.length / 2) wrappedOffset += values.length;
 
-                        const isVisible = Math.abs(wrappedOffset) <= VISIBLE_RANGE;
+                        const absOffset = Math.abs(wrappedOffset);
+                        const isVisible = absOffset <= VISIBLE_RANGE;
                         const isActive = wrappedOffset === 0;
 
-                        el.style.display = isVisible ? '' : 'none';
                         el.classList.toggle('active', isActive);
 
                         // Place items on a circular arc (curves upward)
@@ -552,7 +552,9 @@
                         const y = (Math.cos(angle) - 1) * RADIUS; // arc curves upward
                         const tilt = -angle * (180 / Math.PI); // tangent rotation
                         el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
-                        el.style.opacity = 1;
+                        // Fade edges smoothly instead of display:none
+                        el.style.opacity = isVisible ? Math.max(0, 1 - (absOffset - 1) * 0.25) : 0;
+                        el.style.pointerEvents = isVisible ? '' : 'none';
                     });
                     if (onChange) onChange();
                 }
