@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Preview - All Screens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 20px;
+            gap: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .phone-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .phone-label {
+            color: #666;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .iphone {
+            position: relative;
+            width: 393px;
+            height: 852px;
+            background: #0a0a0a;
+            border-radius: 55px;
+            padding: 12px;
+            box-shadow:
+                0 0 0 2px #2a2a2a,
+                0 0 0 5px #111,
+                0 30px 80px rgba(0,0,0,0.6),
+                inset 0 0 0 1.5px #3a3a3a;
+            transform: scale(0.72);
+            transform-origin: top center;
+        }
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 44px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 126px;
+            height: 36px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 10;
+        }
+        .status-bar {
+            position: relative;
+            height: 54px;
+            background: #5a4a3a;
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 28px 6px;
+            margin-bottom: -1px;
+        }
+        .status-bar .time {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .status-bar .icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .btn-power {
+            position: absolute;
+            right: -3px;
+            top: 200px;
+            width: 4px;
+            height: 96px;
+            background: #2a2a2a;
+            border-radius: 0 2px 2px 0;
+        }
+        .btn-vol-up {
+            position: absolute;
+            left: -3px;
+            top: 165px;
+            width: 4px;
+            height: 42px;
+            background: #2a2a2a;
+            border-radius: 2px 0 0 2px;
+        }
+        .btn-vol-down {
+            position: absolute;
+            left: -3px;
+            top: 216px;
+            width: 4px;
+            height: 42px;
+            background: #2a2a2a;
+            border-radius: 2px 0 0 2px;
+        }
+        .btn-action {
+            position: absolute;
+            left: -3px;
+            top: 128px;
+            width: 4px;
+            height: 24px;
+            background: #2a2a2a;
+            border-radius: 2px 0 0 2px;
+        }
+        iframe {
+            width: 100%;
+            flex: 1;
+            border: none;
+        }
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: #555;
+            border-radius: 3px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-col">
+        <div class="iphone">
+            <div class="btn-power"></div>
+            <div class="btn-action"></div>
+            <div class="btn-vol-up"></div>
+            <div class="btn-vol-down"></div>
+            <div class="iphone-screen">
+                <div class="dynamic-island"></div>
+                <div class="status-bar">
+                    <span class="time">9:41</span>
+                    <div class="icons">
+                        <svg width="16" height="11" viewBox="0 0 16 11" fill="white"><rect x="0" y="3" width="3" height="8" rx="0.8"/><rect x="4.5" y="2" width="3" height="9" rx="0.8"/><rect x="9" y="0" width="3" height="11" rx="0.8"/><rect x="13" y="0" width="3" height="11" rx="0.8"/></svg>
+                    </div>
+                </div>
+                <iframe src="v3.html"></iframe>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+        <span class="phone-label">V3 — Big Tiles</span>
+    </div>
+
+    <div class="phone-col">
+        <div class="iphone">
+            <div class="btn-power"></div>
+            <div class="btn-action"></div>
+            <div class="btn-vol-up"></div>
+            <div class="btn-vol-down"></div>
+            <div class="iphone-screen">
+                <div class="dynamic-island"></div>
+                <div class="status-bar">
+                    <span class="time">9:41</span>
+                    <div class="icons">
+                        <svg width="16" height="11" viewBox="0 0 16 11" fill="white"><rect x="0" y="3" width="3" height="8" rx="0.8"/><rect x="4.5" y="2" width="3" height="9" rx="0.8"/><rect x="9" y="0" width="3" height="11" rx="0.8"/><rect x="13" y="0" width="3" height="11" rx="0.8"/></svg>
+                    </div>
+                </div>
+                <iframe src="v2.html"></iframe>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+        <span class="phone-label">V2 — Original</span>
+    </div>
+
+    <div class="phone-col">
+        <div class="iphone">
+            <div class="btn-power"></div>
+            <div class="btn-action"></div>
+            <div class="btn-vol-up"></div>
+            <div class="btn-vol-down"></div>
+            <div class="iphone-screen">
+                <div class="dynamic-island"></div>
+                <div class="status-bar">
+                    <span class="time">9:41</span>
+                    <div class="icons">
+                        <svg width="16" height="11" viewBox="0 0 16 11" fill="white"><rect x="0" y="3" width="3" height="8" rx="0.8"/><rect x="4.5" y="2" width="3" height="9" rx="0.8"/><rect x="9" y="0" width="3" height="11" rx="0.8"/><rect x="13" y="0" width="3" height="11" rx="0.8"/></svg>
+                    </div>
+                </div>
+                <iframe src="onboarding.html"></iframe>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+        <span class="phone-label">Onboarding</span>
+    </div>
+</body>
+</html>

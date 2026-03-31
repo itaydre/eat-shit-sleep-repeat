@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>V3 — Big Tile Actions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fafaf8;
+            --surface: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #8a8a8a;
+            --text-tertiary: #b5b5b5;
+            --border: #f0f0ee;
+            --pee-bg: #E3EEFF;
+            --pee-text: #3B6BC4;
+            --poop-bg: #FFEDCF;
+            --poop-text: #A06B2E;
+            --feed-bg: #DEFADE;
+            --feed-text: #2E8A2E;
+            --pump-bg: #F3EEFF;
+            --pump-text: #6B4FA0;
+            --radius: 20px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body {
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: calc(70px + var(--safe-bottom));
+        }
+
+        /* --- Header --- */
+        .header {
+            padding: env(safe-area-inset-top, 0px) 20px 0;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 16px 0 12px;
+        }
+
+        .header-info h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-info .age {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .summary-badge {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            background: var(--surface);
+            padding: 6px 10px;
+            border-radius: 12px;
+        }
+
+        .settings-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-tertiary);
+        }
+
+        /* --- Content --- */
+        .content {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- Tiles Grid --- */
+        .tiles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tile {
+            border: none;
+            border-radius: var(--radius);
+            padding: 18px;
+            min-height: 160px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.1s;
+        }
+
+        .tile:active {
+            transform: scale(0.96);
+        }
+
+        .tile-top {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .tile-label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .tile-last {
+            font-size: 0.72rem;
+            font-weight: 400;
+            opacity: 0.55;
+        }
+
+        .tile-emoji {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        .tile-pee { background: var(--pee-bg); color: var(--pee-text); }
+        .tile-poop { background: var(--poop-bg); color: var(--poop-text); }
+        .tile-feed { background: var(--feed-bg); color: var(--feed-text); }
+        .tile-pump { background: var(--pump-bg); color: var(--pump-text); }
+
+        /* --- Banners Row --- */
+        .banners {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 0.85rem;
+        }
+
+        .banner-feed {
+            background: #FFE4CC;
+        }
+
+        .banner-feed .banner-emoji {
+            font-size: 1.2rem;
+        }
+
+        .banner-feed .banner-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .banner-feed .banner-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .banner-vitd {
+            background: #FFF8E1;
+            gap: 8px;
+        }
+
+        .banner-vitd .banner-text {
+            font-size: 0.8rem;
+            flex: 1;
+        }
+
+        .banner-vitd .done-btn {
+            background: var(--text-primary);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        /* --- Recent Section --- */
+        .recent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .recent-header span {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .recent-header button {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* --- Entry List --- */
+        .entry {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: var(--surface);
+            border-radius: 14px;
+            margin-bottom: 6px;
+        }
+
+        .entry-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .entry-icon-pee { background: var(--pee-bg); }
+        .entry-icon-poop { background: var(--poop-bg); }
+        .entry-icon-feed { background: var(--feed-bg); }
+        .entry-icon-pump { background: var(--pump-bg); }
+
+        .entry-label {
+            flex: 1;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .entry-time {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .entry-dur {
+            background: #f5f5f3;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* --- Bottom Nav --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0;
+            padding-bottom: calc(8px + var(--safe-bottom));
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            z-index: 50;
+        }
+
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 12px;
+            font-family: inherit;
+        }
+
+        .nav-icon {
+            width: 22px;
+            height: 22px;
+            stroke: var(--text-tertiary);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .nav-label {
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+        }
+
+        .nav-tab.active .nav-icon { stroke: var(--text-primary); }
+        .nav-tab.active .nav-label { font-weight: 700; color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-inner">
+            <div class="header-info">
+                <h1>Maya's log</h1>
+                <div class="age">👶 5 days old</div>
+            </div>
+            <div class="header-right">
+                <div class="summary-badge">
+                    <span>💧5</span>
+                    <span>💩3</span>
+                    <span>🤱6</span>
+                </div>
+                <button class="settings-btn">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+        <!-- Action Tiles -->
+        <div class="tiles">
+            <button class="tile tile-pee">
+                <div class="tile-top">
+                    <span class="tile-label">Pee</span>
+                    <span class="tile-last">last 2:15 PM</span>
+                </div>
+                <span class="tile-emoji">💧</span>
+            </button>
+            <button class="tile tile-poop">
+                <div class="tile-top">
+                    <span class="tile-label">Poop</span>
+                    <span class="tile-last">last 1:48 PM</span>
+                </div>
+                <span class="tile-emoji">💩</span>
+            </button>
+            <button class="tile tile-feed">
+                <div class="tile-top">
+                    <span class="tile-label">Feed L</span>
+                    <span class="tile-last">last 12:30</span>
+                </div>
+                <span class="tile-emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span>
+            </button>
+            <button class="tile tile-feed">
+                <div class="tile-top">
+                    <span class="tile-label">Feed R</span>
+                    <span class="tile-last">last 10:00</span>
+                </div>
+                <span class="tile-emoji">🤱</span>
+            </button>
+            <button class="tile tile-pump">
+                <div class="tile-top">
+                    <span class="tile-label">Pump</span>
+                    <span class="tile-last">last 11:45 AM · 18m · 🧊</span>
+                </div>
+                <span class="tile-emoji">🍼</span>
+            </button>
+        </div>
+
+        <!-- Banners -->
+        <div class="banners">
+            <div class="banner banner-feed">
+                <span class="banner-emoji">🍼</span>
+                <div>
+                    <div class="banner-label">Next feed</div>
+                    <div class="banner-value">1h 24m</div>
+                </div>
+            </div>
+            <div class="banner banner-vitd">
+                <span>☀️</span>
+                <span class="banner-text">Vitamin D?</span>
+                <button class="done-btn">Done</button>
+            </div>
+        </div>
+
+        <!-- Recent -->
+        <div class="recent-header">
+            <span>Recent</span>
+            <button>+ Add past entry</button>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon entry-icon-feed">🤱</div>
+            <span class="entry-label">Feed L</span>
+            <span class="entry-time">12:30 PM</span>
+            <span class="entry-dur">12m</span>
+        </div>
+        <div class="entry">
+            <div class="entry-icon entry-icon-pee">💧</div>
+            <span class="entry-label">Pee</span>
+            <span class="entry-time">11:00 AM</span>
+        </div>
+        <div class="entry">
+            <div class="entry-icon entry-icon-pump">🍼</div>
+            <span class="entry-label">Pump</span>
+            <span class="entry-time">10:30 AM</span>
+            <span class="entry-dur">18m</span>
+        </div>
+        <div class="entry">
+            <div class="entry-icon entry-icon-poop">💩</div>
+            <span class="entry-label">Poop</span>
+            <span class="entry-time">9:45 AM</span>
+        </div>
+        <div class="entry">
+            <div class="entry-icon entry-icon-feed">🤱</div>
+            <span class="entry-label">Feed R</span>
+            <span class="entry-time">9:00 AM</span>
+            <span class="entry-dur">15m</span>
+        </div>
+
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <button class="nav-tab active">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="nav-label">Today</span>
+        </button>
+        <button class="nav-tab">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="nav-label">History</span>
+        </button>
+        <button class="nav-tab">
+            <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span class="nav-label">Stats</span>
+        </button>
+        <button class="nav-tab">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="nav-label">Settings</span>
+        </button>
+    </nav>
+
+</body>
+</html>

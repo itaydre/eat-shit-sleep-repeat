@@ -1578,7 +1578,7 @@
         let session = null;
         let profile = null;
 
-        const isDevMode = location.hostname.includes('-dev.');
+        const isDevMode = location.hostname.includes('-dev.') || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
         function loadDummyData() {
             const now = Date.now();
