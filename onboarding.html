@@ -36,6 +36,7 @@
             padding: 0 24px;
             padding-top: calc(20px + env(safe-area-inset-top, 0px));
             padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            position: relative;
         }
 
         /* Steps */
@@ -43,17 +44,62 @@
             display: none;
             flex-direction: column;
             flex: 1;
+            position: relative;
         }
 
         .step.active {
             display: flex;
+            animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .step.slide-out-left {
+            display: flex;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            padding: inherit;
+            animation: slideOutLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            pointer-events: none;
+        }
+
+        .step.slide-out-right {
+            display: flex;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            padding: inherit;
+            animation: slideOutRight 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            pointer-events: none;
+        }
+
+        .step.slide-in-reverse {
+            display: flex;
+            animation: slideInReverse 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes slideOutLeft {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-60px); opacity: 0; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(60px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(60px); opacity: 0; }
+        }
+
+        @keyframes slideInReverse {
+            from { transform: translateX(-60px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .step-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            padding-top: 30%;
         }
 
         /* Progress */
@@ -96,8 +142,7 @@
 
         /* Typography */
         .step-emoji {
-            font-size: 3rem;
-            margin-bottom: 16px;
+            display: none;
         }
 
         .step h2 {
@@ -105,6 +150,7 @@
             color: #1a1a1a;
             margin-bottom: 8px;
             letter-spacing: -0.02em;
+            text-align: center;
         }
 
         .step p {
@@ -125,10 +171,10 @@
 
         .float-field .input {
             width: 100%;
-            padding: 24px 16px 10px;
+            padding: 30px 20px 14px;
             border: 1px solid #f0f0ee;
-            border-radius: 12px;
-            font-size: 1.4rem;
+            border-radius: 14px;
+            font-size: 1.82rem;
             font-weight: 600;
             font-family: inherit;
             background: #fff;
@@ -298,6 +344,14 @@
             font-size: 0.95rem;
         }
 
+        .summary-row:first-child {
+            padding-top: 0;
+        }
+
+        .summary-row:last-child {
+            padding-bottom: 0;
+        }
+
         .summary-row + .summary-row {
             border-top: 1px solid #f0f0ee;
         }
@@ -360,7 +414,7 @@
             width: 56px;
             text-align: center;
             font-family: 'Varela Round', sans-serif;
-            font-size: 1rem;
+            font-size: 1.15rem;
             color: #ccc;
             user-select: none;
             -webkit-user-select: none;
@@ -372,9 +426,9 @@
 
         .drum-item.active {
             color: #1a1a1a;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            top: -16px;
+            top: -18px;
         }
 
         .drum-label {
@@ -488,23 +542,31 @@
             <div class="step-content" style="padding-top: 10vh;">
                 <div class="step-emoji">🎂</div>
                 <h2>When were they born?</h2>
-                <input type="date" class="input" id="ob-dob" style="font-size:1.5rem; font-weight:700; text-align:center; border:none; background:none; padding:12px 0;">
-                <script>document.getElementById('ob-dob').valueAsDate = new Date();</script>
-                <div class="time-wheel-label">Time of birth</div>
+                <input type="hidden" id="ob-dob">
+                <input type="hidden" id="ob-time">
                 <div class="time-circle-wrapper">
                 <div class="time-circle" id="time-circle">
+                    <div class="drum-label">MONTH</div>
+                    <div class="drum-row" id="drum-month">
+                        <div class="drum-track" id="track-month"></div>
+                    </div>
+                    <div style="height:18px;"></div>
+                    <div class="drum-label">DAY</div>
+                    <div class="drum-row" id="drum-day">
+                        <div class="drum-track" id="track-day"></div>
+                    </div>
+                    <div style="height:28px;"></div>
                     <div class="drum-label">HOUR</div>
                     <div class="drum-row" id="drum-hours">
                         <div class="drum-track" id="track-hours"></div>
                     </div>
-                    <div style="height:8px;"></div>
+                    <div style="height:18px;"></div>
                     <div class="drum-label">MINUTE</div>
                     <div class="drum-row" id="drum-minutes">
                         <div class="drum-track" id="track-minutes"></div>
                     </div>
                 </div>
                 </div>
-                <input type="hidden" id="ob-time">
             </div>
             <div class="step-actions" style="width:100vw; left:50%; transform:translateX(-50%); position:relative; background:#fff; padding:16px 24px; border-radius:20px 20px 0 0;">
                 <button class="btn-primary" onclick="goStep(4)">Continue</button>
@@ -574,7 +636,7 @@
             const SPACING = 50; // horizontal px between items
             const VISIBLE_RANGE = 3; // items visible each side of center
 
-            function setupDrum(rowEl, trackEl, values, initialIdx, onChange, visibleRange) {
+            function setupDrum(rowEl, trackEl, values, initialIdx, onChange, visibleRange, arcAngleStep) {
                 visibleRange = visibleRange || VISIBLE_RANGE;
                 let currentIdx = initialIdx;
 
@@ -608,15 +670,20 @@
 
                         // Place items on a circular arc (curves upward)
                         const RADIUS = 220;
-                        const angleStep = 0.23; // radians between items
+                        const angleStep = arcAngleStep || 0.23;
                         const angle = wrappedOffset * angleStep;
                         const x = Math.sin(angle) * RADIUS;
                         const y = (Math.cos(angle) - 1) * RADIUS; // arc curves upward
                         const tilt = -angle * (180 / Math.PI); // tangent rotation
-                        el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
-                        // Fade edges smoothly instead of display:none
-                        el.style.opacity = isVisible ? Math.max(0.15, 1 - (absOffset - 1) * 0.2) : 0;
-                        el.style.pointerEvents = isVisible ? '' : 'none';
+                        if (isVisible) {
+                            el.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg)`;
+                            el.style.opacity = Math.max(0.15, 1 - (absOffset - 1) * 0.2);
+                            el.style.pointerEvents = '';
+                        } else {
+                            el.style.transform = 'translate(0, 0) scale(0)';
+                            el.style.opacity = 0;
+                            el.style.pointerEvents = 'none';
+                        }
                     });
                     if (onChange) onChange();
                 }
@@ -667,10 +734,21 @@
                 return { getIndex: () => currentIdx, setIndex };
             }
 
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dayValues = Array.from({ length: 31 }, (_, i) => String(i + 1));
             const hourValues = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
             const minValues = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
-            let hoursWheel, minutesWheel;
+            const now = new Date();
+            let monthWheel, dayWheel, hoursWheel, minutesWheel;
+
+            function updateDate() {
+                if (!monthWheel || !dayWheel) return;
+                const m = monthWheel.getIndex() + 1;
+                const d = parseInt(dayValues[dayWheel.getIndex()]);
+                const year = now.getFullYear();
+                document.getElementById('ob-dob').value = `${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            }
 
             function updateTime() {
                 if (!hoursWheel || !minutesWheel) return;
@@ -679,17 +757,29 @@
                 document.getElementById('ob-time').value = h + ':' + m;
             }
 
+            function updateAll() { updateDate(); updateTime(); }
+
+            monthWheel = setupDrum(
+                document.getElementById('drum-month'),
+                document.getElementById('track-month'),
+                monthNames, now.getMonth(), updateAll, 3, 0.35
+            );
+            dayWheel = setupDrum(
+                document.getElementById('drum-day'),
+                document.getElementById('track-day'),
+                dayValues, now.getDate() - 1, updateAll, 5
+            );
             hoursWheel = setupDrum(
                 document.getElementById('drum-hours'),
                 document.getElementById('track-hours'),
-                hourValues, 12, updateTime
+                hourValues, 8, updateAll, 5
             );
             minutesWheel = setupDrum(
                 document.getElementById('drum-minutes'),
                 document.getElementById('track-minutes'),
-                minValues, 0, updateTime, 4
+                minValues, 0, updateAll, 6
             );
-            updateTime();
+            updateAll();
         }
 
         document.addEventListener('DOMContentLoaded', initTimeWheel);
@@ -774,13 +864,30 @@
             }
         }
 
+        let currentStep = 1;
+
         function goStep(n) {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById('step-' + n).classList.add('active');
+            const isForward = n > currentStep;
+            const oldStep = document.getElementById('step-' + currentStep);
+            const newStep = document.getElementById('step-' + n);
+
+            if (oldStep && oldStep !== newStep) {
+                oldStep.classList.remove('active', 'slide-in-reverse');
+                oldStep.classList.add(isForward ? 'slide-out-left' : 'slide-out-right');
+                oldStep.addEventListener('animationend', () => {
+                    oldStep.classList.remove('slide-out-left', 'slide-out-right');
+                }, { once: true });
+            }
+
+            newStep.classList.remove('slide-out-left', 'slide-out-right');
+            newStep.classList.add('active');
+            if (!isForward) newStep.classList.add('slide-in-reverse');
+            else newStep.classList.remove('slide-in-reverse');
+
+            currentStep = n;
             if (n >= 2) updateProgress(n);
             if (n === 5) {
                 renderSummary();
-                // Set initial color dot based on gender
                 if (!chosenBraceletColor) {
                     const defaultColor = selectedGender === 'girl' ? '#F08080' : selectedGender === 'boy' ? '#7EB8E0' : '#7ED67E';
                     document.querySelectorAll('.color-dot').forEach(d => {
@@ -855,6 +962,8 @@
         // --- 3D Bracelet ---
         let braceletScene = null;
         let chosenBraceletColor = null;
+        let braceletMaterial = null;
+        let braceletCreateTex = null;
 
         function pickBraceletColor(btn) {
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
@@ -864,7 +973,7 @@
                 return;
             }
             chosenBraceletColor = btn.dataset.color;
-            initBracelet();
+            updateBraceletColor();
         }
 
         function applyCustomColor(hex) {
@@ -873,7 +982,17 @@
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
             customBtn.classList.add('active');
             customBtn.style.background = hex;
-            initBracelet();
+            updateBraceletColor();
+        }
+
+        function updateBraceletColor() {
+            if (braceletMaterial && braceletCreateTex) {
+                if (braceletMaterial.map) braceletMaterial.map.dispose();
+                braceletMaterial.map = braceletCreateTex();
+                braceletMaterial.needsUpdate = true;
+            } else {
+                initBracelet();
+            }
         }
 
         async function initBracelet() {
@@ -964,10 +1083,11 @@
             }
 
             const zodiac = getZodiac(dob);
-            const bandColor = chosenBraceletColor || (gender === 'girl' ? '#F08080' : gender === 'boy' ? '#7EB8E0' : '#7ED67E');
+            const defaultBandColor = gender === 'girl' ? '#F08080' : gender === 'boy' ? '#7EB8E0' : '#7ED67E';
 
             // --- Texture ---
             function createTex() {
+                const bandColor = chosenBraceletColor || defaultBandColor;
                 const c = document.createElement('canvas');
                 const W = 2048, H = 512;
                 c.width = W; c.height = H;
@@ -1026,16 +1146,16 @@
                 // Text
                 ctx.save(); ctx.beginPath(); ctx.rect(ls,lp,le-ls,H-lp*2); ctx.clip();
                 const tx = ls+28; let ty = H/2-95;
-                ctx.fillStyle='#3a3530'; ctx.font='bold 46px system-ui,sans-serif';
+                ctx.fillStyle='#000000'; ctx.font='bold 46px system-ui,sans-serif';
                 ctx.fillText(name, tx, ty); ty += 46;
-                ctx.font='500 26px system-ui,sans-serif'; ctx.fillStyle='#6a6258';
+                ctx.font='500 26px system-ui,sans-serif'; ctx.fillStyle='#000000';
                 if (dateStr) { ctx.fillText('DOB: ' + dateStr + (timeStr ? '  ' + timeStr : ''), tx, ty); ty += 34; }
                 ctx.font='500 22px system-ui,sans-serif';
-                if (weight) { ctx.fillStyle='#6a6258'; ctx.fillText('WT:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(weight + 'g', tx+42, ty); }
-                if (gender) { ctx.fillStyle='#6a6258'; ctx.fillText('SEX:', tx+180, ty); ctx.fillStyle='#3a3530'; ctx.fillText(gender.charAt(0).toUpperCase(), tx+232, ty); }
+                if (weight) { ctx.fillStyle='#000000'; ctx.fillText('WT:', tx, ty); ctx.fillStyle='#000000'; ctx.fillText(weight + 'g', tx+42, ty); }
+                if (gender) { ctx.fillStyle='#000000'; ctx.fillText('SEX:', tx+180, ty); ctx.fillStyle='#000000'; ctx.fillText(gender.charAt(0).toUpperCase(), tx+232, ty); }
                 ty += 30;
-                if (hospital) { ctx.fillStyle='#6a6258'; ctx.fillText('HOSP:', tx, ty); ctx.fillStyle='#3a3530'; ctx.fillText(hospital, tx+70, ty); ty += 30; }
-                if (zodiac) { ctx.font='500 22px system-ui,sans-serif'; ctx.fillStyle='#6a6258'; ctx.fillText(zodiac.emoji + ' ' + zodiac.name, tx, ty); ty += 30; }
+                if (hospital) { ctx.fillStyle='#000000'; ctx.fillText('HOSP:', tx, ty); ctx.fillStyle='#000000'; ctx.fillText(hospital, tx+70, ty); ty += 30; }
+                if (zodiac) { ctx.font='500 22px system-ui,sans-serif'; ctx.fillStyle='#000000'; ctx.fillText(zodiac.emoji + ' ' + zodiac.name, tx, ty); ty += 30; }
                 for (let i=0;i<45;i++) { ctx.fillStyle=`rgba(50,45,40,${0.7+Math.random()*0.25})`; ctx.fillRect(tx+i*6,ty,Math.random()>0.4?3:1.2,36); }
                 ctx.restore();
 
@@ -1063,11 +1183,13 @@
             geo.setAttribute('uv',new Float32BufferAttribute(uvs,2));
             geo.setIndex(idx); geo.computeVertexNormals();
 
+            braceletCreateTex = createTex;
             const mat = new MeshPhysicalMaterial({
                 map:createTex(), color:0xffffff, roughness:0.7, clearcoat:0.15,
                 clearcoatRoughness:0.6, sheen:0.4, sheenRoughness:0.8,
                 sheenColor:new Color(0xe8e0d8), transparent:true, alphaTest:0.5, side:DoubleSide,
             });
+            braceletMaterial = mat;
 
             const band = new Mesh(geo, mat);
 

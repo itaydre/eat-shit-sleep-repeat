@@ -294,90 +294,63 @@
 
         /* --- Main App --- */
         .buttons-wrapper {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            pointer-events: none;
-            background: #fff;
-            border-top: 1px solid #f0f0ee;
+            margin-bottom: 8px;
         }
 
         .buttons-fade {
-            height: 0;
-            background: transparent;
-        }
-
-        .buttons-wrapper.compact .buttons-fade {
-            height: 0;
+            display: none;
         }
 
         .buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            padding: 12px 16px;
-            padding-bottom: 0;
             max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-            background: transparent;
-            pointer-events: auto;
-            transition: gap 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-
-        .buttons.compact {
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            padding: 8px 16px;
-            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-        }
-
-        .buttons.compact .btn-pump {
-            grid-column: auto;
         }
 
         .btn {
             border: none;
-            border-radius: 16px;
-            padding: 16px 0;
+            border-radius: 20px;
+            padding: 18px;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 6px;
+            justify-content: space-between;
+            align-items: flex-start;
+            min-height: 160px;
             box-shadow: none;
-            flex: 1;
             min-width: 0;
             -webkit-tap-highlight-color: transparent;
-            transition: padding 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), gap 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), border-radius 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-
-        .buttons.compact .btn {
-            padding: 10px 0;
-            gap: 3px;
-            border-radius: 12px;
         }
 
         .btn:active {
-            transform: scale(0.93);
+            transform: scale(0.96);
+            transition: transform 0.1s;
+        }
+
+        .btn .btn-top {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .btn .btn-label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .btn .btn-last {
+            font-size: 0.72rem;
+            font-weight: 400;
+            opacity: 0.55;
         }
 
         .btn .emoji {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             line-height: 1;
-            transition: font-size 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-
-        .buttons.compact .btn .emoji {
-            font-size: 1.3rem;
-        }
-
-        .buttons.compact .btn span:not(.emoji) {
-            font-size: 0.65rem;
         }
 
         .btn-sleep {
@@ -398,6 +371,21 @@
         .btn-pump {
             background: #F3EEFF;
             color: #6B4FA0;
+        }
+
+        .recent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0 8px;
+        }
+
+        .recent-header span {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #b5b5b5;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
         /* --- Storage Picker Modal --- */
@@ -1049,11 +1037,22 @@
         }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; padding-top: 12px; padding-bottom: 180px; }
+        .tab-content.active { display: block; padding-top: 12px; padding-bottom: 80px; }
 
         /* --- Bottom Nav Bar --- */
         .bottom-nav {
-            display: none;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 0;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+            background: #fff;
+            border-top: 1px solid #f0f0ee;
+            z-index: 50;
         }
         .nav-tab {
             display: flex;
@@ -1418,13 +1417,58 @@
                     </div>
                 </div>
 
+                <div id="action-tiles" class="buttons-wrapper">
+                    <div class="buttons">
+                        <button class="btn btn-sleep" onclick="log('pee')">
+                            <div class="btn-top">
+                                <span class="btn-label">Pee</span>
+                                <span class="btn-last" id="last-pee"></span>
+                            </div>
+                            <span class="emoji">&#128166;</span>
+                        </button>
+                        <button class="btn btn-poop" onclick="log('poop')">
+                            <div class="btn-top">
+                                <span class="btn-label">Poop</span>
+                                <span class="btn-last" id="last-poop"></span>
+                            </div>
+                            <span class="emoji">&#128169;</span>
+                        </button>
+                        <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
+                            <div class="btn-top">
+                                <span class="btn-label">Feed L</span>
+                                <span class="btn-last" id="last-feed_l"></span>
+                            </div>
+                            <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span>
+                        </button>
+                        <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
+                            <div class="btn-top">
+                                <span class="btn-label">Feed R</span>
+                                <span class="btn-last" id="last-feed_r"></span>
+                            </div>
+                            <span class="emoji">🤱</span>
+                        </button>
+                        <button class="btn btn-pump" onclick="startPumpSession()">
+                            <div class="btn-top">
+                                <span class="btn-label">Pump</span>
+                                <span class="btn-last" id="last-pump"></span>
+                            </div>
+                            <span class="emoji">🍼</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="recent-header">
+                    <span>Recent</span>
+                    <button onclick="openAddModal()" style="background:none; border:none; font-size:0.75rem; font-weight:500; color:#b5b5b5; cursor:pointer; font-family:inherit;">+ Add past entry</button>
+                </div>
+
                 <div class="history">
-                    <div style="position:relative; margin-bottom:4px;">
+                    <div style="position:relative; margin-bottom:4px; display:none;">
                             <h2 id="day-label" style="margin:0; text-align:center;">Today</h2>
                             <button id="day-prev" onclick="navigateDay(-1)" style="position:absolute; left:0; top:50%; transform:translateY(-50%); background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px;">&#8249;</button>
                             <button id="day-next" onclick="navigateDay(1)" style="position:absolute; right:0; top:50%; transform:translateY(-50%); background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; visibility:hidden;">&#8250;</button>
                     </div>
-                    <div id="today-summary" class="day-summary" style="justify-content:center; margin-bottom:12px; font-size:0.75rem;"></div>
+                    <div id="today-summary" class="day-summary" style="display:none;"></div>
                     <div id="today-entries"></div>
                 </div>
             </div>
@@ -1461,34 +1505,7 @@
                 <span class="nav-label">Stats</span>
             </button>
         </nav>
-        <div class="buttons-wrapper" id="action-buttons">
-            <div class="buttons-fade"></div>
-            <div class="buttons">
-                <button class="btn btn-sleep" onclick="log('pee')">
-                    <span class="emoji">&#128166;</span>
-                    <span>Pee</span>
-                </button>
-                <button class="btn btn-poop" onclick="log('poop')">
-                    <span class="emoji">&#128169;</span>
-                    <span>Poop</span>
-                </button>
-                <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
-                    <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span>
-                    <span>Feed L</span>
-                </button>
-                <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
-                    <span class="emoji">🤱</span>
-                    <span>Feed R</span>
-                </button>
-                <button class="btn btn-pump" onclick="startPumpSession()" style="grid-column: 1 / -1;">
-                    <span class="emoji">🍼</span>
-                    <span>Pump</span>
-                </button>
-            </div>
-            <button onclick="openAddModal()" style="display:flex; align-items:center; justify-content:center; width:100%; max-width:500px; margin:0 auto; padding:10px; margin-top:6px; background:transparent; border:none; font-size:0.75rem; font-weight:500; color:#b5b5b5; cursor:pointer; font-family:inherit; gap:4px; pointer-events:auto;">
-                + Add past entry
-            </button>
-        </div>
+        <!-- old action-buttons removed, now inline as tiles -->
 
     </div>
 
@@ -1863,12 +1880,12 @@
             const dtInput = document.getElementById('add-datetime');
             dtInput.max = toLocalISOString(new Date());
             document.getElementById('add-modal').classList.add('open');
-            document.getElementById('action-buttons').style.display = 'none';
+            document.getElementById('action-tiles').style.display = 'none';
         }
 
         function closeAddModal() {
             document.getElementById('add-modal').classList.remove('open');
-            document.getElementById('action-buttons').style.display = '';
+            document.getElementById('action-tiles').style.display = '';
         }
 
         function setTimePreset(minutes, el) {
@@ -1940,7 +1957,7 @@
                 document.getElementById('settings-page').classList.remove('active');
                 document.getElementById('profile-edit-page').classList.remove('active');
                 document.getElementById('main-content').style.display = '';
-                document.getElementById('action-buttons').style.display = tab === 'today' ? '' : 'none';
+                document.getElementById('action-tiles').style.display = tab === 'today' ? '' : 'none';
                 updateHeaderForSettings(false);
             }
             ['today', 'history', 'stats'].forEach(t => {
@@ -1950,7 +1967,7 @@
             document.querySelectorAll('.top-link').forEach(btn => {
                 btn.classList.toggle('active', btn.getAttribute('title')?.toLowerCase() === tab);
             });
-            document.getElementById('action-buttons').style.display = tab === 'today' ? '' : 'none';
+            document.getElementById('action-tiles').style.display = tab === 'today' ? '' : 'none';
             if (tab === 'stats') renderCharts();
         }
 
@@ -1978,7 +1995,7 @@
             document.getElementById('profile-edit-page').classList.remove('active');
             document.getElementById('invite-page').classList.remove('active');
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
-            document.getElementById('action-buttons').style.display = settingsOpen ? 'none' : '';
+            document.getElementById('action-tiles').style.display = settingsOpen ? 'none' : '';
             updateHeaderForSettings(settingsOpen);
             if (settingsOpen) {
                 document.getElementById('vitd-toggle').checked = getVitdEnabled();
@@ -2344,6 +2361,20 @@
                 const pumpTotal = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
                 if (pumpTotal) summaryParts.push(`<span>\u{1F931} ${pumpTotal}</span>`);
                 todaySummaryEl.innerHTML = summaryParts.join('');
+
+                // Update tile "last time" labels
+                const lastTimes = {};
+                for (const entry of todayEntries) {
+                    const t = entry.type.startsWith('pump') ? 'pump' : entry.type;
+                    if (!lastTimes[t]) {
+                        const d = new Date(entry.timestamp);
+                        lastTimes[t] = 'last ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    }
+                }
+                ['pee', 'poop', 'feed_l', 'feed_r', 'pump'].forEach(type => {
+                    const el = document.getElementById('last-' + type);
+                    if (el) el.textContent = lastTimes[type] || '';
+                });
 
                 if (todayEntries.length === 0) {
                     todayContainer.innerHTML = '<div class="empty">No entries today yet.</div>';
@@ -3019,23 +3050,7 @@
             }
         }
 
-        // Collapse buttons to single row on scroll (throttled via rAF)
-        let _scrollTicking = false;
-        window.addEventListener('scroll', () => {
-            if (_scrollTicking) return;
-            _scrollTicking = true;
-            requestAnimationFrame(() => {
-                const buttons = document.querySelector('#action-buttons .buttons');
-                if (buttons) {
-                    if (window.scrollY > 60) {
-                        buttons.classList.add('compact');
-                    } else {
-                        buttons.classList.remove('compact');
-                    }
-                }
-                _scrollTicking = false;
-            });
-        }, { passive: true });
+        // Compact scroll removed — tiles are inline now
 
         // Boot
         initSupabase().catch(e => {

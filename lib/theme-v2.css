@@ -1,0 +1,157 @@
+/* V2 Theme: Clean white iOS-style with vibrant colors */
+
+/* Base */
+body {
+    background: #f2f2f7 !important;
+    color: #1c1c1e !important;
+}
+
+/* Header - clean white with subtle shadow */
+.app-header {
+    background: #fff !important;
+    box-shadow: 0 0.5px 0 rgba(0,0,0,0.1) !important;
+}
+
+.top-bar {
+    margin-bottom: 0 !important;
+}
+
+.top-bar h1 {
+    color: #1c1c1e !important;
+}
+
+.top-bar .back-btn,
+.top-bar .settings-btn,
+.top-bar-left .top-link {
+    color: #007aff !important;
+}
+
+.top-bar-left .top-link.active {
+    color: #007aff !important;
+    background: rgba(0, 122, 255, 0.12) !important;
+}
+
+/* Action buttons - big tiles */
+.buttons-wrapper {
+    background: transparent !important;
+}
+
+.btn {
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+}
+
+.btn-sleep {
+    background: #deeeff !important;
+    color: #2a5298 !important;
+}
+
+.btn-poop {
+    background: #f5e0c8 !important;
+    color: #7a5c2e !important;
+}
+
+.btn-feed {
+    background: #d6f0d6 !important;
+    color: #2e6b2e !important;
+}
+
+.btn .emoji {
+    filter: brightness(1.1);
+}
+
+/* Add past entry button */
+
+/* Feed timer */
+.feed-timer {
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04) !important;
+    border-radius: 16px !important;
+    border-left: 4px solid #e8c9a0 !important;
+}
+
+/* Entry cards */
+.entry {
+    background: #fff !important;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06), 0 0.5px 2px rgba(0,0,0,0.04) !important;
+    border-radius: 14px !important;
+}
+
+/* Day label */
+.history h2,
+#day-label {
+    color: #1c1c1e !important;
+}
+
+/* Day navigation arrows */
+#day-prev, #day-next {
+    color: #007aff !important;
+}
+
+/* Day summary */
+.day-summary {
+    color: #8e8e93 !important;
+}
+
+/* Tab content */
+.tab-content.active {
+    background: #f2f2f7 !important;
+}
+
+/* History day labels */
+.day-label {
+    color: #8e8e93 !important;
+}
+
+/* Pull to refresh */
+#ptr-indicator {
+    background: #f2f2f7 !important;
+}
+
+/* Stats bars */
+.stats-bar.pee { background: #a8ccf0 !important; }
+.stats-bar.poop { background: #e8c9a0 !important; }
+.stats-bar.feed { background: #a3d9a3 !important; }
+
+/* Activity buttons in modal */
+.activity-btn[data-type="pee"] { background: #deeeff !important; color: #2a5298 !important; }
+.activity-btn[data-type="poop"] { background: #f5e0c8 !important; color: #7a5c2e !important; }
+.activity-btn[data-type="feed_l"],
+.activity-btn[data-type="feed_r"] { background: #d6f0d6 !important; color: #2e6b2e !important; }
+
+/* Modal & settings */
+.auth-btn,
+.gender-btn.selected {
+    background: #007aff !important;
+    border-color: #007aff !important;
+}
+
+/* Scrollbar & misc brown replacements */
+.add-btn {
+    background: #e5e5ea !important;
+    color: #007aff !important;
+}
+
+/* Settings items */
+.settings-item {
+    background: #fff !important;
+}
+
+/* Bottom nav */
+.bottom-nav {
+    background: #fff !important;
+    border-top: 0.5px solid rgba(0,0,0,0.1) !important;
+    box-shadow: 0 -1px 4px rgba(0,0,0,0.04) !important;
+}
+
+.bottom-nav button.active {
+    color: #007aff !important;
+}
+
+/* Entry type colors */
+.entry .type { font-weight: 600 !important; }
+
+/* Splash */
+#splash-word {
+    color: #007aff !important;
+}
