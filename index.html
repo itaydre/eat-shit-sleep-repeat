@@ -323,6 +323,7 @@
             box-shadow: none;
             min-width: 0;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .btn:active {
@@ -951,8 +952,10 @@
             font-size: 0.9rem;
             color: #b5b5b5;
             cursor: pointer;
-            padding: 4px;
+            padding: 10px;
+            margin: -6px;
             flex-shrink: 0;
+            touch-action: manipulation;
         }
 
         .duration-editor {
@@ -1002,6 +1005,7 @@
             cursor: pointer;
             font-family: inherit;
             font-weight: 600;
+            touch-action: manipulation;
         }
 
         .entry .feed-stopwatch {
@@ -1634,24 +1638,17 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZGJzbXd5Zm91amh4bG1tbXByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NzE3MTgsImV4cCI6MjA4OTE0NzcxOH0.JUs6ZjM056YupDBF-Hyl17HI8vw4AmlU-4D-U7wPWqM'
             );
 
-            const { data: { session: existing } } = await sb.auth.getSession();
-            session = existing;
-
-            if (session) {
-                await loadApp();
-            } else {
-                await window._splashDone;
-                showScreen('auth');
-            }
-
+            // Use onAuthStateChange as the single source of truth for session state.
+            // getSession() can return null on Chrome Android before tokens are parsed,
+            // which caused the auth screen to flash before INITIAL_SESSION corrected it.
             sb.auth.onAuthStateChange((event, sess) => {
                 if (event === 'TOKEN_REFRESHED') return;
                 if (event === 'INITIAL_SESSION') {
-                    // On Chrome Android, getSession() can return null before tokens are parsed.
-                    // If we don't have a session yet but INITIAL_SESSION provides one, load the app.
-                    if (!session && sess) {
-                        session = sess;
+                    session = sess;
+                    if (sess) {
                         loadApp();
+                    } else {
+                        window._splashDone.then(() => showScreen('auth'));
                     }
                     return;
                 }
@@ -2964,6 +2961,8 @@
         (function initSwipeDelegation() {
             const threshold = 80;
             document.addEventListener('touchstart', e => {
+                // Don't start swipe when tapping buttons inside entries
+                if (e.target.closest('button, input, .duration-editor')) return;
                 const el = e.target.closest('.entry');
                 if (!el) return;
                 _swipeState = { el, startX: e.touches[0].clientX, currentX: e.touches[0].clientX };
