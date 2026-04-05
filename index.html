@@ -1710,7 +1710,18 @@
                 // Preserve pending flag for active feed session
                 if (feedSessionStart && feedSessionType) {
                     const pending = fetched.find(e => e.timestamp === feedSessionStart && e.type === feedSessionType);
-                    if (pending) pending.pending = true;
+                    if (pending) {
+                        pending.pending = true;
+                        // If server returned a duration but we have an active timer, the stop was saved — stop the timer
+                        if (pending.duration) {
+                            delete pending.pending;
+                            clearInterval(feedSessionInterval);
+                            feedSessionInterval = null;
+                            feedSessionType = null;
+                            feedSessionStart = null;
+                            localStorage.removeItem('activeTimer');
+                        }
+                    }
                 }
                 entries = fetched;
             } catch (e) {
@@ -2100,6 +2111,8 @@
             if (feedSessionInterval) stopFeedSession(); // stop other side first
             feedSessionType = type;
             feedSessionStart = Date.now();
+            // Persist active timer to localStorage so it survives page reloads
+            localStorage.setItem('activeTimer', JSON.stringify({ type: feedSessionType, start: feedSessionStart }));
             // Log the entry immediately (shows on today, pending hides from history)
             await log(type, feedSessionStart);
             const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
@@ -2115,8 +2128,11 @@
         }
 
         function stopFeedSession() {
+            if (!feedSessionType || !feedSessionStart) return;
             clearInterval(feedSessionInterval);
             feedSessionInterval = null;
+            // Clear persisted timer state immediately so reloads won't resume
+            localStorage.removeItem('activeTimer');
             const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
             const entry = entries.find(e => e.type === feedSessionType && e.timestamp === feedSessionStart);
             if (entry) {
@@ -2127,7 +2143,17 @@
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: entry.id, duration }),
-                    }).catch(e => console.warn('Failed to save duration:', e));
+                    }).catch(e => {
+                        console.warn('Failed to save duration:', e);
+                        // Retry once after 3 seconds
+                        setTimeout(() => {
+                            apiFetch('/api/logs', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: entry.id, duration }),
+                            }).catch(e2 => console.warn('Retry failed to save duration:', e2));
+                        }, 3000);
+                    });
                 }
             }
             render();
@@ -2137,12 +2163,25 @@
 
         function resumeFeedSession() {
             if (feedSessionInterval) return; // already active
+            // Check localStorage for persisted active timer state
+            const saved = localStorage.getItem('activeTimer');
+            if (!saved) return; // no active timer was saved, don't resume
+            let savedTimer;
+            try { savedTimer = JSON.parse(saved); } catch(e) { localStorage.removeItem('activeTimer'); return; }
+            // Find the matching entry in the entries list
             const lastFeed = entries.find(e =>
-                (e.type === 'feed_l' || e.type === 'feed_r') && !e.duration
+                e.type === savedTimer.type && e.timestamp === savedTimer.start && !e.duration
             );
-            if (!lastFeed) return;
+            if (!lastFeed) {
+                // Entry not found or already has duration — timer was stopped, clean up
+                localStorage.removeItem('activeTimer');
+                return;
+            }
             // Only resume if within last 2 hours
-            if (Date.now() - lastFeed.timestamp > 2 * 60 * 60 * 1000) return;
+            if (Date.now() - lastFeed.timestamp > 2 * 60 * 60 * 1000) {
+                localStorage.removeItem('activeTimer');
+                return;
+            }
             feedSessionType = lastFeed.type;
             feedSessionStart = lastFeed.timestamp;
             lastFeed.pending = true;
