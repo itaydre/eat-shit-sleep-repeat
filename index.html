@@ -1835,7 +1835,39 @@
                 }, 10000);
                 document.addEventListener('visibilitychange', () => {
                     if (!document.hidden && session) {
-                        fetchEntries().then(() => updateFeedTimer());
+                        // Re-sync timer intervals (Android Chrome kills setInterval in background)
+                        if (feedSessionInterval && feedSessionStart) {
+                            clearInterval(feedSessionInterval);
+                            feedSessionInterval = setInterval(() => {
+                                const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
+                                const m = Math.floor(elapsed / 60);
+                                const s = elapsed % 60;
+                                const el = document.getElementById('feed-stopwatch');
+                                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                            }, 1000);
+                            // Update display immediately
+                            const el = document.getElementById('feed-stopwatch');
+                            if (el) {
+                                const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
+                                el.textContent = Math.floor(elapsed / 60) + ':' + String(elapsed % 60).padStart(2, '0');
+                            }
+                        }
+                        if (pumpSessionInterval && pumpSessionStart) {
+                            clearInterval(pumpSessionInterval);
+                            pumpSessionInterval = setInterval(() => {
+                                const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
+                                const m = Math.floor(elapsed / 60);
+                                const s = elapsed % 60;
+                                const el = document.getElementById('pump-stopwatch');
+                                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                            }, 1000);
+                            const el = document.getElementById('pump-stopwatch');
+                            if (el) {
+                                const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
+                                el.textContent = Math.floor(elapsed / 60) + ':' + String(elapsed % 60).padStart(2, '0');
+                            }
+                        }
+                        fetchEntries().then(() => { updateFeedTimer(); resumeFeedSession(); resumePumpSession(); });
                     }
                 });
                 window._intervalsStarted = true;
@@ -2386,9 +2418,9 @@
                         const isPump = entry.type.startsWith('pump');
                         let trailingHtml = '';
                         if (entry.pending && isPump) {
-                            trailingHtml = `<button class="stop-btn" onclick="stopPumpSession()" style="margin-left:auto;">&#9632;</button>`;
+                            trailingHtml = `<button class="stop-btn" onclick="stopPumpSession()" ontouchend="event.preventDefault(); stopPumpSession();" style="margin-left:auto; min-width:44px; min-height:44px;">&#9632;</button>`;
                         } else if (entry.pending) {
-                            trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" style="margin-left:auto;">&#9632;</button>`;
+                            trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" ontouchend="event.preventDefault(); stopFeedSession();" style="margin-left:auto; min-width:44px; min-height:44px;">&#9632;</button>`;
                         } else if (isFeed || isPump) {
                             const durMins = entry.duration ? Math.floor(entry.duration / 60) : 0;
                             const durBadge = durMins > 0 ? `<span class="dur-value">${durMins}m</span>` : '';
@@ -2561,33 +2593,49 @@
             render();
         }
 
+        let _feedSessionLock = false;
         async function startFeedSession(type) {
             if (feedSessionType === type) return; // same side already active
-            if (feedSessionInterval) stopFeedSession(); // stop other side first
-            feedSessionType = type;
-            feedSessionStart = Date.now();
-            // Log the entry immediately (shows on today, pending hides from history)
-            await log(type, feedSessionStart);
-            const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
-            if (pendingEntry) pendingEntry.pending = true;
-            render();
-            feedSessionInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
-                const m = Math.floor(elapsed / 60);
-                const s = elapsed % 60;
-                const el = document.getElementById('feed-stopwatch');
-                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
-            }, 1000);
+            if (_feedSessionLock) return; // prevent race from rapid taps
+            _feedSessionLock = true;
+            try {
+                if (feedSessionInterval) stopFeedSession(); // stop other side first
+                feedSessionType = type;
+                feedSessionStart = Date.now();
+                // Start the interval BEFORE the await so it's visible immediately
+                // and so feedSessionInterval is set to guard against concurrent calls
+                feedSessionInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
+                    const m = Math.floor(elapsed / 60);
+                    const s = elapsed % 60;
+                    const el = document.getElementById('feed-stopwatch');
+                    if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                }, 1000);
+                // Log the entry immediately (shows on today, pending hides from history)
+                await log(type, feedSessionStart);
+                const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
+                if (pendingEntry) pendingEntry.pending = true;
+                render();
+            } finally {
+                _feedSessionLock = false;
+            }
         }
 
         function stopFeedSession() {
             clearInterval(feedSessionInterval);
             feedSessionInterval = null;
-            const duration = Math.floor((Date.now() - feedSessionStart) / 1000);
-            const entry = entries.find(e => e.type === feedSessionType && e.timestamp === feedSessionStart);
+            const savedType = feedSessionType;
+            const savedStart = feedSessionStart;
+            feedSessionType = null;
+            feedSessionStart = null;
+            if (!savedStart) return;
+            const duration = Math.floor((Date.now() - savedStart) / 1000);
+            const entry = entries.find(e => e.type === savedType && e.timestamp === savedStart);
             if (entry) {
                 entry.duration = duration;
                 delete entry.pending;
+                // Mark as stopped in localStorage so resume won't revive it after page reload
+                try { localStorage.setItem('lastStoppedFeed', savedStart + ''); } catch(e) {}
                 if (!isDevMode && entry.id) {
                     apiFetch('/api/logs', {
                         method: 'PATCH',
@@ -2597,8 +2645,6 @@
                 }
             }
             render();
-            feedSessionType = null;
-            feedSessionStart = null;
         }
 
         function resumeFeedSession() {
@@ -2609,6 +2655,9 @@
             if (!lastFeed) return;
             // Only resume if within last 2 hours
             if (Date.now() - lastFeed.timestamp > 2 * 60 * 60 * 1000) return;
+            // Don't resume a session that was explicitly stopped (server may not have saved duration yet)
+            const lastStopped = localStorage.getItem('lastStoppedFeed');
+            if (lastStopped && String(lastFeed.timestamp) === lastStopped) return;
             feedSessionType = lastFeed.type;
             feedSessionStart = lastFeed.timestamp;
             lastFeed.pending = true;
@@ -2631,10 +2680,7 @@
             if (pumpSessionInterval) { stopPumpSession(); return; } // toggle off
             if (feedSessionInterval) stopFeedSession(); // stop any active feed
             pumpSessionStart = Date.now();
-            await log('pump', pumpSessionStart);
-            const pendingEntry = entries.find(e => e.timestamp === pumpSessionStart && e.type === 'pump');
-            if (pendingEntry) pendingEntry.pending = true;
-            render();
+            // Start interval before await to prevent race conditions
             pumpSessionInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
                 const m = Math.floor(elapsed / 60);
@@ -2642,17 +2688,25 @@
                 const el = document.getElementById('pump-stopwatch');
                 if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
             }, 1000);
+            await log('pump', pumpSessionStart);
+            const pendingEntry = entries.find(e => e.timestamp === pumpSessionStart && e.type === 'pump');
+            if (pendingEntry) pendingEntry.pending = true;
+            render();
         }
 
         function stopPumpSession() {
             clearInterval(pumpSessionInterval);
             pumpSessionInterval = null;
-            const duration = Math.floor((Date.now() - pumpSessionStart) / 1000);
-            const entry = entries.find(e => e.type === 'pump' && e.timestamp === pumpSessionStart);
+            const savedStart = pumpSessionStart;
+            pumpSessionStart = null;
+            if (!savedStart) return;
+            const duration = Math.floor((Date.now() - savedStart) / 1000);
+            const entry = entries.find(e => e.type === 'pump' && e.timestamp === savedStart);
             if (entry) {
                 entry.duration = duration;
                 delete entry.pending;
                 pumpPendingEntry = entry;
+                try { localStorage.setItem('lastStoppedPump', savedStart + ''); } catch(e) {}
                 if (!isDevMode && entry.id) {
                     apiFetch('/api/logs', {
                         method: 'PATCH',
@@ -2661,7 +2715,6 @@
                     }).catch(e => console.warn('Failed to save pump duration:', e));
                 }
             }
-            pumpSessionStart = null;
             render();
             // Show storage picker
             document.getElementById('storage-modal').classList.add('open');
@@ -2693,6 +2746,9 @@
             const lastPump = entries.find(e => e.type === 'pump' && !e.duration);
             if (!lastPump) return;
             if (Date.now() - lastPump.timestamp > 2 * 60 * 60 * 1000) return;
+            // Don't resume a session that was explicitly stopped
+            const lastStopped = localStorage.getItem('lastStoppedPump');
+            if (lastStopped && String(lastPump.timestamp) === lastStopped) return;
             pumpSessionStart = lastPump.timestamp;
             lastPump.pending = true;
             render();
