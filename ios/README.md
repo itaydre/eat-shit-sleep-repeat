@@ -10,9 +10,13 @@ You need **Xcode 15+** and **XcodeGen** (project file is generated, not checked 
 ```bash
 brew install xcodegen
 cd ios
-xcodegen generate
+./gen.sh            # runs xcodegen + patches objectVersion for Xcode 15.x
 open ESR.xcodeproj
 ```
+
+> `gen.sh` exists because XcodeGen 2.45+ stamps `objectVersion = 77`, which
+> only Xcode 16+ can open. The helper rewrites it to 60 so Xcode 15.x works.
+> Delete the helper + run `xcodegen generate` directly once you're on Xcode 16.
 
 Then in Xcode:
 1. Select the `ESR` target → **Signing & Capabilities** → set your Team.
