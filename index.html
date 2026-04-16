@@ -937,7 +937,7 @@
         .day-strip-inner {
             max-width: 500px;
             margin: 0 auto;
-            background: rgba(227, 238, 255, 0.92);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: saturate(160%) blur(16px);
             -webkit-backdrop-filter: saturate(160%) blur(16px);
             border-radius: 20px;
@@ -950,6 +950,8 @@
             -webkit-overflow-scrolling: touch;
             pointer-events: auto;
             scrollbar-width: none;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f0f0ee;
         }
         .day-strip-inner::-webkit-scrollbar { display: none; }
         .day-pill {
@@ -965,7 +967,7 @@
             gap: 2px;
             font-family: inherit;
             cursor: pointer;
-            color: #3B6BC4;
+            color: #1a1a1a;
             scroll-snap-align: center;
             transition: background 0.15s ease;
             -webkit-tap-highlight-color: transparent;
@@ -973,7 +975,7 @@
         .day-pill .dow {
             font-size: 0.7rem;
             font-weight: 600;
-            opacity: 0.75;
+            color: #8a8a8a;
             letter-spacing: 0.02em;
         }
         .day-pill .dom {
@@ -981,13 +983,13 @@
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             line-height: 1;
-        }
-        .day-pill.active {
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             color: #1a1a1a;
         }
-        .day-pill.active .dow { opacity: 1; color: #8a8a8a; }
+        .day-pill.active {
+            background: #f0f0ee;
+            color: #1a1a1a;
+        }
+        .day-pill.active .dom { color: #1a1a1a; }
 
         .feed-timer {
             max-width: 500px;
