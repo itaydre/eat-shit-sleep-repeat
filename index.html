@@ -963,7 +963,7 @@
         .day-strip-inner::-webkit-scrollbar { display: none; }
         .day-pill {
             flex: 0 0 auto;
-            min-width: 54px;
+            min-width: 44px;
             padding: 8px 6px;
             background: transparent;
             border: none;
@@ -2175,6 +2175,48 @@
                 const active = container.querySelector('.day-pill.active');
                 if (active && active.scrollIntoView) active.scrollIntoView({ inline: 'center', block: 'nearest' });
             });
+
+            // Drag-to-scrub: pointer drag on the container amplifies scroll so
+            // a single hold-and-slide covers many days. Works for mouse + touch
+            // (touch also still has native inertia; we amplify on move only).
+            const SCRUB_AMP = 2.6;
+            let dragState = null;
+            container.addEventListener('pointerdown', e => {
+                dragState = {
+                    startX: e.clientX,
+                    startScrollLeft: container.scrollLeft,
+                    pointerId: e.pointerId,
+                    moved: false,
+                };
+                container.style.scrollBehavior = 'auto';
+            });
+            container.addEventListener('pointermove', e => {
+                if (!dragState || e.pointerId !== dragState.pointerId) return;
+                const dx = e.clientX - dragState.startX;
+                if (Math.abs(dx) > 3) dragState.moved = true;
+                container.scrollLeft = dragState.startScrollLeft - dx * SCRUB_AMP;
+            });
+            const endDrag = e => {
+                if (!dragState || (e.pointerId != null && e.pointerId !== dragState.pointerId)) return;
+                const moved = dragState.moved;
+                dragState = null;
+                container.style.scrollBehavior = '';
+                if (!moved) return; // was a tap — let the click handler fire
+                // Snap to whichever pill is closest to the viewport center and
+                // update dayOffset so counts follow the selection.
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                let best = null, bestDist = Infinity;
+                container.querySelectorAll('.day-pill').forEach(el => {
+                    const r = el.getBoundingClientRect();
+                    const dist = Math.abs(r.left + r.width / 2 - centerX);
+                    if (dist < bestDist) { bestDist = dist; best = el; }
+                });
+                if (best) setDayOffset(Number(best.dataset.offset));
+            };
+            container.addEventListener('pointerup', endDrag);
+            container.addEventListener('pointercancel', endDrag);
+            container.addEventListener('pointerleave', endDrag);
 
             // Fast-forward animation: skew + blur proportional to scroll velocity.
             let lastScrollLeft = container.scrollLeft;
