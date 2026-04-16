@@ -354,6 +354,62 @@
             line-height: 1;
         }
 
+        .btn .btn-count {
+            font-size: 3rem;
+            font-weight: 400;
+            line-height: 1;
+            opacity: 0.75;
+            align-self: flex-start;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+
+        .btn .btn-timer {
+            display: none;
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.03em;
+        }
+
+        .btn .btn-stop {
+            display: none;
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 10px;
+            background: currentColor;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn .btn-stop::after {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 2px;
+        }
+
+        .btn {
+            position: relative;
+        }
+
+        .btn.active .btn-count { display: none; }
+        .btn.active .btn-timer { display: block; }
+        .btn.active .btn-stop { display: flex; }
+        .btn.active {
+            box-shadow: inset 0 0 0 2.5px currentColor;
+        }
+
         .btn-sleep {
             background: #E3EEFF;
             color: #3B6BC4;
@@ -694,37 +750,60 @@
         }
 
         .day-header {
-            position: sticky;
-            top: calc(env(safe-area-inset-top, 0px) + 55px);
-            background: #fafaf8;
-            z-index: 10;
-            margin-left: -20px;
-            margin-right: -20px;
-            padding: 10px 24px 6px;
             display: flex;
-            align-items: baseline;
-            gap: 12px;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 0 10px;
         }
 
-        .day-label {
-            font-size: 0.8rem;
-            color: #aaa;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .day-header-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .day-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .day-arrow {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            font-size: 1.3rem;
+            color: #bbb;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .day-arrow:disabled, .day-arrow[hidden] {
+            visibility: hidden;
         }
 
         .day-summary {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             font-size: 0.8rem;
-            color: #aaa;
+            color: #8a8a8a;
+            font-variant-numeric: tabular-nums;
         }
 
         .day-summary span {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 2px;
+            gap: 4px;
         }
 
         /* --- Vitamin D Reminder --- */
@@ -834,16 +913,88 @@
         }
 
         .feed-timer-wrapper {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+            background: rgba(250, 250, 248, 0.92);
+            backdrop-filter: saturate(140%) blur(14px);
+            -webkit-backdrop-filter: saturate(140%) blur(14px);
+            border-top: 1px solid #f0f0ee;
+            z-index: 50;
+        }
+
+        /* Floating bottom days strip */
+        .day-strip {
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+            z-index: 48;
+            pointer-events: none;
+        }
+        .day-strip-inner {
             max-width: 500px;
             margin: 0 auto;
+            background: rgba(227, 238, 255, 0.92);
+            backdrop-filter: saturate(160%) blur(16px);
+            -webkit-backdrop-filter: saturate(160%) blur(16px);
+            border-radius: 20px;
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            pointer-events: auto;
+            scrollbar-width: none;
         }
+        .day-strip-inner::-webkit-scrollbar { display: none; }
+        .day-pill {
+            flex: 0 0 auto;
+            min-width: 54px;
+            padding: 8px 6px;
+            background: transparent;
+            border: none;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-family: inherit;
+            cursor: pointer;
+            color: #3B6BC4;
+            scroll-snap-align: center;
+            transition: background 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .day-pill .dow {
+            font-size: 0.7rem;
+            font-weight: 600;
+            opacity: 0.75;
+            letter-spacing: 0.02em;
+        }
+        .day-pill .dom {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+        .day-pill.active {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            color: #1a1a1a;
+        }
+        .day-pill.active .dow { opacity: 1; color: #8a8a8a; }
 
         .feed-timer {
             max-width: 500px;
-            margin: 0 auto 16px;
+            margin: 0 auto;
             background: #FFE4CC;
             border-radius: 14px;
-            padding: 14px 18px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             gap: 14px;
@@ -1053,7 +1204,7 @@
         }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; padding-top: 12px; padding-bottom: 80px; }
+        .tab-content.active { display: block; padding-top: 12px; padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
 
         /* --- Bottom Nav Bar --- */
         .bottom-nav {
@@ -1268,7 +1419,14 @@
         <div class="app-header">
         <div class="top-bar">
             <button class="back-btn" id="back-btn" onclick="handleBack()">&#8592;</button>
-            <div class="top-bar-left"></div>
+            <div class="top-bar-left">
+                <button class="top-link" onclick="switchTab('history')" title="History">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </button>
+                <button class="top-link" onclick="switchTab('stats')" title="Stats">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </button>
+            </div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.7rem; color:#b5b5b5; margin-top:1px;"></div>
@@ -1426,41 +1584,61 @@
                     </div>
                 </div>
 
+                <div id="day-header" class="day-header">
+                    <button id="day-prev" class="day-arrow" onclick="navigateDay(-1)" aria-label="Previous day">&#8249;</button>
+                    <div class="day-header-center">
+                        <h2 id="day-label">Today</h2>
+                        <div id="today-summary" class="day-summary"></div>
+                    </div>
+                    <button id="day-next" class="day-arrow" onclick="navigateDay(1)" aria-label="Next day">&#8250;</button>
+                </div>
+
                 <div id="action-tiles" class="buttons-wrapper">
                     <div class="buttons">
-                        <button class="btn btn-sleep" onclick="log('pee')">
+                        <button id="tile-pee" class="btn btn-sleep" onclick="log('pee')">
                             <div class="btn-top">
                                 <span class="btn-label">Pee</span>
                                 <span class="btn-last" id="last-pee"></span>
                             </div>
+                            <span class="btn-count" id="count-pee">—</span>
                             <span class="emoji">&#128166;</span>
                         </button>
-                        <button class="btn btn-poop" onclick="log('poop')">
+                        <button id="tile-poop" class="btn btn-poop" onclick="log('poop')">
                             <div class="btn-top">
                                 <span class="btn-label">Poop</span>
                                 <span class="btn-last" id="last-poop"></span>
                             </div>
+                            <span class="btn-count" id="count-poop">—</span>
                             <span class="emoji">&#128169;</span>
                         </button>
-                        <button class="btn btn-feed" onclick="startFeedSession('feed_l')">
+                        <button id="tile-feed_l" class="btn btn-feed" onclick="startFeedSession('feed_l')">
                             <div class="btn-top">
                                 <span class="btn-label">Feed L</span>
                                 <span class="btn-last" id="last-feed_l"></span>
                             </div>
+                            <span class="btn-count" id="count-feed_l">—</span>
+                            <span class="btn-timer" id="timer-feed_l">0:00</span>
+                            <button class="btn-stop" onclick="event.stopPropagation(); stopFeedSession()" aria-label="Stop"></button>
                             <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span>
                         </button>
-                        <button class="btn btn-feed" onclick="startFeedSession('feed_r')">
+                        <button id="tile-feed_r" class="btn btn-feed" onclick="startFeedSession('feed_r')">
                             <div class="btn-top">
                                 <span class="btn-label">Feed R</span>
                                 <span class="btn-last" id="last-feed_r"></span>
                             </div>
+                            <span class="btn-count" id="count-feed_r">—</span>
+                            <span class="btn-timer" id="timer-feed_r">0:00</span>
+                            <button class="btn-stop" onclick="event.stopPropagation(); stopFeedSession()" aria-label="Stop"></button>
                             <span class="emoji">🤱</span>
                         </button>
-                        <button class="btn btn-pump" onclick="startPumpSession()">
+                        <button id="tile-pump" class="btn btn-pump" onclick="startPumpSession()">
                             <div class="btn-top">
                                 <span class="btn-label">Pump</span>
                                 <span class="btn-last" id="last-pump"></span>
                             </div>
+                            <span class="btn-count" id="count-pump">—</span>
+                            <span class="btn-timer" id="timer-pump">0:00</span>
+                            <button class="btn-stop" onclick="event.stopPropagation(); stopPumpSession()" aria-label="Stop"></button>
                             <span class="emoji">🍼</span>
                         </button>
                         <button class="btn btn-custom" onclick="openAddModal()" aria-label="Add custom entry">
@@ -1488,22 +1666,10 @@
             </div>
         </div>
 
-        <!-- Bottom Nav Bar -->
-        <nav class="bottom-nav" id="bottom-nav">
-            <button class="nav-tab active" onclick="switchTab('today')">
-                <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span class="nav-label">Today</span>
-            </button>
-            <button class="nav-tab" onclick="switchTab('history')">
-                <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span class="nav-label">History</span>
-            </button>
-            <button class="nav-tab" onclick="switchTab('stats')">
-                <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                <span class="nav-label">Stats</span>
-            </button>
-        </nav>
-        <!-- old action-buttons removed, now inline as tiles -->
+        <!-- Floating days strip (home screen only) -->
+        <div class="day-strip" id="day-strip" aria-label="Day selector">
+            <div class="day-strip-inner" id="day-strip-inner" role="tablist"></div>
+        </div>
 
     </div>
 
@@ -1800,6 +1966,7 @@
             try {
                 updateProfileDisplay();
                 document.getElementById('feed-interval-display').textContent = getFeedIntervalHours() + 'h';
+                renderDayStrip();
                 if (logsAlreadyLoaded) {
                     render();
                     updateFeedTimer();
@@ -1955,26 +2122,71 @@
         let dayOffset = 0; // 0 = today, -1 = yesterday, etc.
 
         function navigateDay(dir) {
-            dayOffset += dir;
-            if (dayOffset > 0) dayOffset = 0;
+            setDayOffset(dayOffset + dir);
+        }
+
+        function setDayOffset(offset) {
+            if (offset > 0) offset = 0;
+            dayOffset = offset;
             updateDayNav();
             render();
+            // Keep the day strip scrolled so the selected pill is centered.
+            const active = document.querySelector('.day-pill.active');
+            if (active && active.scrollIntoView) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+
+        // --- Floating day strip (bottom) ---
+        const DAY_STRIP_PAST = 60;
+        function renderDayStrip() {
+            const container = document.getElementById('day-strip-inner');
+            if (!container) return;
+            if (container.childElementCount) return; // render once
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const dowNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            // Render from oldest to newest so natural-order scroll matches time.
+            for (let i = -DAY_STRIP_PAST; i <= 0; i++) {
+                const d = new Date(today); d.setDate(today.getDate() + i);
+                const btn = document.createElement('button');
+                btn.className = 'day-pill' + (i === 0 ? ' active' : '');
+                btn.type = 'button';
+                btn.dataset.offset = String(i);
+                btn.setAttribute('role', 'tab');
+                btn.innerHTML = `<span class="dow">${dowNames[d.getDay()]}</span><span class="dom">${d.getDate()}</span>`;
+                btn.addEventListener('click', () => setDayOffset(Number(btn.dataset.offset)));
+                container.appendChild(btn);
+            }
+            // Start with today pinned right; center via updateDayNav.
+            requestAnimationFrame(() => {
+                const active = container.querySelector('.day-pill.active');
+                if (active && active.scrollIntoView) active.scrollIntoView({ inline: 'center', block: 'nearest' });
+            });
         }
 
         function updateDayNav() {
             const target = new Date();
             target.setDate(target.getDate() + dayOffset);
             const label = dayOffset === 0 ? 'Today' : formatDayLabel(target.getTime());
-            document.getElementById('day-label').textContent = label;
-            document.getElementById('day-next').style.visibility = dayOffset === 0 ? 'hidden' : 'visible';
-            // Hide prev if no entries exist before current view
-            const hasPrev = entries.some(e => {
-                const d = new Date(e.timestamp);
-                const prev = new Date();
-                prev.setDate(prev.getDate() + dayOffset - 1);
-                return d.toDateString() === prev.toDateString();
-            });
-            document.getElementById('day-prev').style.visibility = hasPrev ? 'visible' : 'hidden';
+            const labelEl = document.getElementById('day-label');
+            if (labelEl) labelEl.textContent = label;
+            const nextBtn = document.getElementById('day-next');
+            if (nextBtn) nextBtn.style.visibility = dayOffset === 0 ? 'hidden' : 'visible';
+            const prevBtn = document.getElementById('day-prev');
+            if (prevBtn) {
+                const hasPrev = entries.some(e => {
+                    const d = new Date(e.timestamp);
+                    const prev = new Date();
+                    prev.setDate(prev.getDate() + dayOffset - 1);
+                    return d.toDateString() === prev.toDateString();
+                });
+                prevBtn.style.visibility = hasPrev ? 'visible' : 'hidden';
+            }
+            // Sync the day strip active pill with the current offset.
+            const strip = document.getElementById('day-strip-inner');
+            if (strip) {
+                strip.querySelectorAll('.day-pill').forEach(el => {
+                    el.classList.toggle('active', Number(el.dataset.offset) === dayOffset);
+                });
+            }
         }
 
         function updateHeaderForSettings(isSettings) {
@@ -1991,8 +2203,6 @@
                 document.getElementById('profile-edit-page').classList.remove('active');
                 document.getElementById('main-content').style.display = '';
                 document.getElementById('action-tiles').style.display = tab === 'today' ? '' : 'none';
-                const bn = document.getElementById('bottom-nav');
-                if (bn) bn.style.display = '';
                 updateHeaderForSettings(false);
             }
             ['today', 'history', 'stats'].forEach(t => {
@@ -2002,6 +2212,13 @@
             document.querySelectorAll('.top-link').forEach(btn => {
                 btn.classList.toggle('active', btn.getAttribute('title')?.toLowerCase() === tab);
             });
+            // Day header + feed-timer + day strip belong on Today only.
+            const dayHeader = document.getElementById('day-header');
+            if (dayHeader) dayHeader.style.display = tab === 'today' ? '' : 'none';
+            const feedWrapper = document.getElementById('feed-timer-wrapper');
+            if (feedWrapper) feedWrapper.style.display = tab === 'today' && feedWrapper.dataset.enabled === '1' ? '' : 'none';
+            const dayStrip = document.getElementById('day-strip');
+            if (dayStrip) dayStrip.style.display = tab === 'today' ? '' : 'none';
             document.getElementById('action-tiles').style.display = tab === 'today' ? '' : 'none';
             if (tab === 'stats') renderCharts();
         }
@@ -2031,8 +2248,12 @@
             document.getElementById('invite-page').classList.remove('active');
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-tiles').style.display = settingsOpen ? 'none' : '';
-            const bottomNav = document.getElementById('bottom-nav');
-            if (bottomNav) bottomNav.style.display = settingsOpen ? 'none' : '';
+            const dayHeader2 = document.getElementById('day-header');
+            if (dayHeader2) dayHeader2.style.display = settingsOpen ? 'none' : '';
+            const feedWrapper2 = document.getElementById('feed-timer-wrapper');
+            if (feedWrapper2) feedWrapper2.style.display = settingsOpen ? 'none' : (feedWrapper2.dataset.enabled === '1' ? '' : 'none');
+            const dayStrip2 = document.getElementById('day-strip');
+            if (dayStrip2) dayStrip2.style.display = settingsOpen ? 'none' : '';
             updateHeaderForSettings(settingsOpen);
             if (settingsOpen) {
                 document.getElementById('vitd-toggle').checked = getVitdEnabled();
@@ -2375,18 +2596,34 @@
 
                 updateDayNav();
 
-                // Day summary
+                // Day summary (element may be absent on tile-only home layout).
                 const todaySummaryEl = document.getElementById('today-summary');
                 const dayLabel = formatDayLabel(targetDate.getTime());
                 const todayCounts = dayGroups[dayLabel] || {};
-                const summaryParts = [];
-                if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
-                if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
-                if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F931}</span> ${todayCounts.feed_l}</span>`);
-                if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F931} ${todayCounts.feed_r}</span>`);
+                if (todaySummaryEl) {
+                    const summaryParts = [];
+                    if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
+                    if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
+                    if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F931}</span> ${todayCounts.feed_l}</span>`);
+                    if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F931} ${todayCounts.feed_r}</span>`);
+                    const pumpTotalS = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
+                    if (pumpTotalS) summaryParts.push(`<span>\u{1F931} ${pumpTotalS}</span>`);
+                    todaySummaryEl.innerHTML = summaryParts.join('');
+                }
+
+                // Per-tile big count for the selected day.
                 const pumpTotal = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
-                if (pumpTotal) summaryParts.push(`<span>\u{1F931} ${pumpTotal}</span>`);
-                todaySummaryEl.innerHTML = summaryParts.join('');
+                const tileCounts = {
+                    pee: todayCounts.pee || 0,
+                    poop: todayCounts.poop || 0,
+                    feed_l: todayCounts.feed_l || 0,
+                    feed_r: todayCounts.feed_r || 0,
+                    pump: pumpTotal,
+                };
+                for (const [k, v] of Object.entries(tileCounts)) {
+                    const el = document.getElementById('count-' + k);
+                    if (el) el.textContent = String(v);
+                }
 
                 // Update tile "last time" labels
                 const lastTimes = {};
@@ -2608,6 +2845,16 @@
             }, LONG_SESSION_MS);
         }
 
+        function setTileTimerActive(type, active) {
+            const tile = document.getElementById('tile-' + type);
+            if (tile) tile.classList.toggle('active', !!active);
+        }
+
+        function paintTileTimer(type, elapsedMs) {
+            const el = document.getElementById('timer-' + type);
+            if (el) el.textContent = BabyLog.formatStopwatch(elapsedMs);
+        }
+
         async function startFeedSession(type) {
             if (feedSessionType === type) return; // same side already active
             if (_feedSessionLock) return; // prevent race from rapid taps
@@ -2616,14 +2863,12 @@
                 if (feedSessionInterval) stopFeedSession(); // stop other side first
                 feedSessionType = type;
                 feedSessionStart = Date.now();
+                setTileTimerActive(type, true);
+                paintTileTimer(type, 0);
                 // Start the interval BEFORE the await so it's visible immediately
                 // and so feedSessionInterval is set to guard against concurrent calls
                 feedSessionInterval = setInterval(() => {
-                    const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
-                    const m = Math.floor(elapsed / 60);
-                    const s = elapsed % 60;
-                    const el = document.getElementById('feed-stopwatch');
-                    if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                    paintTileTimer(type, Date.now() - feedSessionStart);
                 }, 1000);
                 scheduleLongFeedCheck();
                 // Log the entry immediately (shows on today, pending hides from history)
@@ -2644,6 +2889,7 @@
             const savedStart = feedSessionStart;
             feedSessionType = null;
             feedSessionStart = null;
+            if (savedType) setTileTimerActive(savedType, false);
             if (!savedStart) return;
             const duration = Math.floor((Date.now() - savedStart) / 1000);
             const entry = entries.find(e => e.type === savedType && e.timestamp === savedStart);
@@ -2677,13 +2923,11 @@
             feedSessionType = lastFeed.type;
             feedSessionStart = lastFeed.timestamp;
             lastFeed.pending = true;
+            setTileTimerActive(feedSessionType, true);
+            paintTileTimer(feedSessionType, Date.now() - feedSessionStart);
             render();
             feedSessionInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - feedSessionStart) / 1000);
-                const m = Math.floor(elapsed / 60);
-                const s = elapsed % 60;
-                const el = document.getElementById('feed-stopwatch');
-                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                paintTileTimer(feedSessionType, Date.now() - feedSessionStart);
             }, 1000);
             const elapsedMs = Date.now() - feedSessionStart;
             if (elapsedMs < LONG_SESSION_MS) {
@@ -2716,13 +2960,11 @@
             if (pumpSessionInterval) { stopPumpSession(); return; } // toggle off
             if (feedSessionInterval) stopFeedSession(); // stop any active feed
             pumpSessionStart = Date.now();
+            setTileTimerActive('pump', true);
+            paintTileTimer('pump', 0);
             // Start interval before await to prevent race conditions
             pumpSessionInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
-                const m = Math.floor(elapsed / 60);
-                const s = elapsed % 60;
-                const el = document.getElementById('pump-stopwatch');
-                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                paintTileTimer('pump', Date.now() - pumpSessionStart);
             }, 1000);
             schedulePumpLongCheck(LONG_SESSION_MS);
             await log('pump', pumpSessionStart);
@@ -2737,6 +2979,7 @@
             if (pumpLongTimeout) { clearTimeout(pumpLongTimeout); pumpLongTimeout = null; }
             const savedStart = pumpSessionStart;
             pumpSessionStart = null;
+            setTileTimerActive('pump', false);
             if (!savedStart) return;
             const duration = Math.floor((Date.now() - savedStart) / 1000);
             const entry = entries.find(e => e.type === 'pump' && e.timestamp === savedStart);
@@ -2792,13 +3035,11 @@
             if (!lastPump) return;
             pumpSessionStart = lastPump.timestamp;
             lastPump.pending = true;
+            setTileTimerActive('pump', true);
+            paintTileTimer('pump', Date.now() - pumpSessionStart);
             render();
             pumpSessionInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - pumpSessionStart) / 1000);
-                const m = Math.floor(elapsed / 60);
-                const s = elapsed % 60;
-                const el = document.getElementById('pump-stopwatch');
-                if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+                paintTileTimer('pump', Date.now() - pumpSessionStart);
             }, 1000);
             const elapsedMs = Date.now() - pumpSessionStart;
             if (elapsedMs < LONG_SESSION_MS) {
@@ -3008,14 +3249,17 @@
                 if (lastFeed && skippedFor) {
                     document.getElementById('restore-timer').style.display = 'block';
                     wrapperEl.style.display = '';
+                    wrapperEl.dataset.enabled = '1';
                 } else {
                     wrapperEl.style.display = 'none';
+                    wrapperEl.dataset.enabled = '';
                 }
                 return;
             }
             document.getElementById('restore-timer').style.display = 'none';
 
             wrapperEl.style.display = '';
+            wrapperEl.dataset.enabled = '1';
             timerEl.style.display = 'flex';
             const nextFeedAt = lastFeed + getFeedInterval();
             const diff = nextFeedAt - Date.now();
