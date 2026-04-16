@@ -436,10 +436,17 @@
             color: #8a8a8a;
             justify-content: center;
             align-items: center;
+            gap: 4px;
         }
         .btn-custom .emoji {
             font-size: 3rem;
             opacity: 0.5;
+            line-height: 1;
+        }
+        .btn-custom .btn-custom-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #8a8a8a;
         }
 
         .recent-header {
@@ -1659,6 +1666,7 @@
                         </button>
                         <button class="btn btn-custom" onclick="openAddModal()" aria-label="Add custom entry">
                             <span class="emoji">＋</span>
+                            <span class="btn-custom-label">Add entry</span>
                         </button>
                     </div>
                 </div>
@@ -1747,6 +1755,7 @@
     </div>
 
     <script src="lib/baby-log.js"></script>
+    <script src="lib/mock-data.js"></script>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         import { WebHaptics } from 'https://esm.sh/web-haptics@0.0.6';
@@ -1767,6 +1776,13 @@
         const isDevMode = BabyLog.isDevHost(location.hostname);
 
         function loadDummyData() {
+            // Prefer a real prod snapshot (lib/mock-data.js) so the demo behaves
+            // like the actual app. Falls back to a tiny hand-made set if the
+            // snapshot is missing.
+            if (Array.isArray(window.__prodMock) && window.__prodMock.length) {
+                entries = window.__prodMock.slice();
+                return;
+            }
             const now = Date.now();
             const h = 3600000;
             entries = [
@@ -1774,23 +1790,6 @@
                 { type: 'pee', timestamp: now - 0.8 * h },
                 { type: 'feed_l', timestamp: now - 2.2 * h, duration: 540 },
                 { type: 'poop', timestamp: now - 3 * h },
-                { type: 'pee', timestamp: now - 3.5 * h },
-                { type: 'feed_r', timestamp: now - 5 * h, duration: 600 },
-                { type: 'feed_l', timestamp: now - 7.5 * h, duration: 480 },
-                { type: 'poop', timestamp: now - 8 * h },
-                { type: 'pee', timestamp: now - 9 * h },
-                { type: 'feed_r', timestamp: now - 10 * h, duration: 660 },
-                { type: 'pee', timestamp: now - 11 * h },
-                { type: 'feed_l', timestamp: now - 12.5 * h, duration: 420 },
-                { type: 'poop', timestamp: now - 14 * h },
-                { type: 'pee', timestamp: now - 15 * h },
-                { type: 'feed_r', timestamp: now - 16 * h, duration: 540 },
-                { type: 'feed_l', timestamp: now - 18.5 * h, duration: 600 },
-                { type: 'pee', timestamp: now - 20 * h },
-                { type: 'poop', timestamp: now - 22 * h },
-                { type: 'feed_r', timestamp: now - 24 * h, duration: 480 },
-                { type: 'pee', timestamp: now - 26 * h },
-                { type: 'feed_l', timestamp: now - 28 * h, duration: 720 },
             ];
         }
 
@@ -2628,59 +2627,59 @@
 
             historyContainer.innerHTML = html;
 
-            // Render day entries (today + day navigation)
+            // Tile counts + last-time labels run regardless of whether the
+            // old today-entries list exists (we removed it from the home).
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + dayOffset);
+            const todayEntries = entries.filter(e => {
+                const d = new Date(e.timestamp);
+                return d.toDateString() === targetDate.toDateString();
+            });
+
+            updateDayNav();
+
+            const todaySummaryEl = document.getElementById('today-summary');
+            const dayLabelSel = formatDayLabel(targetDate.getTime());
+            const todayCounts = dayGroups[dayLabelSel] || {};
+            if (todaySummaryEl) {
+                const summaryParts = [];
+                if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
+                if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
+                if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F931}</span> ${todayCounts.feed_l}</span>`);
+                if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F931} ${todayCounts.feed_r}</span>`);
+                const pumpTotalS = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
+                if (pumpTotalS) summaryParts.push(`<span>\u{1F931} ${pumpTotalS}</span>`);
+                todaySummaryEl.innerHTML = summaryParts.join('');
+            }
+
+            const pumpTotal = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
+            const tileCounts = {
+                pee: todayCounts.pee || 0,
+                poop: todayCounts.poop || 0,
+                feed_l: todayCounts.feed_l || 0,
+                feed_r: todayCounts.feed_r || 0,
+                pump: pumpTotal,
+            };
+            for (const [k, v] of Object.entries(tileCounts)) {
+                const el = document.getElementById('count-' + k);
+                if (el) el.textContent = String(v);
+            }
+
+            const lastTimes = {};
+            for (const entry of todayEntries) {
+                const t = entry.type.startsWith('pump') ? 'pump' : entry.type;
+                if (!lastTimes[t]) {
+                    const d = new Date(entry.timestamp);
+                    lastTimes[t] = 'last ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                }
+            }
+            ['pee', 'poop', 'feed_l', 'feed_r', 'pump'].forEach(type => {
+                const el = document.getElementById('last-' + type);
+                if (el) el.textContent = lastTimes[type] || '';
+            });
+
+            // Legacy today-entries list (absent on the new home layout).
             if (todayContainer) {
-                const targetDate = new Date();
-                targetDate.setDate(targetDate.getDate() + dayOffset);
-                const todayEntries = entries.filter(e => {
-                    const d = new Date(e.timestamp);
-                    return d.toDateString() === targetDate.toDateString();
-                });
-
-                updateDayNav();
-
-                // Day summary (element may be absent on tile-only home layout).
-                const todaySummaryEl = document.getElementById('today-summary');
-                const dayLabel = formatDayLabel(targetDate.getTime());
-                const todayCounts = dayGroups[dayLabel] || {};
-                if (todaySummaryEl) {
-                    const summaryParts = [];
-                    if (todayCounts.pee) summaryParts.push(`<span>\u{1F4A6} ${todayCounts.pee}</span>`);
-                    if (todayCounts.poop) summaryParts.push(`<span>\u{1F4A9} ${todayCounts.poop}</span>`);
-                    if (todayCounts.feed_l) summaryParts.push(`<span><span style="display:inline-block;transform:scaleX(-1)">\u{1F931}</span> ${todayCounts.feed_l}</span>`);
-                    if (todayCounts.feed_r) summaryParts.push(`<span>\u{1F931} ${todayCounts.feed_r}</span>`);
-                    const pumpTotalS = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
-                    if (pumpTotalS) summaryParts.push(`<span>\u{1F931} ${pumpTotalS}</span>`);
-                    todaySummaryEl.innerHTML = summaryParts.join('');
-                }
-
-                // Per-tile big count for the selected day.
-                const pumpTotal = (todayCounts.pump || 0) + (todayCounts.pump_fridge || 0) + (todayCounts.pump_freezer || 0);
-                const tileCounts = {
-                    pee: todayCounts.pee || 0,
-                    poop: todayCounts.poop || 0,
-                    feed_l: todayCounts.feed_l || 0,
-                    feed_r: todayCounts.feed_r || 0,
-                    pump: pumpTotal,
-                };
-                for (const [k, v] of Object.entries(tileCounts)) {
-                    const el = document.getElementById('count-' + k);
-                    if (el) el.textContent = String(v);
-                }
-
-                // Update tile "last time" labels
-                const lastTimes = {};
-                for (const entry of todayEntries) {
-                    const t = entry.type.startsWith('pump') ? 'pump' : entry.type;
-                    if (!lastTimes[t]) {
-                        const d = new Date(entry.timestamp);
-                        lastTimes[t] = 'last ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                    }
-                }
-                ['pee', 'poop', 'feed_l', 'feed_r', 'pump'].forEach(type => {
-                    const el = document.getElementById('last-' + type);
-                    if (el) el.textContent = lastTimes[type] || '';
-                });
 
                 if (todayEntries.length === 0) {
                     todayContainer.innerHTML = '<div class="empty">No entries today yet.</div>';
