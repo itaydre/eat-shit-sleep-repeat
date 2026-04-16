@@ -969,8 +969,25 @@
             cursor: pointer;
             color: #1a1a1a;
             scroll-snap-align: center;
-            transition: background 0.15s ease;
+            transition: background 0.15s ease, transform 0.18s cubic-bezier(.22,1.1,.33,1), opacity 0.18s ease;
             -webkit-tap-highlight-color: transparent;
+            will-change: transform;
+            transform-origin: center bottom;
+        }
+
+        /* Motion-blur "fast-forward" effect while scrolling. The pills get a
+           horizontal skew proportional to scroll velocity; the active pill
+           stays upright. Smoothed back when scrolling stops. */
+        .day-strip-inner {
+            --ff-skew: 0deg;
+            --ff-blur: 0px;
+        }
+        .day-strip-inner.is-scrolling .day-pill {
+            transform: var(--pill-t, none) skewX(var(--ff-skew));
+            filter: blur(var(--ff-blur));
+        }
+        .day-strip-inner.is-scrolling .day-pill.active {
+            filter: none;
         }
         .day-pill .dow {
             font-size: 0.7rem;
@@ -2159,6 +2176,33 @@
                 const active = container.querySelector('.day-pill.active');
                 if (active && active.scrollIntoView) active.scrollIntoView({ inline: 'center', block: 'nearest' });
             });
+
+            // Fast-forward animation: skew + blur proportional to scroll velocity.
+            let lastScrollLeft = container.scrollLeft;
+            let lastScrollTime = performance.now();
+            let scrollIdleTimer = null;
+            container.addEventListener('scroll', () => {
+                const now = performance.now();
+                const dt = Math.max(1, now - lastScrollTime);
+                const dx = container.scrollLeft - lastScrollLeft;
+                // Pixels per millisecond → scale into reasonable skew/blur range.
+                const velocity = dx / dt;
+                const absV = Math.min(Math.abs(velocity), 3);
+                const skew = (velocity < 0 ? -1 : 1) * Math.min(absV * 8, 18); // up to 18deg
+                const blur = Math.min(absV * 1.8, 3.5);
+                container.style.setProperty('--ff-skew', skew.toFixed(2) + 'deg');
+                container.style.setProperty('--ff-blur', blur.toFixed(2) + 'px');
+                container.classList.add('is-scrolling');
+
+                lastScrollLeft = container.scrollLeft;
+                lastScrollTime = now;
+                if (scrollIdleTimer) clearTimeout(scrollIdleTimer);
+                scrollIdleTimer = setTimeout(() => {
+                    container.style.setProperty('--ff-skew', '0deg');
+                    container.style.setProperty('--ff-blur', '0px');
+                    container.classList.remove('is-scrolling');
+                }, 120);
+            }, { passive: true });
         }
 
         function updateDayNav() {
@@ -3389,9 +3433,18 @@
 
         // Expose functions for onclick handlers (module scope)
         async function refreshData() {
-            if (isDevMode) return;
+            // Demo mode: nothing to fetch, but still re-render so the user sees
+            // the app reacting (counts, strip, profile age, timers).
+            if (isDevMode) {
+                await new Promise(r => setTimeout(r, 400));
+                render();
+                updateFeedTimer();
+                updateProfileDisplay();
+                return;
+            }
             await fetchEntries();
             updateFeedTimer();
+            updateProfileDisplay();
         }
 
         Object.assign(window, {
