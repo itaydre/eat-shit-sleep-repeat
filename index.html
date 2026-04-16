@@ -1256,14 +1256,7 @@
         <div class="app-header">
         <div class="top-bar">
             <button class="back-btn" id="back-btn" onclick="handleBack()">&#8592;</button>
-            <div class="top-bar-left">
-                <button class="top-link" onclick="switchTab('history')" title="History">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </button>
-                <button class="top-link" onclick="switchTab('stats')" title="Stats">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                </button>
-            </div>
+            <div class="top-bar-left"></div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.7rem; color:#b5b5b5; margin-top:1px;"></div>
@@ -2423,7 +2416,7 @@
                             trailingHtml = `<button class="stop-btn" onclick="stopFeedSession()" ontouchend="event.preventDefault(); stopFeedSession();" style="margin-left:auto; min-width:44px; min-height:44px;">&#9632;</button>`;
                         } else if (isFeed || isPump) {
                             const durMins = entry.duration ? Math.floor(entry.duration / 60) : 0;
-                            const durBadge = durMins > 0 ? `<span class="dur-value">${durMins}m</span>` : '';
+                            const durBadge = durMins > 0 ? `<span class="dur-value dur-mins">${durMins}m</span>` : '';
                             const storageBadge = act.badge ? `<span class="dur-value">${act.badge}</span>` : '';
                             trailingHtml = `<div class="duration-badge">${storageBadge}${durBadge}<button class="edit-duration-btn" onclick="editDuration(${globalIndex})">&#9998;</button></div>`;
                         }
@@ -2570,11 +2563,15 @@
             if (!el) return;
             const editBtn = el.querySelector('.edit-duration-btn');
             if (editBtn) editBtn.remove();
+            const durValue = el.querySelector('.duration-badge .dur-mins');
+            if (durValue) durValue.style.display = 'none';
             const editor = document.createElement('div');
             editor.className = 'duration-editor';
             editor.innerHTML = `<div class="dur-input-group"><input type="number" ${mins > 0 ? `value="${mins}"` : ''} placeholder="0" min="1" max="120" id="dur-input-${index}"><span class="dur-unit">min</span></div><button class="save-dur" onclick="saveDuration(${index})">Save</button>`;
             el.appendChild(editor);
-            document.getElementById('dur-input-' + index).focus();
+            const input = document.getElementById('dur-input-' + index);
+            input.focus();
+            input.select();
         }
 
         function saveDuration(index) {
@@ -2594,6 +2591,19 @@
         }
 
         let _feedSessionLock = false;
+        let feedLongTimeout = null;
+        const LONG_SESSION_MS = 20 * 60 * 1000;
+
+        function scheduleLongFeedCheck() {
+            if (feedLongTimeout) clearTimeout(feedLongTimeout);
+            feedLongTimeout = setTimeout(() => {
+                feedLongTimeout = null;
+                if (!feedSessionInterval) return;
+                const stop = confirm('Feed has been running for 20 minutes. Stop the timer?');
+                if (stop) stopFeedSession();
+            }, LONG_SESSION_MS);
+        }
+
         async function startFeedSession(type) {
             if (feedSessionType === type) return; // same side already active
             if (_feedSessionLock) return; // prevent race from rapid taps
@@ -2611,6 +2621,7 @@
                     const el = document.getElementById('feed-stopwatch');
                     if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
                 }, 1000);
+                scheduleLongFeedCheck();
                 // Log the entry immediately (shows on today, pending hides from history)
                 await log(type, feedSessionStart);
                 const pendingEntry = entries.find(e => e.timestamp === feedSessionStart && e.type === type);
@@ -2624,6 +2635,7 @@
         function stopFeedSession() {
             clearInterval(feedSessionInterval);
             feedSessionInterval = null;
+            if (feedLongTimeout) { clearTimeout(feedLongTimeout); feedLongTimeout = null; }
             const savedType = feedSessionType;
             const savedStart = feedSessionStart;
             feedSessionType = null;
@@ -2669,12 +2681,32 @@
                 const el = document.getElementById('feed-stopwatch');
                 if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
             }, 1000);
+            const elapsedMs = Date.now() - feedSessionStart;
+            if (elapsedMs < LONG_SESSION_MS) {
+                feedLongTimeout = setTimeout(() => {
+                    feedLongTimeout = null;
+                    if (!feedSessionInterval) return;
+                    const stop = confirm('Feed has been running for 20 minutes. Stop the timer?');
+                    if (stop) stopFeedSession();
+                }, LONG_SESSION_MS - elapsedMs);
+            }
         }
 
         // --- Pump Session ---
         let pumpSessionStart = null;
         let pumpSessionInterval = null;
         let pumpPendingEntry = null;
+        let pumpLongTimeout = null;
+
+        function schedulePumpLongCheck(delayMs) {
+            if (pumpLongTimeout) clearTimeout(pumpLongTimeout);
+            pumpLongTimeout = setTimeout(() => {
+                pumpLongTimeout = null;
+                if (!pumpSessionInterval) return;
+                const stop = confirm('Pump has been running for 20 minutes. Stop the timer?');
+                if (stop) stopPumpSession();
+            }, delayMs);
+        }
 
         async function startPumpSession() {
             if (pumpSessionInterval) { stopPumpSession(); return; } // toggle off
@@ -2688,6 +2720,7 @@
                 const el = document.getElementById('pump-stopwatch');
                 if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
             }, 1000);
+            schedulePumpLongCheck(LONG_SESSION_MS);
             await log('pump', pumpSessionStart);
             const pendingEntry = entries.find(e => e.timestamp === pumpSessionStart && e.type === 'pump');
             if (pendingEntry) pendingEntry.pending = true;
@@ -2697,6 +2730,7 @@
         function stopPumpSession() {
             clearInterval(pumpSessionInterval);
             pumpSessionInterval = null;
+            if (pumpLongTimeout) { clearTimeout(pumpLongTimeout); pumpLongTimeout = null; }
             const savedStart = pumpSessionStart;
             pumpSessionStart = null;
             if (!savedStart) return;
@@ -2759,6 +2793,10 @@
                 const el = document.getElementById('pump-stopwatch');
                 if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
             }, 1000);
+            const elapsedMs = Date.now() - pumpSessionStart;
+            if (elapsedMs < LONG_SESSION_MS) {
+                schedulePumpLongCheck(LONG_SESSION_MS - elapsedMs);
+            }
         }
 
         // --- Vitamin D Reminder ---
