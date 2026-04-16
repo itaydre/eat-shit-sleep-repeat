@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts": {
+    "test": "node --test test/"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
     "web-haptics": "^0.0.6",

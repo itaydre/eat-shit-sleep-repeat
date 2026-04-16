@@ -1563,6 +1563,7 @@
         </div>
     </div>
 
+    <script src="lib/baby-log.js"></script>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         import { WebHaptics } from 'https://esm.sh/web-haptics@0.0.6';
@@ -1570,12 +1571,14 @@
         window.hapticSuccess = () => haptics.trigger('success');
         window.hapticError = () => haptics.trigger('error');
 
+        const BabyLog = window.BabyLog;
+
         // --- Supabase Auth ---
         let sb = null;
         let session = null;
         let profile = null;
 
-        const isDevMode = location.hostname.includes('-dev.') || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const isDevMode = BabyLog.isDevHost(location.hostname);
 
         function loadDummyData() {
             const now = Date.now();
@@ -1704,15 +1707,31 @@
             const baby_birth_time = document.getElementById('baby-birth-time').value;
             const baby_birth_weight = document.getElementById('baby-birth-weight').value;
             const baby_gender = document.getElementById('baby-gender').value;
-            const invite_code = document.getElementById('invite-code').value.trim();
+            const invite_token = document.getElementById('invite-code').value.trim();
             if (!baby_name) return;
             const birthdate = baby_birthdate && baby_birth_time
                 ? baby_birthdate + 'T' + baby_birth_time
                 : baby_birthdate || null;
+
+            // If the user pasted an invite token, redeem it first so the profile
+            // is attached to the inviter's household before we save the baby info.
+            if (invite_token) {
+                const joinRes = await apiFetch('/api/invite', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: invite_token }),
+                });
+                if (!joinRes.ok) {
+                    const err = await joinRes.json().catch(() => ({}));
+                    alert(err.error || 'Invalid or expired invite');
+                    return;
+                }
+            }
+
             const res = await apiFetch('/api/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ baby_name, baby_birthdate: birthdate, baby_birth_weight: baby_birth_weight ? Number(baby_birth_weight) : null, baby_gender: baby_gender || null, invite_code: invite_code || null }),
+                body: JSON.stringify({ baby_name, baby_birthdate: birthdate, baby_birth_weight: baby_birth_weight ? Number(baby_birth_weight) : null, baby_gender: baby_gender || null }),
             });
             profile = await res.json();
             startApp();
@@ -1766,24 +1785,9 @@
                 document.getElementById('app-title').textContent = profile.baby_name + "'s log";
             }
             if (profile && profile.baby_birthdate) {
-                const genderEmoji = profile.baby_gender === 'boy' ? '👦 ' : profile.baby_gender === 'girl' ? '👧 ' : '';
-                const birth = new Date(profile.baby_birthdate);
-                const totalHours = (Date.now() - birth.getTime()) / 3600000;
-                const days = Math.floor(totalHours / 24);
-                const remainingHours = Math.floor(totalHours % 24);
-                let ageText;
-                if (days < 7) {
-                    ageText = days + '.' + remainingHours + ' days old';
-                } else if (days < 30) {
-                    const weeks = Math.floor(days / 7);
-                    const remainingDays = days % 7;
-                    ageText = weeks + '.' + remainingDays + (weeks === 1 ? ' week' : ' weeks') + ' old';
-                } else {
-                    const months = Math.floor(days / 30);
-                    const remainingDaysInMonth = days % 30;
-                    ageText = months + '.' + remainingDaysInMonth + (months === 1 ? ' month' : ' months') + ' old';
-                }
-                document.getElementById('baby-age').textContent = genderEmoji + ageText;
+                const birth = new Date(profile.baby_birthdate).getTime();
+                const age = BabyLog.computeBabyAge(birth, Date.now());
+                document.getElementById('baby-age').textContent = BabyLog.formatBabyAge(age, profile.baby_gender);
             }
         }
 
@@ -1938,7 +1942,10 @@
                 if (timestamp > Date.now()) return;
             }
             closeAddModal();
-            await log(type, timestamp);
+            // Retro feed/pump entries are never in-progress — send duration=0 so the
+            // resume logic doesn't mistake them for an active session on next load.
+            const retroDuration = (type === 'feed_l' || type === 'feed_r' || type === 'pump') ? 0 : undefined;
+            await log(type, timestamp, retroDuration);
         }
 
         let dayOffset = 0; // 0 = today, -1 = yesterday, etc.
@@ -2087,13 +2094,22 @@
             closeProfileEdit();
         }
 
-        function openInvitePage() {
+        let currentInviteToken = null;
+        async function openInvitePage() {
             document.getElementById('settings-page').classList.remove('active');
             document.getElementById('invite-page').classList.add('active');
-            if (profile && profile.household_id) {
-                document.getElementById('invite-code-display').textContent = profile.household_id;
+            const display = document.getElementById('invite-code-display');
+            display.textContent = 'Generating…';
+            try {
+                const res = await apiFetch('/api/invite', { method: 'POST' });
+                if (!res.ok) throw new Error('failed');
+                const { token } = await res.json();
+                currentInviteToken = token;
+                display.textContent = token;
+            } catch (e) {
+                display.textContent = 'Could not generate invite';
+                currentInviteToken = null;
             }
-            // Show share button if Web Share API available
             if (navigator.share) {
                 document.getElementById('invite-share-btn').style.display = 'block';
             }
@@ -2105,24 +2121,22 @@
         }
 
         async function copyInviteCode() {
-            if (profile && profile.household_id) {
-                await navigator.clipboard.writeText(profile.household_id);
-                const btn = document.getElementById('invite-copy-btn');
-                btn.textContent = 'Copied!';
-                setTimeout(() => { btn.textContent = 'Copy code'; }, 2000);
-            }
+            if (!currentInviteToken) return;
+            await navigator.clipboard.writeText(currentInviteToken);
+            const btn = document.getElementById('invite-copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = 'Copy code'; }, 2000);
         }
 
         async function shareInviteCode() {
-            if (profile && profile.household_id && navigator.share) {
-                const name = profile.baby_name || 'our baby';
-                try {
-                    await navigator.share({
-                        title: 'Join ' + name + "'s log",
-                        text: 'Use this code to join ' + name + "'s tracking log: " + profile.household_id,
-                    });
-                } catch(e) { /* user cancelled */ }
-            }
+            if (!currentInviteToken || !navigator.share) return;
+            const name = (profile && profile.baby_name) || 'our baby';
+            try {
+                await navigator.share({
+                    title: 'Join ' + name + "'s log",
+                    text: 'Use this invite code to join ' + name + "'s tracking log (expires in 24h): " + currentInviteToken,
+                });
+            } catch(e) { /* user cancelled */ }
         }
 
         function confirmClearAll() {
@@ -2132,23 +2146,8 @@
         }
 
         // --- Data ---
-        const ACTIVITIES = {
-            pee:    { emoji: '\u{1F4A6}', label: 'Pee' },
-            poop:   { emoji: '\u{1F4A9}', label: 'Poop' },
-            feed:   { emoji: '\u{1F931}', label: 'Feed' },
-            feed_l: { emoji: '\u{1F931}', label: 'Feed L', flip: true },
-            feed_r: { emoji: '\u{1F931}', label: 'Feed R' },
-            pump:          { emoji: '\u{1F37C}', label: 'Pump' },
-            pump_fridge:   { emoji: '\u{1F37C}', label: 'Pump', badge: '🧊' },
-            pump_freezer:  { emoji: '\u{1F37C}', label: 'Pump', badge: '❄️' },
-        };
-
-        function emojiClass(type) {
-            if (type === 'pee') return 'emoji-pee';
-            if (type === 'poop') return 'emoji-poop';
-            if (type.startsWith('pump')) return 'emoji-pump';
-            return 'emoji-feed';
-        }
+        const ACTIVITIES = BabyLog.ACTIVITIES;
+        const emojiClass = BabyLog.emojiClass;
 
         let entries = [];
 
@@ -2160,12 +2159,17 @@
             try {
                 const res = await apiFetch('/api/logs');
                 const fetched = await res.json();
-                // Preserve pending flag for active feed session
+                // Preserve pending flag for active feed/pump session
                 if (feedSessionStart && feedSessionType) {
                     const pending = fetched.find(e => e.timestamp === feedSessionStart && e.type === feedSessionType);
                     if (pending) pending.pending = true;
                 }
-                entries = fetched;
+                if (pumpSessionStart) {
+                    const pending = fetched.find(e => e.timestamp === pumpSessionStart && e.type === 'pump');
+                    if (pending) pending.pending = true;
+                }
+                // Merge so in-flight optimistic entries (no id) aren't wiped by the poll.
+                entries = BabyLog.mergeEntries(entries, fetched);
             } catch (e) {
                 console.warn('Failed to fetch logs:', e);
             }
@@ -2206,11 +2210,12 @@
             const act = ACTIVITIES[type];
             if (act) emojiConfetti(act.emoji);
             const timestamp = customTimestamp || Date.now();
-            const body = { type, timestamp };
-            if (duration) body.duration = duration;
+            const client_id = BabyLog.randomClientId();
+            const body = { type, timestamp, client_id };
+            if (duration !== undefined) body.duration = duration;
 
             // Optimistic UI: show entry immediately
-            const optimistic = { type, timestamp, duration };
+            const optimistic = { type, timestamp, duration, client_id };
             entries.unshift(optimistic);
             render();
 
@@ -2281,16 +2286,7 @@
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function formatDayLabel(ts) {
-            const d = new Date(ts);
-            const today = new Date();
-            const yesterday = new Date();
-            yesterday.setDate(today.getDate() - 1);
-
-            if (d.toDateString() === today.toDateString()) return 'Today';
-            if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-            return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
-        }
+        const formatDayLabel = (ts) => BabyLog.formatDayLabel(ts, Date.now());
 
         function render() {
             const entries = getEntries();
@@ -2661,15 +2657,15 @@
 
         function resumeFeedSession() {
             if (feedSessionInterval) return; // already active
+            const lastStopped = localStorage.getItem('lastStoppedFeed');
+            const now = Date.now();
             const lastFeed = entries.find(e =>
-                (e.type === 'feed_l' || e.type === 'feed_r') && !e.duration
+                (e.type === 'feed_l' || e.type === 'feed_r') &&
+                e.duration == null &&
+                (now - e.timestamp) <= 2 * 60 * 60 * 1000 &&
+                !(lastStopped && String(e.timestamp) === lastStopped)
             );
             if (!lastFeed) return;
-            // Only resume if within last 2 hours
-            if (Date.now() - lastFeed.timestamp > 2 * 60 * 60 * 1000) return;
-            // Don't resume a session that was explicitly stopped (server may not have saved duration yet)
-            const lastStopped = localStorage.getItem('lastStoppedFeed');
-            if (lastStopped && String(lastFeed.timestamp) === lastStopped) return;
             feedSessionType = lastFeed.type;
             feedSessionStart = lastFeed.timestamp;
             lastFeed.pending = true;
@@ -2777,12 +2773,15 @@
 
         function resumePumpSession() {
             if (pumpSessionInterval) return;
-            const lastPump = entries.find(e => e.type === 'pump' && !e.duration);
-            if (!lastPump) return;
-            if (Date.now() - lastPump.timestamp > 2 * 60 * 60 * 1000) return;
-            // Don't resume a session that was explicitly stopped
             const lastStopped = localStorage.getItem('lastStoppedPump');
-            if (lastStopped && String(lastPump.timestamp) === lastStopped) return;
+            const now = Date.now();
+            const lastPump = entries.find(e =>
+                e.type === 'pump' &&
+                e.duration == null &&
+                (now - e.timestamp) <= 2 * 60 * 60 * 1000 &&
+                !(lastStopped && String(e.timestamp) === lastStopped)
+            );
+            if (!lastPump) return;
             pumpSessionStart = lastPump.timestamp;
             lastPump.pending = true;
             render();
@@ -2872,16 +2871,14 @@
 
         // --- Feed Interval Setting ---
         function getFeedIntervalHours() {
-            return parseFloat(localStorage.getItem('feedIntervalHours') || '2.5');
+            return BabyLog.clampFeedInterval(parseFloat(localStorage.getItem('feedIntervalHours') || '2.5'));
         }
 
         let pendingFeedInterval = null;
 
         function previewFeedInterval(delta) {
             if (pendingFeedInterval === null) pendingFeedInterval = getFeedIntervalHours();
-            pendingFeedInterval += delta;
-            if (pendingFeedInterval < 0.5) pendingFeedInterval = 0.5;
-            if (pendingFeedInterval > 6) pendingFeedInterval = 6;
+            pendingFeedInterval = BabyLog.clampFeedInterval(pendingFeedInterval + delta);
             document.getElementById('feed-interval-display').textContent = pendingFeedInterval + 'h';
             document.getElementById('feed-interval-actions').style.display = 'flex';
         }
@@ -2967,21 +2964,7 @@
         }
 
         function getLastFeedTime() {
-            const entries = getEntries();
-            const SESSION_GAP = 30 * 60 * 1000; // 30 min — feeds closer than this are one session
-            const isFeed = e => e.type === 'feed' || e.type === 'feed_l' || e.type === 'feed_r';
-            const feeds = entries.filter(isFeed); // sorted newest first
-            if (feeds.length === 0) return null;
-            // Walk backwards from the most recent feed to find the session start
-            let sessionStart = feeds[0].timestamp;
-            for (let i = 1; i < feeds.length; i++) {
-                if (sessionStart - feeds[i].timestamp <= SESSION_GAP) {
-                    sessionStart = feeds[i].timestamp;
-                } else {
-                    break;
-                }
-            }
-            return sessionStart;
+            return BabyLog.findSessionStart(getEntries(), Date.now());
         }
 
         async function skipNextReminder() {
