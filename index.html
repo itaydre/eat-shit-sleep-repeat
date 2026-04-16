@@ -1618,7 +1618,7 @@
                             </div>
                             <span class="btn-count" id="count-feed_l">—</span>
                             <span class="btn-timer" id="timer-feed_l">0:00</span>
-                            <button class="btn-stop" onclick="event.stopPropagation(); stopFeedSession()" aria-label="Stop"></button>
+                            <span class="btn-stop" role="button" tabindex="0" onclick="event.stopPropagation(); stopFeedSession()" aria-label="Stop"></span>
                             <span class="emoji" style="display:inline-block;transform:scaleX(-1)">🤱</span>
                         </button>
                         <button id="tile-feed_r" class="btn btn-feed" onclick="startFeedSession('feed_r')">
@@ -1628,7 +1628,7 @@
                             </div>
                             <span class="btn-count" id="count-feed_r">—</span>
                             <span class="btn-timer" id="timer-feed_r">0:00</span>
-                            <button class="btn-stop" onclick="event.stopPropagation(); stopFeedSession()" aria-label="Stop"></button>
+                            <span class="btn-stop" role="button" tabindex="0" onclick="event.stopPropagation(); stopFeedSession()" aria-label="Stop"></span>
                             <span class="emoji">🤱</span>
                         </button>
                         <button id="tile-pump" class="btn btn-pump" onclick="startPumpSession()">
@@ -1638,7 +1638,7 @@
                             </div>
                             <span class="btn-count" id="count-pump">—</span>
                             <span class="btn-timer" id="timer-pump">0:00</span>
-                            <button class="btn-stop" onclick="event.stopPropagation(); stopPumpSession()" aria-label="Stop"></button>
+                            <span class="btn-stop" role="button" tabindex="0" onclick="event.stopPropagation(); stopPumpSession()" aria-label="Stop"></span>
                             <span class="emoji">🍼</span>
                         </button>
                         <button class="btn btn-custom" onclick="openAddModal()" aria-label="Add custom entry">
