@@ -374,6 +374,15 @@
             color: #6B4FA0;
         }
 
+        .btn-custom {
+            background: #fff;
+            border: 1px dashed #b5b5b5;
+            color: #8a8a8a;
+        }
+        .btn-custom .emoji {
+            opacity: 0.5;
+        }
+
         .recent-header {
             display: flex;
             justify-content: space-between;
@@ -1256,7 +1265,14 @@
         <div class="app-header">
         <div class="top-bar">
             <button class="back-btn" id="back-btn" onclick="handleBack()">&#8592;</button>
-            <div class="top-bar-left"></div>
+            <div class="top-bar-left">
+                <button class="top-link" onclick="switchTab('history')" title="History">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </button>
+                <button class="top-link" onclick="switchTab('stats')" title="Stats">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </button>
+            </div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.7rem; color:#b5b5b5; margin-top:1px;"></div>
@@ -1451,6 +1467,13 @@
                             </div>
                             <span class="emoji">🍼</span>
                         </button>
+                        <button class="btn btn-custom" onclick="openAddModal()">
+                            <div class="btn-top">
+                                <span class="btn-label">Custom</span>
+                                <span class="btn-last">add entry</span>
+                            </div>
+                            <span class="emoji">＋</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1578,7 +1601,10 @@
         let session = null;
         let profile = null;
 
-        const isDevMode = BabyLog.isDevHost(location.hostname);
+        // "Demo mode" (dummy data, no API calls) is ONLY for local filesystem /
+        // localhost testing. The remote *-dev.vercel.app deploy behaves exactly
+        // like prod so we can dogfood the real stack.
+        const isDevMode = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
         function loadDummyData() {
             const now = Date.now();
@@ -3074,6 +3100,51 @@
             });
         })();
 
+        // Horizontal swipe on the today/history day-view navigates between days.
+        // Runs at document-level but only triggers if:
+        //  - the touch did NOT start on a draggable entry (delete-swipe wins)
+        //  - the gesture is dominantly horizontal
+        //  - the user is looking at the Today tab (where navigateDay has meaning)
+        (function initDaySwipe() {
+            let start = null;
+            const MIN_DISTANCE = 60;   // px
+            const DIRECTIONAL_RATIO = 1.6; // |dx| must be this many times |dy|
+
+            document.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) { start = null; return; }
+                // If touch starts on an entry, the entry swipe handler owns it.
+                if (e.target.closest('.entry')) { start = null; return; }
+                // Only when we're on the Today tab.
+                const todayTab = document.querySelector('.nav-tab.active');
+                if (!todayTab || todayTab.querySelector('.nav-label')?.textContent.trim() !== 'Today') { start = null; return; }
+                start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }, { passive: true });
+
+            document.addEventListener('touchmove', e => {
+                if (!start || e.touches.length !== 1) return;
+                // Drop tracking if the gesture goes clearly vertical (lets
+                // pull-to-refresh / normal scrolling take over).
+                const dx = e.touches[0].clientX - start.x;
+                const dy = e.touches[0].clientY - start.y;
+                if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 20) start = null;
+            }, { passive: true });
+
+            document.addEventListener('touchend', e => {
+                if (!start) return;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - start.x;
+                const dy = t.clientY - start.y;
+                start = null;
+                if (Math.abs(dx) < MIN_DISTANCE) return;
+                if (Math.abs(dx) < Math.abs(dy) * DIRECTIONAL_RATIO) return;
+                // Swipe RIGHT (finger moves right) → go back in time (older).
+                // Swipe LEFT  (finger moves left)  → forward in time (toward today).
+                if (typeof window.navigateDay === 'function') {
+                    window.navigateDay(dx > 0 ? -1 : 1);
+                }
+            });
+        })();
+
         // One-time migration from localStorage to Supabase
         async function migrateLocalStorage() {
             if (localStorage.getItem('baby_log_migrated')) return;
@@ -3196,11 +3267,6 @@
         document.head.appendChild(ptrStyle);
     })();
 
-    if (location.hostname.includes('-dev') && location.search.includes('helper')) {
-        var s = document.createElement('script');
-        s.src = 'lib/dev-helper.js';
-        document.body.appendChild(s);
-    }
     </script>
 </body>
 </html>
