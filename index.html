@@ -1745,10 +1745,10 @@
         let session = null;
         let profile = null;
 
-        // "Demo mode" (dummy data, no API calls) is ONLY for local filesystem /
-        // localhost testing. The remote *-dev.vercel.app deploy behaves exactly
-        // like prod so we can dogfood the real stack.
-        const isDevMode = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        // Demo mode = any dev host (localhost, label-bounded *-dev.vercel.app).
+        // Demo mode skips Supabase auth and uses in-memory dummy data so the dev
+        // deploy is fully isolated from the prod Supabase household.
+        const isDevMode = BabyLog.isDevHost(location.hostname);
 
         function loadDummyData() {
             const now = Date.now();
