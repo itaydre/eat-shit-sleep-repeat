@@ -378,8 +378,11 @@
             background: #fff;
             border: 1px dashed #b5b5b5;
             color: #8a8a8a;
+            justify-content: center;
+            align-items: center;
         }
         .btn-custom .emoji {
+            font-size: 3rem;
             opacity: 0.5;
         }
 
@@ -1265,14 +1268,7 @@
         <div class="app-header">
         <div class="top-bar">
             <button class="back-btn" id="back-btn" onclick="handleBack()">&#8592;</button>
-            <div class="top-bar-left">
-                <button class="top-link" onclick="switchTab('history')" title="History">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </button>
-                <button class="top-link" onclick="switchTab('stats')" title="Stats">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                </button>
-            </div>
+            <div class="top-bar-left"></div>
             <div class="top-bar-center" onclick="switchTab('today')" style="cursor:pointer; pointer-events:auto;">
                 <h1 id="app-title">Eat shit sleep repeat</h1>
                 <div id="baby-age" style="font-size:0.7rem; color:#b5b5b5; margin-top:1px;"></div>
@@ -1467,30 +1463,12 @@
                             </div>
                             <span class="emoji">🍼</span>
                         </button>
-                        <button class="btn btn-custom" onclick="openAddModal()">
-                            <div class="btn-top">
-                                <span class="btn-label">Custom</span>
-                                <span class="btn-last">add entry</span>
-                            </div>
+                        <button class="btn btn-custom" onclick="openAddModal()" aria-label="Add custom entry">
                             <span class="emoji">＋</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="recent-header">
-                    <span>Recent</span>
-                    <button onclick="openAddModal()" style="background:none; border:none; font-size:0.75rem; font-weight:500; color:#b5b5b5; cursor:pointer; font-family:inherit;">+ Add past entry</button>
-                </div>
-
-                <div class="history">
-                    <div style="position:relative; margin-bottom:4px; display:none;">
-                            <h2 id="day-label" style="margin:0; text-align:center;">Today</h2>
-                            <button id="day-prev" onclick="navigateDay(-1)" style="position:absolute; left:0; top:50%; transform:translateY(-50%); background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px;">&#8249;</button>
-                            <button id="day-next" onclick="navigateDay(1)" style="position:absolute; right:0; top:50%; transform:translateY(-50%); background:none; border:none; font-size:1.4rem; cursor:pointer; color:#999; padding:4px 10px; visibility:hidden;">&#8250;</button>
-                    </div>
-                    <div id="today-summary" class="day-summary" style="display:none;"></div>
-                    <div id="today-entries"></div>
-                </div>
             </div>
 
             <!-- HISTORY TAB -->
@@ -2013,6 +1991,8 @@
                 document.getElementById('profile-edit-page').classList.remove('active');
                 document.getElementById('main-content').style.display = '';
                 document.getElementById('action-tiles').style.display = tab === 'today' ? '' : 'none';
+                const bn = document.getElementById('bottom-nav');
+                if (bn) bn.style.display = '';
                 updateHeaderForSettings(false);
             }
             ['today', 'history', 'stats'].forEach(t => {
@@ -2051,6 +2031,8 @@
             document.getElementById('invite-page').classList.remove('active');
             document.getElementById('main-content').style.display = settingsOpen ? 'none' : '';
             document.getElementById('action-tiles').style.display = settingsOpen ? 'none' : '';
+            const bottomNav = document.getElementById('bottom-nav');
+            if (bottomNav) bottomNav.style.display = settingsOpen ? 'none' : '';
             updateHeaderForSettings(settingsOpen);
             if (settingsOpen) {
                 document.getElementById('vitd-toggle').checked = getVitdEnabled();
