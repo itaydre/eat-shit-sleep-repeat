@@ -83,11 +83,13 @@ test('computeBabyAge month math is not /30-based', () => {
 });
 
 test('formatBabyAge includes gender emoji and singular/plural', () => {
-    assert.match(BL.formatBabyAge({ unit: 'days', value: 3, fraction: 4 }, 'girl'), /^👧 3\.4 days old$/);
-    assert.match(BL.formatBabyAge({ unit: 'weeks', value: 1, fraction: 0 }, 'boy'), /^👦 1\.0 week old$/);
-    assert.match(BL.formatBabyAge({ unit: 'weeks', value: 2, fraction: 0 }, null), /^2\.0 weeks old$/);
-    assert.match(BL.formatBabyAge({ unit: 'months', value: 1, fraction: 5 }, undefined), /^1\.5 month old$/);
-    assert.match(BL.formatBabyAge({ unit: 'months', value: 3, fraction: 0 }, 'boy'), /^👦 3\.0 months old$/);
+    assert.equal(BL.formatBabyAge({ unit: 'days', value: 3, fraction: 4 }, 'girl'), '👧 3 days old');
+    assert.equal(BL.formatBabyAge({ unit: 'days', value: 1, fraction: 0 }, null), '1 day old');
+    assert.equal(BL.formatBabyAge({ unit: 'weeks', value: 1, fraction: 0 }, 'boy'), '👦 1 week old');
+    assert.equal(BL.formatBabyAge({ unit: 'weeks', value: 2, fraction: 3 }, null), '2 weeks 3 days old');
+    assert.equal(BL.formatBabyAge({ unit: 'weeks', value: 2, fraction: 1 }, null), '2 weeks 1 day old');
+    assert.equal(BL.formatBabyAge({ unit: 'months', value: 1, fraction: 5 }, undefined), '1 month 5 days old');
+    assert.equal(BL.formatBabyAge({ unit: 'months', value: 3, fraction: 0 }, 'boy'), '👦 3 months old');
 });
 
 test('formatDayLabel returns Today/Yesterday with injected now', () => {
