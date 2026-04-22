@@ -1398,29 +1398,107 @@
         .activity-btn.active {
             border-color: #1a1a1a;
         }
-        .time-chips {
+        .time-dial-wrap {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 14px;
         }
-        .time-chip {
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            background: #f9f9f9;
-            font-size: 0.78rem;
-            cursor: pointer;
-            color: #666;
+        .time-dial-header {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: baseline;
         }
-        .time-chip.active {
+        .time-dial-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #b5b5b5;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .time-dial-hint {
+            font-size: 0.75rem;
+            color: #8a8a8a;
+        }
+        .time-dial {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .time-dial svg {
+            display: block;
+        }
+        #time-dial-arc {
+            transition: stroke-dashoffset 0.08s linear;
+        }
+        .time-dial.dragging #time-dial-arc {
+            transition: none;
+        }
+        .time-dial-thumb {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
             background: #1a1a1a;
-            color: white;
-            border-color: #1a1a1a;
+            border: 5px solid #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            left: calc(50% - 14px);
+            top: calc(5px - 14px);
+            transition: left 0.08s linear, top 0.08s linear;
         }
-        .time-chip-other {
-            background: none;
-            color: #999;
+        .time-dial.dragging .time-dial-thumb {
+            transition: none;
+        }
+        .time-dial-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            pointer-events: none;
+        }
+        .time-dial-value {
+            font-family: inherit;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .time-dial-sub {
+            font-size: 0.78rem;
+            color: #8a8a8a;
+        }
+        .time-dial-range {
+            display: flex;
+            gap: 4px;
+            background: #fafaf8;
+            border-radius: 999px;
+            padding: 3px;
+        }
+        .time-dial-range-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #8a8a8a;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .time-dial-range-btn.active {
+            background: #1a1a1a;
+            color: #ffffff;
+            font-weight: 700;
         }
 
     </style>
@@ -1758,15 +1836,28 @@
                     <span class="emoji">🍼</span><span>Pump</span>
                 </button>
             </div>
-            <div class="time-chips">
-                <button type="button" class="time-chip active" onclick="setTimePreset(5,this)">5m ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(15,this)">15m ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(30,this)">30m ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(60,this)">1h ago</button>
-                <button type="button" class="time-chip" onclick="setTimePreset(120,this)">2h ago</button>
-                <button type="button" class="time-chip time-chip-other" onclick="toggleCustomTime(this)">Other</button>
+            <div class="time-dial-wrap">
+                <div class="time-dial-header">
+                    <span class="time-dial-label">When</span>
+                    <span class="time-dial-hint">Drag around the dial</span>
+                </div>
+                <div class="time-dial" id="time-dial" role="slider" aria-label="Minutes ago">
+                    <svg viewBox="0 0 220 220" width="220" height="220" aria-hidden="true">
+                        <circle cx="110" cy="110" r="100" stroke="#f0f0ee" stroke-width="10" fill="none"></circle>
+                        <circle id="time-dial-arc" cx="110" cy="110" r="100" stroke="#1a1a1a" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="628.318" stroke-dashoffset="628.318" transform="rotate(-90 110 110)"></circle>
+                    </svg>
+                    <div class="time-dial-thumb" id="time-dial-thumb"></div>
+                    <div class="time-dial-center">
+                        <div class="time-dial-value" id="time-dial-value">now</div>
+                        <div class="time-dial-sub" id="time-dial-sub">just now</div>
+                    </div>
+                </div>
+                <div class="time-dial-range" id="time-dial-range" role="tablist">
+                    <button type="button" class="time-dial-range-btn active" data-range="60" onclick="setDialRange(60,this)">1 h</button>
+                    <button type="button" class="time-dial-range-btn" data-range="360" onclick="setDialRange(360,this)">6 h</button>
+                    <button type="button" class="time-dial-range-btn" data-range="1440" onclick="setDialRange(1440,this)">24 h</button>
+                </div>
             </div>
-            <input type="datetime-local" id="add-datetime" style="display:none">
             <div class="modal-buttons">
                 <button class="cancel" onclick="closeAddModal()">Cancel</button>
                 <button class="save" onclick="saveRetroEntry()">Save</button>
@@ -2107,14 +2198,13 @@
         }
 
         // --- Add Entry Modal ---
-        function toLocalISOString(date) {
-            const offset = date.getTimezoneOffset();
-            const local = new Date(date.getTime() - offset * 60000);
-            return local.toISOString().slice(0, 16);
-        }
-
-        let selectedPresetMinutes = 5;
         let selectedActivity = 'pee';
+        let dialRangeMinutes = 60;
+        let dialMinutesAgo = 0;
+        const DIAL_RADIUS = 100;
+        const DIAL_CENTER = 110;
+        const DIAL_CIRC = 2 * Math.PI * DIAL_RADIUS; // 628.318...
+        const DIAL_STEP_MIN = 5;
 
         function setActivity(type) {
             selectedActivity = type;
@@ -2122,16 +2212,106 @@
             document.querySelector(`.activity-btn[data-type="${type}"]`).classList.add('active');
         }
 
+        function formatDialValue(minutesAgo) {
+            if (minutesAgo <= 0) return 'now';
+            if (minutesAgo < 60) return minutesAgo + 'm';
+            const h = Math.floor(minutesAgo / 60);
+            const m = minutesAgo % 60;
+            return m === 0 ? h + 'h' : h + 'h ' + m + 'm';
+        }
+
+        function formatDialSub(minutesAgo) {
+            const d = new Date(Date.now() - minutesAgo * 60000);
+            const t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            if (minutesAgo <= 0) return 'just now · ' + t;
+            return 'ago · ' + t;
+        }
+
+        function paintDial() {
+            const arc = document.getElementById('time-dial-arc');
+            const thumb = document.getElementById('time-dial-thumb');
+            const value = document.getElementById('time-dial-value');
+            const sub = document.getElementById('time-dial-sub');
+            if (!arc || !thumb || !value || !sub) return;
+            const frac = dialRangeMinutes > 0 ? Math.min(1, dialMinutesAgo / dialRangeMinutes) : 0;
+            arc.style.strokeDashoffset = String(DIAL_CIRC * (1 - frac));
+            const angleRad = frac * 2 * Math.PI;
+            const x = DIAL_CENTER + DIAL_RADIUS * Math.sin(angleRad);
+            const y = DIAL_CENTER - DIAL_RADIUS * Math.cos(angleRad);
+            // Dial is 220px wide rendered at 220px, so 1:1 unit mapping.
+            thumb.style.left = (x - 14) + 'px';
+            thumb.style.top = (y - 14) + 'px';
+            value.textContent = formatDialValue(dialMinutesAgo);
+            sub.textContent = formatDialSub(dialMinutesAgo);
+        }
+
+        function setDialMinutes(m) {
+            // Snap to DIAL_STEP_MIN and clamp to [0, range].
+            m = Math.round(m / DIAL_STEP_MIN) * DIAL_STEP_MIN;
+            if (m < 0) m = 0;
+            if (m > dialRangeMinutes) m = dialRangeMinutes;
+            dialMinutesAgo = m;
+            paintDial();
+        }
+
+        function setDialRange(minutes, el) {
+            dialRangeMinutes = minutes;
+            document.querySelectorAll('.time-dial-range-btn').forEach(b => b.classList.remove('active'));
+            if (el) el.classList.add('active');
+            // Keep the current minutes but clamp into the new range.
+            setDialMinutes(Math.min(dialMinutesAgo, dialRangeMinutes));
+        }
+
+        function initDialHandlers() {
+            const dial = document.getElementById('time-dial');
+            if (!dial || dial.dataset.handlersBound === '1') return;
+            dial.dataset.handlersBound = '1';
+            let activePointer = null;
+
+            function angleAt(clientX, clientY) {
+                const rect = dial.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                let a = Math.atan2(clientX - cx, -(clientY - cy)); // 0 at 12 o'clock, clockwise+
+                if (a < 0) a += 2 * Math.PI;
+                return a;
+            }
+
+            function onMove(e) {
+                if (activePointer == null || e.pointerId !== activePointer) return;
+                e.preventDefault();
+                const a = angleAt(e.clientX, e.clientY);
+                const minutes = (a / (2 * Math.PI)) * dialRangeMinutes;
+                setDialMinutes(minutes);
+            }
+            function onEnd(e) {
+                if (activePointer == null || (e.pointerId != null && e.pointerId !== activePointer)) return;
+                activePointer = null;
+                dial.classList.remove('dragging');
+                dial.releasePointerCapture && dial.releasePointerCapture(e.pointerId);
+            }
+            dial.addEventListener('pointerdown', e => {
+                activePointer = e.pointerId;
+                dial.classList.add('dragging');
+                try { dial.setPointerCapture(e.pointerId); } catch(_) {}
+                onMove(e);
+            });
+            dial.addEventListener('pointermove', onMove);
+            dial.addEventListener('pointerup', onEnd);
+            dial.addEventListener('pointercancel', onEnd);
+        }
+
         function openAddModal() {
-            selectedPresetMinutes = 5;
             selectedActivity = 'pee';
-            document.getElementById('add-datetime').style.display = 'none';
-            document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
-            document.querySelector('.time-chip').classList.add('active');
+            dialRangeMinutes = 60;
+            dialMinutesAgo = 0;
             document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('.activity-btn').classList.add('active');
-            const dtInput = document.getElementById('add-datetime');
-            dtInput.max = toLocalISOString(new Date());
+            document.querySelectorAll('.time-dial-range-btn').forEach(b => b.classList.remove('active'));
+            const firstRangeBtn = document.querySelector('.time-dial-range-btn');
+            if (firstRangeBtn) firstRangeBtn.classList.add('active');
+            paintDial();
+            initDialHandlers();
             document.getElementById('add-modal').classList.add('open');
             document.getElementById('action-tiles').style.display = 'none';
         }
@@ -2141,33 +2321,9 @@
             document.getElementById('action-tiles').style.display = '';
         }
 
-        function setTimePreset(minutes, el) {
-            selectedPresetMinutes = minutes;
-            document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
-            if (el) el.classList.add('active');
-            document.getElementById('add-datetime').style.display = 'none';
-        }
-
-        function toggleCustomTime(el) {
-            selectedPresetMinutes = null;
-            document.querySelectorAll('.time-chip').forEach(b => b.classList.remove('active'));
-            if (el) el.classList.add('active');
-            const dtInput = document.getElementById('add-datetime');
-            dtInput.value = toLocalISOString(new Date());
-            dtInput.style.display = 'block';
-        }
-
         async function saveRetroEntry() {
             const type = selectedActivity;
-            let timestamp;
-            if (selectedPresetMinutes !== null) {
-                timestamp = Date.now() - selectedPresetMinutes * 60000;
-            } else {
-                const datetime = document.getElementById('add-datetime').value;
-                if (!datetime) return;
-                timestamp = new Date(datetime).getTime();
-                if (timestamp > Date.now()) return;
-            }
+            const timestamp = Date.now() - dialMinutesAgo * 60000;
             closeAddModal();
             // Retro feed/pump entries are never in-progress — send duration=0 so the
             // resume logic doesn't mistake them for an active session on next load.
@@ -3588,7 +3744,7 @@
         }
 
         Object.assign(window, {
-            log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
+            log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setDialRange, switchTab,
             handleBack, openSettings, confirmClearAll, copyInviteCode, shareInviteCode, openInvitePage, closeInvitePage, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
