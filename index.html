@@ -2648,14 +2648,15 @@
                 const isPumpH = entry.type.startsWith('pump');
                 const durMinsH = entry.duration ? Math.floor(entry.duration / 60) : 0;
                 let histTrailing = '';
-                if ((isFeedH || isPumpH) && durMinsH > 0) {
+                if (isFeedH || isPumpH) {
                     const storageBadgeH = act.badge ? `<span class="dur-value">${act.badge}</span>` : '';
-                    histTrailing = `<div class="duration-badge">${storageBadgeH}<span class="dur-value">${durMinsH}m</span></div>`;
+                    const durBadgeH = durMinsH > 0 ? `<span class="dur-value dur-mins">${durMinsH}m</span>` : '';
+                    histTrailing = `<div class="duration-badge">${storageBadgeH}${durBadgeH}<button class="edit-duration-btn" onclick="editDuration(${i})">&#9998;</button></div>`;
                 }
                 html += `
                     <div class="entry-wrapper">
                         <div class="entry-delete-bg">Delete</div>
-                        <div class="entry" data-index="${i}">
+                        <div class="entry" data-index="${i}" id="entry-${i}">
                             <span class="emoji ${emojiClass(entry.type)}"${flipStyle}>${act.emoji}</span>
                             <div class="details">
                                 <div class="activity">${act.label}</div>
