@@ -1476,30 +1476,6 @@
             font-size: 0.78rem;
             color: #8a8a8a;
         }
-        .time-dial-range {
-            display: flex;
-            gap: 4px;
-            background: #fafaf8;
-            border-radius: 999px;
-            padding: 3px;
-        }
-        .time-dial-range-btn {
-            border: none;
-            background: transparent;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-family: inherit;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: #8a8a8a;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .time-dial-range-btn.active {
-            background: #1a1a1a;
-            color: #ffffff;
-            font-weight: 700;
-        }
 
     </style>
 </head>
@@ -1852,11 +1828,6 @@
                         <div class="time-dial-sub" id="time-dial-sub">just now</div>
                     </div>
                 </div>
-                <div class="time-dial-range" id="time-dial-range" role="tablist">
-                    <button type="button" class="time-dial-range-btn active" data-range="60" onclick="setDialRange(60,this)">1 h</button>
-                    <button type="button" class="time-dial-range-btn" data-range="360" onclick="setDialRange(360,this)">6 h</button>
-                    <button type="button" class="time-dial-range-btn" data-range="1440" onclick="setDialRange(1440,this)">24 h</button>
-                </div>
             </div>
             <div class="modal-buttons">
                 <button class="cancel" onclick="closeAddModal()">Cancel</button>
@@ -2199,7 +2170,7 @@
 
         // --- Add Entry Modal ---
         let selectedActivity = 'pee';
-        let dialRangeMinutes = 60;
+        const dialRangeMinutes = 360; // full revolution = 6 hours
         let dialMinutesAgo = 0;
         const DIAL_RADIUS = 100;
         const DIAL_CENTER = 110;
@@ -2254,14 +2225,6 @@
             paintDial();
         }
 
-        function setDialRange(minutes, el) {
-            dialRangeMinutes = minutes;
-            document.querySelectorAll('.time-dial-range-btn').forEach(b => b.classList.remove('active'));
-            if (el) el.classList.add('active');
-            // Keep the current minutes but clamp into the new range.
-            setDialMinutes(Math.min(dialMinutesAgo, dialRangeMinutes));
-        }
-
         function initDialHandlers() {
             const dial = document.getElementById('time-dial');
             if (!dial || dial.dataset.handlersBound === '1') return;
@@ -2303,13 +2266,9 @@
 
         function openAddModal() {
             selectedActivity = 'pee';
-            dialRangeMinutes = 60;
             dialMinutesAgo = 0;
             document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('.activity-btn').classList.add('active');
-            document.querySelectorAll('.time-dial-range-btn').forEach(b => b.classList.remove('active'));
-            const firstRangeBtn = document.querySelector('.time-dial-range-btn');
-            if (firstRangeBtn) firstRangeBtn.classList.add('active');
             paintDial();
             initDialHandlers();
             document.getElementById('add-modal').classList.add('open');
@@ -3744,7 +3703,7 @@
         }
 
         Object.assign(window, {
-            log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setDialRange, switchTab,
+            log, openAddModal, closeAddModal, saveRetroEntry, setActivity, switchTab,
             handleBack, openSettings, confirmClearAll, copyInviteCode, shareInviteCode, openInvitePage, closeInvitePage, deleteEntry, downloadBackup, clearAll,
             requestNotifPermission, skipNextReminder, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
