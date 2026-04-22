@@ -582,9 +582,13 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            bottom: 0; left: 0; right: 0;
-            z-index: 60;
+            top: 0; bottom: 0; left: 0; right: 0;
+            z-index: 100;
             flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            background: rgba(26, 26, 26, 0.35);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .modal-overlay.open {
@@ -595,6 +599,7 @@
             background: white;
             padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
             width: 100%;
+            max-width: 500px;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
             border-radius: 16px 16px 0 0;
         }
@@ -1517,6 +1522,14 @@
                     </div>
                 </div>
                 <div class="settings-item" style="cursor:default; margin-bottom:0; border-radius:0; border-top:1px solid #f0f0ee;">
+                    <span class="settings-icon" style="background:#FFE4CC;">⏱️</span>
+                    <span>Show feeding timer</span>
+                    <label class="toggle-switch" style="margin-left:auto;">
+                        <input type="checkbox" id="feed-timer-toggle" onchange="toggleFeedTimerVisible(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item" style="cursor:default; margin-bottom:0; border-radius:0; border-top:1px solid #f0f0ee;">
                     <span class="settings-icon" style="background:#FFF8E1;">☀️</span>
                     <span>Vitamin D reminder</span>
                     <label class="toggle-switch" style="margin-left:auto;">
@@ -1633,9 +1646,6 @@
                         </div>
                         <button class="skip-btn" onclick="skipNextReminder()" title="Skip next reminder">&#10005;</button>
                     </div>
-                    <div id="restore-timer" style="display:none; text-align:center; padding-top:8px;">
-                        <button onclick="restoreTimer()" style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 14px; font-size:0.8rem; color:#999; cursor:pointer; font-family:inherit;">Show feed timer</button>
-                    </div>
                 </div>
 
                 <div id="day-header" class="day-header">
@@ -1728,7 +1738,7 @@
 
     </div>
 
-    <div class="modal-overlay" id="add-modal">
+    <div class="modal-overlay" id="add-modal" onclick="if(event.target === this) closeAddModal()">
         <div class="modal">
             <h3>Add past entry</h3>
             <div class="activity-picker" id="activity-picker">
@@ -2423,6 +2433,7 @@
             updateHeaderForSettings(settingsOpen);
             if (settingsOpen) {
                 document.getElementById('vitd-toggle').checked = getVitdEnabled();
+                document.getElementById('feed-timer-toggle').checked = getFeedTimerVisible();
             } else {
                 updateFeedTimer();
                 updateVitdBanner();
@@ -3283,6 +3294,15 @@
             showToast(on ? 'Vitamin D reminder on' : 'Vitamin D reminder off');
         }
 
+        function getFeedTimerVisible() {
+            return localStorage.getItem('showFeedTimer') !== 'off';
+        }
+        function toggleFeedTimerVisible(on) {
+            localStorage.setItem('showFeedTimer', on ? 'on' : 'off');
+            updateFeedTimer();
+            showToast(on ? 'Feeding timer shown' : 'Feeding timer hidden');
+        }
+
         function showToast(msg) {
             const el = document.getElementById('toast');
             el.textContent = msg;
@@ -3391,9 +3411,7 @@
 
         async function skipNextReminder() {
             localStorage.setItem('skipReminderUntil', getLastFeedTime());
-            document.getElementById('feed-timer').style.display = 'none';
-            document.getElementById('restore-timer').style.display = 'block';
-            document.getElementById('feed-timer-wrapper').style.display = '';
+            updateFeedTimer();
             const endpoint = localStorage.getItem('pushEndpoint');
             if (endpoint) {
                 await apiFetch('/api/skip-reminder', {
@@ -3404,32 +3422,24 @@
             }
         }
 
-        function restoreTimer() {
-            localStorage.removeItem('skipReminderUntil');
-            document.getElementById('restore-timer').style.display = 'none';
-            updateFeedTimer();
-        }
-
         function updateFeedTimer() {
             const wrapperEl = document.getElementById('feed-timer-wrapper');
             const timerEl = document.getElementById('feed-timer');
             const countdownEl = document.getElementById('countdown');
             const lastFeed = getLastFeedTime();
 
-            const skippedFor = localStorage.getItem('skipReminderUntil');
-            if (!lastFeed || (skippedFor && Number(skippedFor) === lastFeed)) {
-                timerEl.style.display = 'none';
-                if (lastFeed && skippedFor) {
-                    document.getElementById('restore-timer').style.display = 'block';
-                    wrapperEl.style.display = '';
-                    wrapperEl.dataset.enabled = '1';
-                } else {
-                    wrapperEl.style.display = 'none';
-                    wrapperEl.dataset.enabled = '';
-                }
+            if (!getFeedTimerVisible()) {
+                wrapperEl.style.display = 'none';
+                wrapperEl.dataset.enabled = '';
                 return;
             }
-            document.getElementById('restore-timer').style.display = 'none';
+
+            const skippedFor = localStorage.getItem('skipReminderUntil');
+            if (!lastFeed || (skippedFor && Number(skippedFor) === lastFeed)) {
+                wrapperEl.style.display = 'none';
+                wrapperEl.dataset.enabled = '';
+                return;
+            }
 
             wrapperEl.style.display = '';
             wrapperEl.dataset.enabled = '1';
@@ -3580,11 +3590,11 @@
         Object.assign(window, {
             log, openAddModal, closeAddModal, saveRetroEntry, setActivity, setTimePreset, toggleCustomTime, switchTab,
             handleBack, openSettings, confirmClearAll, copyInviteCode, shareInviteCode, openInvitePage, closeInvitePage, deleteEntry, downloadBackup, clearAll,
-            requestNotifPermission, skipNextReminder, restoreTimer, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
+            requestNotifPermission, skipNextReminder, signInWithGoogle, sendMagicLink, saveOnboarding, logout,
             startFeedSession, stopFeedSession, previewFeedInterval, saveFeedInterval, cancelFeedInterval,
             openProfileEdit, closeProfileEdit, saveProfileEdit, selectGender, navigateDay,
             editDuration, saveDuration, refreshData,
-            confirmVitaminD, dismissVitaminD, toggleVitaminD,
+            confirmVitaminD, dismissVitaminD, toggleVitaminD, toggleFeedTimerVisible,
             startPumpSession, stopPumpSession, chooseStorage, skipStorage
         });
 
